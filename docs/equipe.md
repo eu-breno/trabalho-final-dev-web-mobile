@@ -10,11 +10,11 @@
 
 | Campo | Valor |
 |---|---|
-| **Projeto** | |
-| **Grupo** | |
-| **Tema escolhido** | |
-| **Repositório** | `https://github.com/...` |
-| **Data de formação** | |
+| **Projeto** | Memora |
+| **Grupo** | Grupo H |
+| **Tema escolhido** | Flashcards com repetição espaçada |
+| **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
+| **Data de formação** | 20/08/2026 |
 
 ---
 
@@ -22,20 +22,12 @@
 
 Preencha a tabela correspondente ao tamanho do grupo e apague a outra.
 
-**Grupo de 3** — um responsável por componente:
-
-| Integrante | Usuário GitHub | Responsabilidade principal | Componente secundário |
-|---|---|---|---|
-| | | Backend | |
-| | | Cliente web | |
-| | | App mobile | |
-
 **Grupo de 2** — cada um lidera um cliente; backend e contrato são conduzidos em conjunto:
 
 | Integrante | Usuário GitHub | Responsabilidade principal | Parte do backend que conduz |
 |---|---|---|---|
-| | | Cliente web | |
-| | | App mobile | |
+| Matheus Dos Santos Savegnago |MATh3us46 | Cliente web |Autenticação, usuários e gerenciamento de baralhos |
+|Breno Olliari |eu-breno | App mobile | Flashcards, revisões e algoritmo de repetição espaçada |
 
 > **Responsabilidade principal** significa liderar aquele componente: tomar as decisões, revisar o que os colegas commitam ali e responder por ele na apresentação. Não significa ser o único a escrever código naquela pasta.
 >
@@ -49,12 +41,12 @@ Preencha a tabela correspondente ao tamanho do grupo e apague a outra.
 
 | Tema | Combinado |
 |---|---|
-| Frequência de reuniões | |
-| Canal de comunicação | |
-| Prazo interno antes do prazo oficial do checkpoint | |
-| Como a revisão de código acontece _(opcional: Pull Request, leitura em par, reunião)_ | |
-| Como avisar mudança no contrato da API | |
-| O que fazer quando alguém trava por mais de um dia | |
+| Frequência de reuniões | Reuniões semanais e reuniões adicionais quando necessário para integração ou resolução de problemas|
+| Canal de comunicação | WhatsApp para comunicação rápida e GitHub para acompanhamento do código e tarefas|
+| Prazo interno antes do prazo oficial do checkpoint | Concluir a maior parte da etapa pelo menos 3 dias antes do prazo oficial|
+| Como a revisão de código acontece _(opcional: Pull Request, leitura em par, reunião)_ | Pull Requests no GitHub e revisão pelo outro integrante antes do merge na branch principal|
+| Como avisar mudança no contrato da API | Comunicar no WhatsApp e registrar a alteração no repositório/documentação antes de implementar nos clientes|
+| O que fazer quando alguém trava por mais de um dia | Comunicar o outro integrante, explicar o problema e tentar resolver juntos antes de seguir com outra solução|
 
 ---
 
@@ -68,17 +60,21 @@ Preencha a tabela correspondente ao tamanho do grupo e apague a outra.
 
 ### Etapa 0 — Concepção
 
-**Período:** de ___ a ___
+**Período:** de 29/08/2026 a __/__/____
 
 | Integrante | O que fez | Commits / PRs de referência |
 |---|---|---|
-| | | |
-| | | |
-| | | |
+| Breno | Participou da escolha do tema, definição inicial das funcionalidades, divisão das responsabilidades. Responsável por liderar o aplicativo mobile e conduzir os módulos de flashcards, revisões e repetição espaçada. Criou o repositório inicial do projeto. | Commit inicial do repositório |
+| Matheus | Participou da escolha do tema, definição inicial das funcionalidades, divisão das responsabilidades. Ficou responsável por liderar o cliente web e conduzir os módulos de autenticação, usuários, baralhos e tópicos. | - |
+| Ambos | Definiram o funcionamento geral do sistema, a divisão inicial das responsabilidades, a estratégia de uso de branches e Pull Requests e os combinados de trabalho do grupo. | - |
 
 **Dificuldades de coordenação:**
 
+Inicialmente, a principal dificuldade foi definir uma divisão de responsabilidades que permitisse a participação dos dois integrantes nos componentes Web, Mobile e Backend sem duplicar trabalho. A solução adotada foi definir um responsável principal por cada cliente e dividir a condução do backend por módulos, mantendo as decisões de arquitetura e contrato da API em conjunto.
+
 **Ajustes combinados para a próxima etapa:**
+
+Finalizar a modelagem inicial do banco de dados e definir o contrato básico da API antes do desenvolvimento dos clientes. Criar e organizar as branches do repositório e utilizar Pull Requests para revisão e integração das funcionalidades.
 
 ---
 

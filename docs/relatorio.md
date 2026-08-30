@@ -10,10 +10,10 @@
 
 | Campo | Valor |
 |---|---|
-| **Nome do projeto** | |
-| **Grupo** | |
-| **Integrantes** | |
-| **Repositório** | `https://github.com/...` |
+| **Nome do projeto** | Memora |
+| **Grupo** | Grupo H |
+| **Integrantes** | Breno Olliari e Matheus Dos Santos Savegnago |
+| **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
 | **Vídeo de apresentação** | _(link após a entrega)_ |
 
 ---
@@ -163,7 +163,7 @@
 
 ### Etapa 0 — Concepção
 
-**Período:** de ___ a ___ · **Redigido por:**
+**Período:** de 29/08/2026 a ___ · **Redigido por:**
 
 **O que foi feito:**
 

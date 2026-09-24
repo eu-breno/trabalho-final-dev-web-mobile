@@ -6,3 +6,54 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Usuario {
+  id        String    @id @default(uuid())
+  nome      String
+  email     String    @unique
+  senha     String
+  baralhos  Baralho[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Baralho {
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  flashcards Flashcard[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Flashcard {
+  id       String @id @default(uuid())
+  pergunta String
+  resposta String
+
+  baralhoId String
+  baralho   Baralho @relation(fields: [baralhoId], references: [id], onDelete: Cascade)
+
+  intervalo      Int       @default(0)
+  proximaRevisao DateTime?
+  ultimaRevisao  DateTime?
+
+  revisoes Revisao[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Revisao {
+  id          String    @id @default(uuid())
+  flashcardId String
+  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  resultado   String
+  dataRevisao DateTime @default(now())
+}

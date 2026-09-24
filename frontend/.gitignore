@@ -19,7 +19,9 @@
 
 # production
 /build
-
+frontend/.next/
+frontend/out/
+frontend/.vercel/
 # misc
 .DS_Store
 *.pem

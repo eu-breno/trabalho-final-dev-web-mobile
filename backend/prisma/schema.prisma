@@ -11,10 +11,16 @@ model Usuario {
   id        String    @id @default(uuid())
   nome      String
   email     String    @unique
-  senha     String
+  senhaHash String
+  perfil    Perfil    @default(estudante)
   baralhos  Baralho[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+enum Perfil {
+  estudante
+  administrador
 }
 
 model Baralho {
@@ -25,35 +31,50 @@ model Baralho {
   usuarioId String
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  flashcards Flashcard[]
+  cartoes Cartao[]
+
+  @@unique([usuarioId, nome])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Flashcard {
+model Cartao {
   id       String @id @default(uuid())
-  pergunta String
-  resposta String
+  frente   String
+  verso    String
 
   baralhoId String
   baralho   Baralho @relation(fields: [baralhoId], references: [id], onDelete: Cascade)
 
-  intervalo      Int       @default(0)
-  proximaRevisao DateTime?
+  facilidade     Float     @default(2.5)
+  repeticoes     Int       @default(0)
+  intervaloDias  Int       @default(0)
+  proximaRevisao DateTime  @default(now())
   ultimaRevisao  DateTime?
 
   revisoes Revisao[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([baralhoId, proximaRevisao])
+}
+
+enum Nota {
+  errei
+  dificil
+  bom
+  facil
 }
 
 model Revisao {
   id          String    @id @default(uuid())
-  flashcardId String
-  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  cartaoId String
+  cartao   Cartao @relation(fields: [cartaoId], references: [id], onDelete: Cascade)
 
-  resultado   String
-  dataRevisao DateTime @default(now())
+  nota                    Nota
+  intervaloAnteriorDias   Int
+  intervaloNovoDias      Int
+  revisadoEm              DateTime @default(now())
 }

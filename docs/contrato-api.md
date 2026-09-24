@@ -8,6 +8,8 @@
 
 O grupo trabalha em paralelo em três componentes, com menos gente do que frentes. O que impede que um trave o outro é este arquivo: com o contrato fechado, o responsável pelo cliente web pode construir a tela de listagem antes de o endpoint existir, e o responsável pelo mobile pode modelar suas classes de dados sem esperar a primeira migration.
 
+> **Escopo do Checkpoint 1 (24/09/2026):** nesta entrega, a implementação validada é o núcleo da API NestJS com Prisma/PostgreSQL: baralhos, cartões, fila de estudo e revisões. JWT, clientes web/mobile, estatísticas e permissões administrativas estão planejados para etapas posteriores. Até a autenticação ser implementada, os endpoints do MVP usam um usuário técnico fixo apenas no ambiente de desenvolvimento.
+
 Duas regras práticas decorrem disso:
 
 1. **O contrato muda antes do código, nunca depois.** Quem precisa alterar um endpoint atualiza este documento e avisa o grupo no mesmo dia. Descobrir a mudança quando a tela quebra custa o dobro.

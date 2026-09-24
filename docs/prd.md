@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Nome do projeto** | MemoCards _(nome sugerido — troque se o grupo preferir)_ |
-| **Grupo** | _[preencher: nomes dos integrantes]_ |
+| **Nome do projeto** | Memora |
+| **Grupo** | Breno Olliari e Matheus Savegnagi |
 | **Versão do documento** | 1.0 |
 | **Data de criação** | 21/09/2026 |
 | **Última atualização** | 21/09/2026 |
@@ -25,6 +25,8 @@
 > Em no máximo 4 linhas, descreva o que o produto faz, para quem e qual problema resolve. Deve ser consistente com a seção 2.1 do Documento de Visão.
 
 O MemoCards permite que estudantes criem baralhos de flashcards e os revisem com repetição espaçada: o sistema decide quando cada cartão volta a aparecer, com base em como o estudante avaliou a última revisão. O objetivo é fixar conteúdo com menos tempo de estudo do que a releitura, resolvendo o problema de não saber o que revisar nem quando.
+
+> **Status do Checkpoint 1 (24/09/2026):** a entrega prioriza a API NestJS com persistência Prisma/PostgreSQL para baralhos, cartões, fila de estudo e revisões. A autenticação JWT, o cliente web, o app mobile, estatísticas e permissões administrativas ficam para etapas posteriores. Durante o desenvolvimento, a API usa um usuário técnico fixo, documentado no backend, apenas para exercitar os endpoints do MVP.
 
 ---
 

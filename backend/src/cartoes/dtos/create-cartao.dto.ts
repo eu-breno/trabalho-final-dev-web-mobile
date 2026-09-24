@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateCartaoDTO {
   @IsString()
@@ -9,7 +9,7 @@ export class CreateCartaoDTO {
   @IsNotEmpty({ message: 'O verso do cartão é obrigatório' })
   verso: string;
 
+  @IsOptional()
   @IsUUID('4', { message: 'O ID do baralho deve ser um UUID válido' })
-  @IsNotEmpty()
-  baralhoId: string;
+  baralhoId?: string;
 }

@@ -4,9 +4,10 @@ import { BaralhosModule } from './baralhos/baralhos.module.js';
 import { CartoesModule } from './cartoes/cartoes.module.js';
 import { EstatisticasModule } from './estatisticas/estatisticas.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
-  imports: [AuthModule, BaralhosModule, CartoesModule, EstatisticasModule, UsuariosModule],
+  imports: [PrismaModule, AuthModule, BaralhosModule, CartoesModule, EstatisticasModule, UsuariosModule],
   controllers: [],
   providers: [],
 })

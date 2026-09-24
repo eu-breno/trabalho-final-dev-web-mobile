@@ -31,6 +31,9 @@ prisma/generated/
 # Next.js — web
 # =========================================================
 web/.next/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
 web/out/
 web/.vercel/
 next-env.d.ts

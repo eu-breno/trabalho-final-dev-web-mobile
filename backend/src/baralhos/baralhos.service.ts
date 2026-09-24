@@ -1,74 +1,84 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateCartaoDTO } from '../cartoes/dtos/create-cartao.dto.js';
 import { CreateBaralhoDTO } from './dtos/create-baralho.dto.js';
 import { UpdateBaralhoDTO } from './dtos/update-baralho.dto.js';
 
-// Define a estrutura do baralho
-export interface Baralho {
-  id: string;
-  titulo: string;
-  descricao?: string;
-  usuarioId: string;
-}
-
 @Injectable()
 export class BaralhosService {
-  // Tipando o array explicitamente para evitar o erro 'never'
-  private baralhos: Baralho[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  async listarTodos(usuarioId: string): Promise<Baralho[]> {
-    return this.baralhos;
+  async listarTodos(usuarioId: string) {
+    const baralhos = await this.prisma.baralho.findMany({
+      where: { usuarioId },
+      orderBy: { nome: 'asc' },
+      include: { cartoes: { select: { proximaRevisao: true } } },
+    });
+
+    return baralhos.map(({ cartoes, ...baralho }) => ({
+      ...baralho,
+      totalCartoes: cartoes.length,
+      cartoesPendentes: cartoes.filter((cartao) => cartao.proximaRevisao <= new Date()).length,
+    }));
   }
 
-  async buscarPorId(id: string): Promise<Baralho> {
-    const baralho = this.baralhos.find((b) => b.id === id);
-    if (!baralho) {
-      throw new NotFoundException(`Baralho com ID ${id} não encontrado`);
-    }
-    return baralho;
-  }
+  async buscarPorId(id: string, usuarioId: string) {
+    const baralho = await this.prisma.baralho.findFirst({
+      where: { id, usuarioId },
+      include: { cartoes: { select: { proximaRevisao: true } } },
+    });
+    if (!baralho) throw new NotFoundException('Baralho não encontrado');
 
-  async criar(dto: CreateBaralhoDTO, usuarioId: string): Promise<Baralho> {
-    const novoBaralho: Baralho = {
-      id: randomUUID(),
-      ...dto,
-      usuarioId,
-    };
-    this.baralhos.push(novoBaralho);
-    return novoBaralho;
-  }
-
-  async atualizar(id: string, dto: UpdateBaralhoDTO): Promise<Baralho> {
-    const baralho = await this.buscarPorId(id);
-    Object.assign(baralho, dto);
-    return baralho;
-  }
-
-  async remover(id: string): Promise<{ message: string }> {
-    const index = this.baralhos.findIndex((b) => b.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Baralho com ID ${id} não encontrado`);
-    }
-    this.baralhos.splice(index, 1);
-    return { message: 'Baralho e seus cartões associados foram removidos' };
-  }
-
-  async listarCartoesDoBaralho(baralhoId: string) {
-    await this.buscarPorId(baralhoId);
-    return [];
-  }
-
-  async criarCartaoNoBaralho(baralhoId: string, dadosCartao: any) {
-    await this.buscarPorId(baralhoId);
+    const { cartoes, ...dados } = baralho;
     return {
-      id: randomUUID(),
-      baralhoId,
-      ...dadosCartao,
+      ...dados,
+      totalCartoes: cartoes.length,
+      cartoesPendentes: cartoes.filter((cartao) => cartao.proximaRevisao <= new Date()).length,
     };
   }
 
-  async obterFilaEstudo(baralhoId: string) {
-    await this.buscarPorId(baralhoId);
-    return [];
+  async criar(dto: CreateBaralhoDTO, usuarioId: string) {
+    try {
+      return await this.prisma.baralho.create({ data: { ...dto, usuarioId } });
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        throw new ConflictException('Já existe um baralho com esse nome');
+      }
+      throw error;
+    }
+  }
+
+  async atualizar(id: string, dto: UpdateBaralhoDTO, usuarioId: string) {
+    await this.buscarPorId(id, usuarioId);
+    return this.prisma.baralho.update({ where: { id }, data: dto });
+  }
+
+  async remover(id: string, usuarioId: string) {
+    await this.buscarPorId(id, usuarioId);
+    await this.prisma.baralho.delete({ where: { id } });
+  }
+
+  async listarCartoesDoBaralho(baralhoId: string, usuarioId: string) {
+    await this.buscarPorId(baralhoId, usuarioId);
+    return this.prisma.cartao.findMany({
+      where: { baralhoId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async criarCartaoNoBaralho(baralhoId: string, dadosCartao: CreateCartaoDTO, usuarioId: string) {
+    await this.buscarPorId(baralhoId, usuarioId);
+    return this.prisma.cartao.create({
+      data: { frente: dadosCartao.frente, verso: dadosCartao.verso, baralhoId },
+    });
+  }
+
+  async obterFilaEstudo(baralhoId: string, usuarioId: string) {
+    await this.buscarPorId(baralhoId, usuarioId);
+    return this.prisma.cartao.findMany({
+      where: { baralhoId, proximaRevisao: { lte: new Date() } },
+      orderBy: { proximaRevisao: 'asc' },
+      take: 20,
+    });
   }
 }

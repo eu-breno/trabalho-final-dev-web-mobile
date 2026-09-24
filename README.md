@@ -51,7 +51,7 @@ O que o projeto exige é **um PostgreSQL 18 acessível**, com um banco e um usu�
 Qualquer uma das opções abaixo serve. O que importa é que, ao final, esta URL funcione:
 
 ```
-postgresql://app:app@localhost:5432/appdb?schema=public
+postgresql://app:app@localhost:5433/appdb?schema=public
 ```
 
 Se o grupo usar outro usuário, senha, porta ou nome de banco, tudo bem: basta ajustar o `DATABASE_URL` do backend de acordo. Registre a escolha em `docs/relatorio.md`, para que outra pessoa consiga reproduzir o ambiente.
@@ -61,7 +61,7 @@ Se o grupo usar outro usuário, senha, porta ou nome de banco, tudo bem: basta a
 O `docker-compose.yml` na raiz já vem configurado com banco `appdb`, usuário `app` e senha `app`.
 
 ```bash
-docker compose up -d          # sobe o banco na porta 5432
+docker compose up -d          # sobe o banco na porta 5433
 docker compose ps             # confere que está de pé
 docker compose logs -f db     # acompanha os logs, se precisar
 docker compose down           # derruba (os dados ficam no volume)
@@ -93,12 +93,12 @@ No Linux, o caminho costuma ser `sudo -u postgres psql`. No macOS com Homebrew, 
 **3. Conferir a conexão:**
 
 ```bash
-psql "postgresql://app:app@localhost:5432/appdb" -c "SELECT version();"
+psql "postgresql://app:app@localhost:5433/appdb" -c "SELECT version();"
 ```
 
 Se a versão aparecer, o backend vai conectar.
 
-> **Se a porta 5432 já estiver ocupada** por outra instalação de PostgreSQL, use outra porta (5433, por exemplo) e reflita isso no `DATABASE_URL`. É o problema mais comum de quem já tinha o banco instalado antes.
+> A configuração deste repositório usa a porta 5433 no Windows para evitar conflito com instalações locais de PostgreSQL. Se você trocar a porta, reflita a alteração no `DATABASE_URL`.
 
 ### Opção C — serviço gerenciado na nuvem
 
@@ -140,7 +140,7 @@ npx prisma init --datasource-provider postgresql
 Crie o arquivo `backend/.env` (ele **não** vai para o Git):
 
 ```env
-DATABASE_URL="postgresql://app:app@localhost:5432/appdb?schema=public"
+DATABASE_URL="postgresql://app:app@localhost:5433/appdb?schema=public"
 JWT_SECRET="troque-este-valor"
 ```
 

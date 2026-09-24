@@ -1,72 +1,75 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { Nota } from '../../generated/prisma/enums.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCartaoDTO } from './dtos/create-cartao.dto.js';
 import { UpdateCartaoDTO } from './dtos/update-cartao.dto.js';
 import { CreateRevisaoDTO } from './dtos/create-revisao.dto.js';
 
-export interface Cartao {
-  id: string;
-  frente: string;
-  verso: string;
-  baralhoId: string;
-  criadoEm: Date;
-  proximaRevisao?: Date;
-  intervaloDias?: number;
-}
-
 @Injectable()
 export class CartoesService {
-  private cartoes: Cartao[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  async criar(dto: CreateCartaoDTO): Promise<Cartao> {
-    const novoCartao: Cartao = {
-      id: randomUUID(),
-      ...dto,
-      criadoEm: new Date(),
-    };
-    this.cartoes.push(novoCartao);
-    return novoCartao;
+  async criar(dto: CreateCartaoDTO, usuarioId: string) {
+    if (!dto.baralhoId) throw new NotFoundException('Informe o baralho do cartão');
+    await this.buscarBaralho(dto.baralhoId, usuarioId);
+    return this.prisma.cartao.create({
+      data: { frente: dto.frente, verso: dto.verso, baralhoId: dto.baralhoId },
+    });
   }
 
-  async buscarPorId(id: string): Promise<Cartao> {
-    const cartao = this.cartoes.find((c) => c.id === id);
-    if (!cartao) {
-      throw new NotFoundException(`Cartão com ID ${id} não encontrado`);
-    }
+  private async buscarBaralho(id: string, usuarioId: string) {
+    const baralho = await this.prisma.baralho.findFirst({ where: { id, usuarioId } });
+    if (!baralho) throw new NotFoundException('Baralho não encontrado');
+    return baralho;
+  }
+
+  async buscarPorId(id: string, usuarioId: string) {
+    const cartao = await this.prisma.cartao.findFirst({
+      where: { id, baralho: { usuarioId } },
+    });
+    if (!cartao) throw new NotFoundException('Cartão não encontrado');
     return cartao;
   }
 
-  async atualizar(id: string, dto: UpdateCartaoDTO): Promise<Cartao> {
-    const cartao = await this.buscarPorId(id);
-    Object.assign(cartao, dto);
-    return cartao;
+  async atualizar(id: string, dto: UpdateCartaoDTO, usuarioId: string) {
+    await this.buscarPorId(id, usuarioId);
+    return this.prisma.cartao.update({
+      where: { id },
+      data: { frente: dto.frente, verso: dto.verso },
+    });
   }
 
-  async remover(id: string): Promise<{ message: string }> {
-    const index = this.cartoes.findIndex((c) => c.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Cartão com ID ${id} não encontrado`);
-    }
-    this.cartoes.splice(index, 1);
-    return { message: 'Cartão removido com sucesso' };
+  async remover(id: string, usuarioId: string) {
+    await this.buscarPorId(id, usuarioId);
+    await this.prisma.cartao.delete({ where: { id } });
   }
 
-  async registrarRevisao(id: string, dto: CreateRevisaoDTO) {
-    const cartao = await this.buscarPorId(id);
+  async registrarRevisao(id: string, dto: CreateRevisaoDTO, usuarioId: string) {
+    const cartao = await this.buscarPorId(id, usuarioId);
+    const intervalos = { errei: 0, dificil: 1, bom: 3, facil: 7 };
+    const intervaloNovoDias = intervalos[dto.nota];
+    const proximaRevisao = new Date();
+    proximaRevisao.setDate(proximaRevisao.getDate() + intervaloNovoDias);
 
-    // Lógica simplificada de reagendamento baseada na nota
-    const diasParaAdicionar = dto.nota * 2;
-    const proximaData = new Date();
-    proximaData.setDate(proximaData.getDate() + diasParaAdicionar);
-
-    cartao.proximaRevisao = proximaData;
-    cartao.intervaloDias = diasParaAdicionar;
-
-    return {
-      message: 'Avaliação registrada e cartão reagendado com sucesso',
-      cartaoId: cartao.id,
-      nota: dto.nota,
-      proximaRevisao: cartao.proximaRevisao,
-    };
+    return this.prisma.$transaction(async (transaction) => {
+      const atualizado = await transaction.cartao.update({
+        where: { id: cartao.id },
+        data: {
+          intervaloDias: intervaloNovoDias,
+          repeticoes: { increment: 1 },
+          proximaRevisao,
+          ultimaRevisao: new Date(),
+        },
+      });
+      await transaction.revisao.create({
+        data: {
+          cartaoId: cartao.id,
+          nota: dto.nota as Nota,
+          intervaloAnteriorDias: cartao.intervaloDias,
+          intervaloNovoDias,
+        },
+      });
+      return atualizado;
+    });
   }
 }

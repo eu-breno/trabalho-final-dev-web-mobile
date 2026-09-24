@@ -20,9 +20,9 @@ services:
       POSTGRES_PASSWORD: app
       POSTGRES_DB: appdb
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - dados-postgres:/var/lib/postgresql/data
+      - dados-postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
       interval: 5s
@@ -31,3 +31,4 @@ services:
 
 volumes:
   dados-postgres:
+    name: memocards-postgres-mvp

@@ -10,11 +10,11 @@
 
 | Campo | Valor |
 |---|---|
-| **Nome do projeto** | |
-| **Grupo** | |
+| **Nome do projeto** | MemoCards _(nome sugerido — troque se o grupo preferir)_ |
+| **Grupo** | _[preencher: nomes dos integrantes]_ |
 | **Versão do documento** | 1.0 |
-| **Data de criação** | |
-| **Última atualização** | |
+| **Data de criação** | 21/09/2026 |
+| **Última atualização** | 21/09/2026 |
 | **Documento de Visão (ref.)** | `docs/visao.md` |
 | **Contrato da API (ref.)** | `docs/contrato-api.md` |
 
@@ -24,29 +24,33 @@
 
 > Em no máximo 4 linhas, descreva o que o produto faz, para quem e qual problema resolve. Deve ser consistente com a seção 2.1 do Documento de Visão.
 
+O MemoCards permite que estudantes criem baralhos de flashcards e os revisem com repetição espaçada: o sistema decide quando cada cartão volta a aparecer, com base em como o estudante avaliou a última revisão. O objetivo é fixar conteúdo com menos tempo de estudo do que a releitura, resolvendo o problema de não saber o que revisar nem quando.
+
 ---
 
 ## 2. Personas
 
 > Transforme os perfis de usuário da Visão em personas com mais detalhe. Ao menos 2. Registre em qual cliente cada persona passa a maior parte do tempo.
 
-### Persona 1 — _(nome fictício)_
+### Persona 1 — Marina
 
-> _(ex: Ana, 34 anos, coordenadora de suporte)_
+> Marina, 20 anos, estudante de Direito
 
-- **Contexto:** 
-- **Cliente principal:** _(web / mobile)_
-- **Objetivo principal no sistema:** 
-- **Maior frustração atual (sem o sistema):** 
-- **Critério de sucesso:** 
+- **Contexto:** Tem muita matéria para decorar (artigos, conceitos, prazos) e estuda em pedaços de tempo: no ônibus, entre aulas, na fila.
+- **Cliente principal:** mobile
+- **Objetivo principal no sistema:** Revisar os cartões do dia em poucos minutos, sem decidir o que estudar.
+- **Maior frustração atual (sem o sistema):** Reler o caderno inteiro e ainda esquecer o que não revisou a tempo.
+- **Critério de sucesso:** Abrir o app, ver quantos cartões estão pendentes e terminar a sessão em menos de 10 minutos.
 
-### Persona 2 — _(nome fictício)_
+### Persona 2 — Rafael
 
-- **Contexto:** 
-- **Cliente principal:** _(web / mobile)_
-- **Objetivo principal no sistema:** 
-- **Maior frustração atual (sem o sistema):** 
-- **Critério de sucesso:** 
+> Rafael, 28 anos, concurseiro
+
+- **Contexto:** Estuda em casa, no computador, e transforma apostilas e resumos em perguntas e respostas. Cria muitos cartões de uma vez.
+- **Cliente principal:** web
+- **Objetivo principal no sistema:** Organizar o material em baralhos por matéria e acompanhar o próprio progresso.
+- **Maior frustração atual (sem o sistema):** Planilhas e papel não avisam quando revisar cada assunto, e ele não sabe onde está mais fraco.
+- **Critério de sucesso:** Ver, no fim da semana, quantas revisões fez e a taxa de acerto.
 
 ---
 
@@ -64,20 +68,41 @@
 |---|---|---|---|---|
 | RF-001 | O usuário entra no sistema informando e-mail e senha e recebe acesso às funcionalidades do seu perfil | Alta | todas | web / mobile |
 | RF-002 | O usuário encerra a sessão e deixa de ter acesso às rotas protegidas | Alta | todas | web / mobile |
-| RF-003 | _(se houver auto-cadastro, recuperação de senha, troca de senha — descreva; se os usuários são criados por seed ou por um administrador, registre isso aqui e apague esta linha)_ | | | |
+| RF-003 | O visitante cria uma conta informando nome, e-mail e senha e já entra logado. A conta criada é sempre de estudante; o administrador é criado por seed | Alta | Rafael | web |
 
-### 3.2 _(Nome do módulo)_
-
-| ID | Descrição | Prioridade | Persona | Cliente |
-|---|---|---|---|---|
-| RF-010 | | | | |
-| RF-011 | | | | |
-
-### 3.3 _(Nome do módulo)_
+### 3.2 Baralhos
 
 | ID | Descrição | Prioridade | Persona | Cliente |
 |---|---|---|---|---|
-| RF-020 | | | | |
+| RF-010 | O estudante cria um baralho com nome e descrição opcional | Alta | Rafael | web |
+| RF-011 | O estudante vê a lista dos seus baralhos, cada um com total de cartões e quantidade de cartões pendentes | Alta | todas | web / mobile |
+| RF-012 | O estudante edita o nome e a descrição de um baralho | Alta | Rafael | web |
+| RF-013 | O estudante remove um baralho, com confirmação, e seus cartões são removidos junto | Alta | Rafael | web |
+
+### 3.3 Cartões
+
+| ID | Descrição | Prioridade | Persona | Cliente |
+|---|---|---|---|---|
+| RF-020 | O estudante cria um cartão em um baralho informando frente e verso | Alta | todas | web / mobile |
+| RF-021 | O estudante lista e busca os cartões de um baralho | Alta | Rafael | web |
+| RF-022 | O estudante edita a frente e o verso de um cartão sem perder o progresso dele | Alta | Rafael | web |
+| RF-023 | O estudante remove um cartão | Alta | Rafael | web |
+
+### 3.4 Estudo (repetição espaçada)
+
+| ID | Descrição | Prioridade | Persona | Cliente |
+|---|---|---|---|---|
+| RF-030 | O estudante inicia uma sessão de estudo em um baralho e recebe os cartões pendentes, do mais atrasado ao menos atrasado | Alta | todas | web / mobile |
+| RF-031 | Na sessão, o estudante vê a frente, revela o verso e avalia o cartão como "errei", "difícil", "bom" ou "fácil"; o sistema reagenda o cartão | Alta | todas | web / mobile |
+| RF-032 | Após avaliar, o estudante vê em quantos dias o cartão volta | Média | Marina | web / mobile |
+| RF-033 | Quando não há cartões pendentes, o sistema informa que não há nada para estudar hoje | Alta | todas | web / mobile |
+
+### 3.5 Progresso e administração
+
+| ID | Descrição | Prioridade | Persona | Cliente |
+|---|---|---|---|---|
+| RF-040 | O estudante vê o resumo do seu progresso: revisões de hoje, cartões pendentes, taxa de acerto da semana e sequência de dias | Média | Rafael | web |
+| RF-050 | O administrador lista os usuários cadastrados | Baixa | administrador | web |
 
 > Adicione quantos módulos forem necessários. Renumere conforme o projeto. Mínimo de 8 requisitos funcionais.
 
@@ -90,14 +115,14 @@
 | ID | Categoria | Descrição | Critério de aceitação |
 |---|---|---|---|
 | RNF-001 | Segurança — credenciais | Senhas são armazenadas com hash e nunca em texto puro | Nenhuma senha legível no banco; a coluna guarda o hash |
-| RNF-002 | Segurança — sessão | O acesso é feito por token JWT, com validade definida | Token expirado é recusado com `401` |
+| RNF-002 | Segurança — sessão | O acesso é feito por token JWT, com validade definida (1 hora) | Token expirado é recusado com `401` |
 | RNF-003 | Segurança — rotas | Toda rota que não seja pública exige token válido | Requisição sem token recebe `401`; requisição com perfil insuficiente recebe `403` |
 | RNF-004 | Segurança — segredos | Chaves e credenciais ficam em variável de ambiente | Nenhum segredo versionado no repositório |
-| RNF-005 | Desempenho | | |
-| RNF-006 | Usabilidade | | |
-| RNF-007 | Manutenibilidade | | |
-| RNF-008 | Comportamento em rede instável _(mobile)_ | | |
-| RNF-009 | _(outro)_ | | |
+| RNF-005 | Desempenho | A fila de estudo e a listagem de baralhos respondem rápido com volume realista | `GET /baralhos/:id/estudo` responde em menos de 500 ms com 5.000 cartões no baralho (índice em `baralhoId` + `proximaRevisao`) |
+| RNF-006 | Usabilidade | Avaliar um cartão exige poucas interações | No máximo 2 toques por cartão: revelar o verso e escolher a nota |
+| RNF-007 | Manutenibilidade | Backend organizado em um módulo NestJS por recurso, com DTOs validados; tipos dos clientes derivados do contrato | Cada recurso do contrato tem um módulo correspondente; DTOs rejeitam campos desconhecidos |
+| RNF-008 | Comportamento em rede instável _(mobile)_ | O app trata falha de rede sem travar nem perder a avaliação em andamento | Timeout de 10 s; em falha, mostra mensagem clara com botão "tentar de novo" e mantém o cartão na tela |
+| RNF-009 | Integridade | Avaliar um cartão grava a revisão e atualiza o cartão de forma atômica | Ambas as operações ocorrem na mesma transação do Prisma; nunca existe revisão sem o cartão atualizado, nem o contrário |
 
 > **Por que autenticação aparece em três lugares.** É a dúvida mais comum ao preencher este documento, e a resposta é que ela tem três faces distintas:
 >
@@ -119,16 +144,24 @@
 
 | ID | Regra | Validação antecipada no cliente? |
 |---|---|---|
-| RN-001 | _(ex: Um chamado so pode ser fechado se estiver resolvido ha mais de 24 horas.)_ | não |
-| RN-002 | | |
-| RN-003 | | |
+| RN-001 | Todo cartão novo começa com facilidade 2.5, 0 repetições, intervalo de 0 dias e já nasce pendente | não |
+| RN-002 | Cada avaliação (`errei`, `dificil`, `bom`, `facil`) atualiza repetições, facilidade e intervalo do cartão conforme a tabela do contrato, seção 4.2, e define a próxima revisão | não |
+| RN-003 | A facilidade de um cartão nunca fica abaixo de 1.3 | não |
+| RN-004 | Um cartão está pendente quando sua data de próxima revisão é menor ou igual ao momento atual | não |
+| RN-005 | Editar frente ou verso de um cartão não reinicia seu progresso | não |
+| RN-006 | Não pode haver dois baralhos com o mesmo nome para o mesmo usuário (sem diferenciar maiúsculas) | não |
+| RN-007 | Remover um baralho remove seus cartões e revisões; remover um cartão remove suas revisões | sim — o cliente pede confirmação antes |
+| RN-008 | A fila de estudo vem ordenada do cartão mais atrasado para o menos atrasado e é limitada (padrão 20, máximo 50 cartões) | não |
+| RN-009 | O histórico de revisões é imutável: cada avaliação gera um registro que não é editado nem removido isoladamente | não |
+| RN-010 | A sequência de dias conta dias consecutivos com ao menos uma revisão, no fuso `America/Sao_Paulo` | não |
+| RN-011 | O cadastro público sempre cria um usuário de perfil `estudante`; e-mail é único no sistema | sim — o formulário valida formato de e-mail e tamanho da senha (8 a 72) |
 
 **Autorização — quem pode o quê.** As regras de acesso por perfil são regras de negócio: elas dizem o que cada papel do domínio tem direito de fazer. A tabela completa vive em `docs/contrato-api.md`, seção "Perfis e permissões", porque é lá que ela vira `403`. Registre aqui apenas as que não sejam óbvias a partir dos perfis:
 
 | ID | Regra de autorização | Perfil |
 |---|---|---|
-| RN-A01 | _(ex: Um leitor so pode ver e devolver os proprios emprestimos.)_ | |
-| RN-A02 | | |
+| RN-A01 | Um usuário só acessa os próprios baralhos, cartões e revisões; o acesso a recurso de outro usuário responde `404` | todos, inclusive administrador |
+| RN-A02 | Somente o administrador lista usuários (`GET /usuarios`); o estudante recebe `403` | administrador |
 
 ---
 
@@ -140,27 +173,61 @@
 
 ```mermaid
 erDiagram
-  ENTIDADE_A {
+  USUARIO {
     uuid id PK
     string nome
-    timestamp criadoEm
+    string email UK
+    string senhaHash
+    string perfil
+    timestamp createdAt
+    timestamp updatedAt
   }
-  ENTIDADE_B {
+  BARALHO {
     uuid id PK
-    uuid entidadeAId FK
+    uuid usuarioId FK
+    string nome
     string descricao
+    timestamp createdAt
+    timestamp updatedAt
   }
-  ENTIDADE_A ||--o{ ENTIDADE_B : "possui"
+  CARTAO {
+    uuid id PK
+    uuid baralhoId FK
+    string frente
+    string verso
+    float facilidade
+    int repeticoes
+    int intervaloDias
+    timestamp proximaRevisao
+    timestamp ultimaRevisao
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  REVISAO {
+    uuid id PK
+    uuid cartaoId FK
+    string nota
+    int intervaloAnteriorDias
+    int intervaloNovoDias
+    timestamp revisadoEm
+  }
+  USUARIO ||--o{ BARALHO : "possui"
+  BARALHO ||--o{ CARTAO : "contem"
+  CARTAO ||--o{ REVISAO : "tem historico de"
 ```
 
 > Substitua pelas entidades reais do seu domínio. Lembre-se da convenção: substantivo de domínio em português, sem acento no identificador.
+
+Restrições do banco: `USUARIO.email` único; `BARALHO` único em (`usuarioId`, `nome`); exclusão em cascata de `BARALHO` para `CARTAO` e de `CARTAO` para `REVISAO`; índice em `CARTAO` (`baralhoId`, `proximaRevisao`) para a fila de estudo. `perfil` e `nota` são enums no Prisma (`estudante`/`administrador`; `errei`/`dificil`/`bom`/`facil`).
 
 ### 6.2 Descrição das entidades
 
 | Entidade | Responsabilidade | Principais atributos |
 |---|---|---|
-| | | |
-| | | |
+| `Usuario` | Conta de acesso ao sistema | `nome`, `email`, `senhaHash`, `perfil` |
+| `Baralho` | Agrupa cartões de um assunto; pertence a um usuário | `nome`, `descricao`, `usuarioId` |
+| `Cartao` | Flashcard com o estado de repetição espaçada | `frente`, `verso`, `facilidade`, `repeticoes`, `intervaloDias`, `proximaRevisao`, `ultimaRevisao` |
+| `Revisao` | Registro imutável de cada avaliação feita no estudo | `cartaoId`, `nota`, `intervaloAnteriorDias`, `intervaloNovoDias`, `revisadoEm` |
 
 ---
 
@@ -170,18 +237,25 @@ erDiagram
 
 | Funcionalidade | Web | Mobile | Justificativa |
 |---|---|---|---|
-| | ✅ | — | |
-| | — | ✅ | |
-| | ✅ | ✅ | |
+| Cadastro de conta (RF-003) | ✅ | — | Feito uma única vez; o app só faz login |
+| Login e logout (RF-001, RF-002) | ✅ | ✅ | Necessário nos dois clientes |
+| CRUD de baralhos (RF-010, 012, 013) | ✅ | — | Organização do material é trabalho concentrado, melhor com teclado e tela grande |
+| Listar baralhos com pendentes (RF-011) | ✅ | ✅ | Ponto de partida para estudar nos dois clientes |
+| Criar cartão (RF-020) | ✅ | ✅ | No celular, para registrar uma dúvida na hora em que ela aparece |
+| Listar, buscar, editar e remover cartões (RF-021 a 023) | ✅ | — | Manutenção do conteúdo é tarefa de mesa |
+| Sessão de estudo e avaliação (RF-030 a 033) | ✅ | ✅ | É o núcleo do produto; no celular é onde acontece a maior parte do estudo |
+| Resumo de progresso (RF-040) | ✅ | — | Consulta analítica, não faz parte do uso em pequenos intervalos |
+| Administração de usuários (RF-050) | ✅ | — | Tarefa administrativa, feita em computador |
 
-**O que ficou de fora do mobile e por quê:**
+**O que ficou de fora do mobile e por quê:** gestão de baralhos, edição e remoção de cartões, cadastro de conta, estatísticas e administração. O contexto de uso do app é estudar em pequenos intervalos de tempo; o trabalho de organizar o conteúdo fica melhor no computador.
 
-**O que ficou de fora do web e por quê:**
+**O que ficou de fora do web e por quê:** nada relevante — o web cobre todas as funcionalidades. O que o mobile faz de específico é a experiência de estudo otimizada para tela pequena e toque.
 
 > Declare aqui o **recorte mobile mínimo**: de 1 a 3 casos de uso que o app precisa cobrir. Pelo menos um deles precisa envolver o app **lendo e escrevendo** dados contra a API — só consultar informação não é suficiente para caracterizar o app como cliente funcional.
 
 **Recorte mobile mínimo (1 a 3 casos de uso, com leitura e escrita na API):**
-- 
+- **Estudar um baralho:** o usuário faz login, escolhe um baralho (lê `GET /baralhos`), recebe a fila (`GET /baralhos/:id/estudo`) e avalia cada cartão (`POST /cartoes/:id/revisoes`) — leitura e escrita.
+- **Criar cartão rápido:** o usuário escolhe um baralho e cadastra frente e verso (`POST /baralhos/:baralhoId/cartoes`) — escrita.
 
 ---
 
@@ -206,9 +280,9 @@ flowchart TD
 
 | Componente | Desvio em relação ao README | Motivo |
 |---|---|---|
-| Backend | | |
-| Cliente web | | |
-| App mobile | | |
+| Backend | nenhum | — |
+| Cliente web | nenhum | — |
+| App mobile | nenhum | — |
 
 > Se não houver desvio, escreva "nenhum". Desvio sem motivo declarado vira dívida que ninguém lembra de onde veio.
 
@@ -218,19 +292,24 @@ flowchart TD
 
 | Módulo | Recurso do domínio | Endpoints previstos |
 |---|---|---|
-| | | |
-| | | |
+| `auth` | Autenticação (JWT, guards) | `POST /auth/registro`, `POST /auth/login`, `GET /auth/me` |
+| `usuarios` | `Usuario` | `GET /usuarios` |
+| `baralhos` | `Baralho` | `GET/POST /baralhos`, `GET/PATCH/DELETE /baralhos/:id`, `GET /baralhos/:id/estudo` |
+| `cartoes` | `Cartao` | `GET/POST /baralhos/:baralhoId/cartoes`, `GET/PATCH/DELETE /cartoes/:id` |
+| `revisoes` | `Revisao` e algoritmo de repetição espaçada | `POST /cartoes/:id/revisoes` |
+| `estatisticas` | Consultas agregadas (sem entidade própria) | `GET /estatisticas/resumo` |
 
 ### 8.4 Decisões técnicas por componente
 
 | Componente | Decisão a tomar | Escolha do grupo | Justificativa |
 |---|---|---|---|
-| Backend | Estratégia de autenticação (JWT simples, com refresh) | | |
-| Backend | Formato de identificador (uuid, cuid, inteiro) | | |
-| Web | Fronteira Server / Client Components | | |
-| Web | Estratégia de revalidação e cache | | |
-| Mobile | Gerência de estado (`setState`, Provider, Riverpod, Bloc) | | |
-| Mobile | Nível de autenticação e armazenamento do token | | |
+| Backend | Estratégia de autenticação (JWT simples, com refresh) | JWT simples, 1 hora, sem refresh | Menor complexidade; o produto não exige sessões longas e o refresh fica fora do escopo |
+| Backend | Formato de identificador (uuid, cuid, inteiro) | uuid | Não expõe quantidade de registros nem permite adivinhar ids sequenciais |
+| Backend | Onde fica o algoritmo de repetição espaçada | Dentro do módulo `revisoes`, em uma função pura separada do acesso ao banco | Regra central do produto; função pura é fácil de testar com casos da tabela do contrato |
+| Web | Fronteira Server / Client Components | Listas e telas de gestão como Server Components; sessão de estudo (revelar/avaliar) e formulários como Client Components | Só a sessão de estudo e os formulários precisam de interatividade no navegador |
+| Web | Estratégia de revalidação e cache | Dados autenticados sem cache (`no-store`); após criar, editar, remover ou avaliar, revalidar as rotas afetadas | Os dados mudam a cada avaliação e dependem do usuário logado |
+| Mobile | Gerência de estado (`setState`, Provider, Riverpod, Bloc) | `setState` | Suficiente para o escopo do app |
+| Mobile | Nível de autenticação e armazenamento do token | Simplificada: login real, token em memória | Reduz trabalho no app sem afrouxar a API; o token continua exigido em toda requisição |
 
 > **Gerência de estado:** `setState` é suficiente para o escopo esperado do app. Provider, Riverpod, Bloc ou similares são diferencial, não requisito.
 >
@@ -251,7 +330,7 @@ flowchart TD
 | React | 19 | Biblioteca de interface |
 | Next.js | 15 (App Router) | Framework do cliente web |
 | Flutter / Dart | 3 | Framework do app mobile |
-| Docker | | Banco de dados local |
+| Docker | — | Banco de dados local |
 
 ---
 
@@ -263,14 +342,16 @@ flowchart TD
 
 | Sprint | Etapa | Tema | Requisitos previstos | Responsáveis | Entregáveis |
 |---|---|---|---|---|---|
-| 1 | Etapa 1 | Contrato e fundação | — | | PRD, contrato e backend rodando |
-| 2 | Etapa 2 | | | | |
-| 3 | Etapa 2 / 3 | | | | |
-| 4 | Etapa 3 | | | | |
-| 5 | Etapa 4 | | | | |
+| 1 | Etapa 1 | Contrato e fundação | — | _[definir]_ | PRD, contrato e backend rodando (projeto NestJS, Prisma, PostgreSQL no Docker) |
+| 2 | Etapa 2 | Backend: núcleo | RF-010 a RF-013, RF-020 a RF-023, RF-030, RF-031 | _[definir]_ | Baralhos, cartões, fila de estudo e revisões com o algoritmo |
+| 3 | Etapa 2 / 3 | Backend: acesso + início do web | RF-001 a RF-003, RF-040, RF-050; web: login e baralhos | _[definir]_ | JWT e guards, estatísticas, Swagger; **checkpoint do backend** |
+| 4 | Etapa 3 | Web | RF-011, RF-021 a RF-023, RF-030 a RF-033, RF-040 | _[definir]_ | Telas de cartões, estudo e progresso; **checkpoint do web** |
+| 5 | Etapa 4 | Mobile | RF-001, RF-002, RF-011, RF-020, RF-030 a RF-033 | _[definir]_ | App com login, lista de baralhos, estudo e criação de cartão; **checkpoint do mobile** |
 | 6 | Etapa 5 | Integração e fechamento | — | todos | Entrega final |
 
 > Os três checkpoints caem ao final das etapas 2, 3 e 4 — um por componente. Distribua as sprints de forma que cada etapa chegue ao seu checkpoint com o componente correspondente funcionando.
+
+Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do web, que trabalha contra o contrato antes de todos os endpoints existirem.
 
 ---
 
@@ -278,9 +359,12 @@ flowchart TD
 
 > Quais são as condições mínimas para considerar o projeto concluído? Liste os cenários principais. Ao menos um critério deve ser de integração — algo que só se verifica com os três componentes no ar.
 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ] Um estudante se cadastra, faz login e vê a lista de baralhos vazia
+- [ ] Um estudante cria um baralho e cadastra cartões nele
+- [ ] A sessão de estudo mostra os cartões pendentes; após avaliar, o cartão sai da fila e reaparece na data calculada pelo servidor
+- [ ] A avaliação `errei` faz o cartão voltar em 1 dia; `bom` em um cartão novo faz voltar em 1 dia, e no seguinte em 6 dias
+- [ ] Acessar o baralho de outro usuário resulta em `404`; estudante acessando `GET /usuarios` recebe `403`; requisição sem token recebe `401`
+- [ ] Remover um baralho remove os cartões dele
 - [ ] Um registro criado pelo cliente web aparece corretamente no app mobile, e vice-versa
 - [ ] O app apresenta um token válido à API e vê os mesmos dados do cliente web, qualquer que seja o nível de autenticação declarado
 
@@ -290,8 +374,14 @@ flowchart TD
 
 > Liste o que foi deliberadamente excluído para manter o escopo viável dentro do prazo.
 
-- 
-- 
+- Refresh token e recuperação/troca de senha
+- Baralhos compartilhados ou públicos entre usuários
+- Importação e exportação (CSV, Anki)
+- Imagens e áudio nos cartões
+- Modo offline e sincronização no app mobile
+- Notificações push de lembrete
+- Tags, categorias e mover cartões entre baralhos
+- Algoritmos mais avançados que a variante do SM-2 (como o FSRS)
 
 ---
 
@@ -299,5 +389,5 @@ flowchart TD
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 1.0 | | Versão inicial |
+| 1.0 | 21/09/2026 | Versão inicial |
 | | | |

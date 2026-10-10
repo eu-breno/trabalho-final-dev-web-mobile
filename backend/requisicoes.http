@@ -5,9 +5,9 @@ POST {{host}}/auth/registro
 Content-Type: application/json
 
 {
-  "nome": "Ana Souza",
-  "email": "ana@exemplo.com",
-  "senha": "umaSenhaForte123"
+  "nome": "Matheus 2",
+  "email": "m@exemplo.com",
+  "senha": "12345678"
 }
 
 ### Login de um usuario
@@ -15,6 +15,6 @@ POST {{host}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "ana@exemplo.com",
-  "senha": "umaSenhaForte123"
+  "email": "m@exemplo.com",
+  "senha": "12345678"
 }

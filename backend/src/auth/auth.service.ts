@@ -75,4 +75,22 @@ export class AuthService {
     const payload = { sub: usuario.id, perfil: usuario.perfil };
     return { accessToken: await this.jwtService.signAsync(payload) };
   }
+
+  async encontrarPorId(id: string) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        perfil: true,
+      },
+    });
+
+    if (!usuario) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    return usuario;
+  }
 }

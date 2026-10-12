@@ -1,5 +1,6 @@
 "use client"
-
+{/* alterar grande parte desse arquivo ainda porque é só um molde */}
+{/* esse é o arquivo que mostra uma lista */}
 import * as React from "react"
 import {
   closestCenter,

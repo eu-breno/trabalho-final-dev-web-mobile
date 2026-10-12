@@ -1,5 +1,6 @@
 "use client"
-
+{/* alterar grande parte desse arquivo ainda porque é só um molde */}
+{/* arquivo que mostra o cabecalho/bloco no comeco do dashboard */}
 import { Badge } from "@/components/ui/badge"
 import {
   Card,

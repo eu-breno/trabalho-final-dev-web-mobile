@@ -1,5 +1,6 @@
 "use client"
-
+{/* alterar grande parte desse arquivo ainda porque é só um molde */}
+{/* esse é o componente de grafico */}
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 

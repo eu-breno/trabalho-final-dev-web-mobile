@@ -610,36 +610,50 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 
 Em todos os casos, `proximaRevisao = revisadoEm + intervaloDias dias` e `ultimaRevisao = revisadoEm`. Onde a fórmula usa `f`, é o valor **antes** da atualização. **O cálculo é feito no servidor** — o cliente exibe o que recebe e nunca o recalcula. O cliente pode mostrar "volta em N dias" usando `cartao.intervaloDias` da resposta.
 
-### 4.3 `GET /estatisticas/resumo` _(prioridade Média)_
+### 4.3 Estatísticas
 
-**O que faz:** devolve o resumo de progresso do usuário autenticado.
+#### `GET /estatisticas`
 
-**Requisição:** sem corpo.
+Devolve o resumo do usuário autenticado. Aceita `periodo=hoje|semana|mes|geral`; o padrão é `geral`. A contagem de acertos considera as notas `bom` e `facil`. O dia e a sequência são calculados no fuso `America/Sao_Paulo`.
 
 **Resposta `200`**
 
 ```json
 {
   "totalBaralhos": 3,
-  "totalCartoes": 120,
-  "cartoesPendentes": 18,
-  "revisoesHoje": 25,
-  "taxaAcertoSemana": 0.82,
-  "sequenciaDias": 5
+  "totalCartoes": 42,
+  "cartoesEstudados": 25,
+  "taxaAcertoPorcentagem": 82,
+  "sequenciaDiasAtual": 5,
+  "periodoFiltro": "semana",
+  "atividadeSemanal": [
+    { "dia": "Seg", "total": 4 },
+    { "dia": "Ter", "total": 3 },
+    { "dia": "Qua", "total": 0 },
+    { "dia": "Qui", "total": 6 },
+    { "dia": "Sex", "total": 2 },
+    { "dia": "Sáb", "total": 5 },
+    { "dia": "Dom", "total": 5 }
+  ]
 }
 ```
 
 | Campo | Definição |
 |---|---|
-| `revisoesHoje` | Revisões registradas no dia atual |
-| `taxaAcertoSemana` | Proporção de revisões com nota `bom` ou `facil` nos últimos 7 dias (número entre 0 e 1); `null` se não houve revisão no período |
-| `sequenciaDias` | Dias consecutivos, terminando hoje (ou ontem, se hoje ainda não houve revisão), com ao menos uma revisão |
+| `totalBaralhos`, `totalCartoes` | Totais do usuário autenticado |
+| `cartoesEstudados` | Revisões registradas no período solicitado |
+| `taxaAcertoPorcentagem` | Percentual de revisões com nota `bom` ou `facil`; `0` se não houve revisão no período |
+| `sequenciaDiasAtual` | Dias consecutivos, terminando hoje (ou ontem, se hoje ainda não houve revisão), com ao menos uma revisão |
+| `atividadeSemanal` | Total de revisões em cada dia da semana corrente, de segunda a domingo |
 
-**Decisão:** "dia" nas estatísticas é sempre contado no fuso `America/Sao_Paulo`, independente do cliente.
+#### `GET /estatisticas/baralhos/:baralhoId`
+
+Retorna `baralhoId`, `totalCartoes`, `cartoesRevisados` (cartões que têm ao menos uma revisão) e `retencaoPorcentagem` (percentual de revisões avaliadas como `bom` ou `facil`). O baralho precisa pertencer ao usuário autenticado.
 
 | Status | Quando |
 |---|---|
 | `401` | Token ausente ou inválido |
+| `404` | Baralho inexistente ou de outro usuário |
 
 ---
 
@@ -651,7 +665,7 @@ Em todos os casos, `proximaRevisao = revisadoEm + intervaloDias dias` e `ultimaR
 |---|---|---|---|
 | `GET /baralhos/:id/estudo` | Mobile usa `limite=10` (sessões curtas); web usa o padrão (20) | mobile | Estudo em pequenos intervalos, com a tela pequena |
 | `GET /baralhos` | Mobile usa `limit=50` e sem paginação visível; web pagina | ambos | Poucos baralhos por usuário; a lista cabe em uma tela rolável |
-| `GET /estatisticas/resumo` | Consumido só pelo web no MVP | web | Recorte do mobile (PRD, seção 7) |
+| `GET /estatisticas` | Consumido só pelo web no MVP | web | Recorte do mobile (PRD, seção 7) |
 | `GET /usuarios` | Consumido só pelo web | web | Tela administrativa |
 
 ---

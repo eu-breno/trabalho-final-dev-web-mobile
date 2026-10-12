@@ -1,63 +1,66 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { BaralhosService } from './baralhos.service.js';
 import { UpdateBaralhoDTO } from './dtos/update-baralho.dto.js';
 import { CreateBaralhoDTO } from './dtos/create-baralho.dto.js';
 import { CreateCartaoDTO } from '../cartoes/dtos/create-cartao.dto.js';
-import { DEV_USER_ID } from '../common/dev-user.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UsuarioAtual } from '../auth/decorators/usuario-atual.decorator.js';
+import type { UsuarioAutenticado } from '../auth/tipos/usuario-autenticado.js';
 
 @Controller('baralhos')
+@UseGuards(JwtAuthGuard)
 export class BaralhosController {
   constructor(private readonly baralhosService: BaralhosService) {}
 
-  // GET /baralhos -> Lista os baralhos do usuário
   @Get()
-  async listarTodos() {
-    return this.baralhosService.listarTodos(DEV_USER_ID);
+  async listarTodos(@UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.baralhosService.listarTodos(usuario.id);
   }
 
-  // GET /baralhos/:id -> Obtém um baralho
   @Get(':id')
-  async buscarPorId(@Param('id') id: string) {
-    return this.baralhosService.buscarPorId(id, DEV_USER_ID);
+  async buscarPorId(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.baralhosService.buscarPorId(id, usuario.id);
   }
 
-  // POST /baralhos -> Cria baralho
   @Post()
-  async criar(@Body() dto: CreateBaralhoDTO) {
-    return this.baralhosService.criar(dto, DEV_USER_ID);
+  async criar(@Body() dto: CreateBaralhoDTO, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.baralhosService.criar(dto, usuario.id);
   }
 
-  // PATCH /baralhos/:id -> Edita baralho
   @Patch(':id')
-  async atualizar(@Param('id') id: string, @Body() dto: UpdateBaralhoDTO) {
-    return this.baralhosService.atualizar(id, dto, DEV_USER_ID);
+  async atualizar(
+    @Param('id') id: string,
+    @Body() dto: UpdateBaralhoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
+  ) {
+    return this.baralhosService.atualizar(id, dto, usuario.id);
   }
 
-  // DELETE /baralhos/:id -> Remove baralho (e seus cartões)
   @Delete(':id')
   @HttpCode(204)
-  async remover(@Param('id') id: string) {
-    return this.baralhosService.remover(id, DEV_USER_ID);
+  async remover(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.baralhosService.remover(id, usuario.id);
   }
 
-  // GET /baralhos/:baralhoId/cartoes -> Lista cartões de um baralho
   @Get(':baralhoId/cartoes')
-  async listarCartoesDoBaralho(@Param('baralhoId') baralhoId: string) {
-    return this.baralhosService.listarCartoesDoBaralho(baralhoId, DEV_USER_ID);
+  async listarCartoesDoBaralho(
+    @Param('baralhoId') baralhoId: string,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
+  ) {
+    return this.baralhosService.listarCartoesDoBaralho(baralhoId, usuario.id);
   }
 
-  // POST /baralhos/:baralhoId/cartoes -> Cria cartão no baralho
   @Post(':baralhoId/cartoes')
   async criarCartaoNoBaralho(
     @Param('baralhoId') baralhoId: string,
     @Body() body: CreateCartaoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
   ) {
-    return this.baralhosService.criarCartaoNoBaralho(baralhoId, body, DEV_USER_ID);
+    return this.baralhosService.criarCartaoNoBaralho(baralhoId, body, usuario.id);
   }
 
-  // GET /baralhos/:id/estudo -> Fila de cartões pendentes
   @Get(':id/estudo')
-  async obterFilaEstudo(@Param('id') id: string) {
-    return this.baralhosService.obterFilaEstudo(id, DEV_USER_ID);
+  async obterFilaEstudo(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.baralhosService.obterFilaEstudo(id, usuario.id);
   }
 }

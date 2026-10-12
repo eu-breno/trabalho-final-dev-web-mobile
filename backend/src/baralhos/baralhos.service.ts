@@ -39,7 +39,8 @@ export class BaralhosService {
 
   async criar(dto: CreateBaralhoDTO, usuarioId: string) {
     try {
-      return await this.prisma.baralho.create({ data: { ...dto, usuarioId } });
+      const baralho = await this.prisma.baralho.create({ data: { ...dto, usuarioId } });
+      return this.buscarPorId(baralho.id, usuarioId);
     } catch (error) {
       if ((error as { code?: string }).code === 'P2002') {
         throw new ConflictException('Já existe um baralho com esse nome');
@@ -50,7 +51,15 @@ export class BaralhosService {
 
   async atualizar(id: string, dto: UpdateBaralhoDTO, usuarioId: string) {
     await this.buscarPorId(id, usuarioId);
-    return this.prisma.baralho.update({ where: { id }, data: dto });
+    try {
+      await this.prisma.baralho.update({ where: { id }, data: dto });
+      return this.buscarPorId(id, usuarioId);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        throw new ConflictException('Já existe um baralho com esse nome');
+      }
+      throw error;
+    }
   }
 
   async remover(id: string, usuarioId: string) {
@@ -62,7 +71,7 @@ export class BaralhosService {
     await this.buscarPorId(baralhoId, usuarioId);
     return this.prisma.cartao.findMany({
       where: { baralhoId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

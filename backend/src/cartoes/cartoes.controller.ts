@@ -1,45 +1,48 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { CartoesService } from './cartoes.service.js';
 import { CreateCartaoDTO } from './dtos/create-cartao.dto.js';
 import { UpdateCartaoDTO } from './dtos/update-cartao.dto.js';
 import { CreateRevisaoDTO } from './dtos/create-revisao.dto.js';
-import { DEV_USER_ID } from '../common/dev-user.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UsuarioAtual } from '../auth/decorators/usuario-atual.decorator.js';
+import type { UsuarioAutenticado } from '../auth/tipos/usuario-autenticado.js';
 
 @Controller('cartoes')
+@UseGuards(JwtAuthGuard)
 export class CartoesController {
   constructor(private readonly cartoesService: CartoesService) {}
 
-  // POST /cartoes -> Cria um novo cartão diretamente
   @Post()
-  async criar(@Body() dto: CreateCartaoDTO) {
-    return this.cartoesService.criar(dto, DEV_USER_ID);
+  async criar(@Body() dto: CreateCartaoDTO, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.cartoesService.criar(dto, usuario.id);
   }
 
-  // GET /cartoes/:id -> Obtém um cartão
   @Get(':id')
-  async buscarPorId(@Param('id') id: string) {
-    return this.cartoesService.buscarPorId(id, DEV_USER_ID);
+  async buscarPorId(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.cartoesService.buscarPorId(id, usuario.id);
   }
 
-  // PATCH /cartoes/:id -> Edita frente/verso
   @Patch(':id')
-  async atualizar(@Param('id') id: string, @Body() dto: UpdateCartaoDTO) {
-    return this.cartoesService.atualizar(id, dto, DEV_USER_ID);
+  async atualizar(
+    @Param('id') id: string,
+    @Body() dto: UpdateCartaoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
+  ) {
+    return this.cartoesService.atualizar(id, dto, usuario.id);
   }
 
-  // DELETE /cartoes/:id -> Remove cartão
   @Delete(':id')
   @HttpCode(204)
-  async remover(@Param('id') id: string) {
-    return this.cartoesService.remover(id, DEV_USER_ID);
+  async remover(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
+    return this.cartoesService.remover(id, usuario.id);
   }
 
-  // POST /cartoes/:id/revisoes -> Registra avaliação e reagenda o cartão
   @Post(':id/revisoes')
   async registrarRevisao(
     @Param('id') id: string,
     @Body() dto: CreateRevisaoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
   ) {
-    return this.cartoesService.registrarRevisao(id, dto, DEV_USER_ID);
+    return this.cartoesService.registrarRevisao(id, dto, usuario.id);
   }
 }

@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCartaoDTO } from '../cartoes/dtos/create-cartao.dto.js';
 import { CreateBaralhoDTO } from './dtos/create-baralho.dto.js';
+import { ObterFilaEstudoDTO } from './dtos/obter-fila-estudo.dto.js';
 import { UpdateBaralhoDTO } from './dtos/update-baralho.dto.js';
 
 @Injectable()
@@ -82,12 +83,18 @@ export class BaralhosService {
     });
   }
 
-  async obterFilaEstudo(baralhoId: string, usuarioId: string) {
+  async obterFilaEstudo(baralhoId: string, usuarioId: string, query: ObterFilaEstudoDTO) {
     await this.buscarPorId(baralhoId, usuarioId);
+
+    const where = query.cartaoId
+      ? { baralhoId, id: query.cartaoId }
+      : query.escopo === 'todos'
+        ? { baralhoId }
+        : { baralhoId, proximaRevisao: { lte: new Date() } };
+
     return this.prisma.cartao.findMany({
-      where: { baralhoId, proximaRevisao: { lte: new Date() } },
-      orderBy: { proximaRevisao: 'asc' },
-      take: 20,
+      where,
+      orderBy: [{ proximaRevisao: 'asc' }, { id: 'asc' }],
     });
   }
 }

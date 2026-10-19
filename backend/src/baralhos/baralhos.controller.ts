@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { BaralhosService } from './baralhos.service.js';
 import { UpdateBaralhoDTO } from './dtos/update-baralho.dto.js';
 import { CreateBaralhoDTO } from './dtos/create-baralho.dto.js';
+import { ObterFilaEstudoDTO } from './dtos/obter-fila-estudo.dto.js';
 import { CreateCartaoDTO } from '../cartoes/dtos/create-cartao.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { UsuarioAtual } from '../auth/decorators/usuario-atual.decorator.js';
@@ -60,7 +61,11 @@ export class BaralhosController {
   }
 
   @Get(':id/estudo')
-  async obterFilaEstudo(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
-    return this.baralhosService.obterFilaEstudo(id, usuario.id);
+  async obterFilaEstudo(
+    @Param('id') id: string,
+    @Query() query: ObterFilaEstudoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
+  ) {
+    return this.baralhosService.obterFilaEstudo(id, usuario.id, query);
   }
 }

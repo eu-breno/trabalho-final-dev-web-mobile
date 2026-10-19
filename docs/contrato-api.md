@@ -502,48 +502,44 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 
 ### 4.1 `GET /baralhos/:id/estudo`
 
-**O que faz:** devolve a fila de estudo do baralho: os cartões pendentes (`proximaRevisao` menor ou igual a agora), do mais atrasado para o menos atrasado.
+**O que faz:** devolve os cartões de uma sessão em sequência. Por padrão, retorna todos os cartões pendentes (`proximaRevisao` menor ou igual a agora), do mais atrasado para o menos atrasado. Também pode retornar todos os cartões do baralho ou um cartão específico.
 
 **Pré-condições:** o baralho existe e pertence ao usuário.
 
 | Parâmetro de consulta | Tipo | Descrição |
 |---|---|---|
-| `limite` | número | Máximo de cartões devolvidos, padrão 20, máximo 50 |
+| `escopo` | `pendentes` \| `todos` | Padrão `pendentes`; `todos` inclui cartões ainda não vencidos |
+| `cartaoId` | UUID | Opcional; limita a fila a esse cartão do baralho. Permite revisão individual mesmo antes da data programada |
 
-**Requisição:** sem corpo.
+`cartaoId`, quando informado, seleciona o cartão independentemente de sua data de revisão. O resultado é sempre uma lista JSON de cartões, ordenada por `proximaRevisao` crescente e depois por `id`. A lista não é limitada a 20 cartões. Quando não há cartões correspondentes, a resposta é `200` com `[]`.
+
+**Exemplo de requisição:** `GET /baralhos/:id/estudo?escopo=todos`
 
 **Resposta `200`**
 
 ```json
-{
-  "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
-  "dados": [
-    {
-      "id": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
-      "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
-      "frente": "Passado simples de \"to go\"",
-      "verso": "went",
-      "facilidade": 2.5,
-      "repeticoes": 0,
-      "intervaloDias": 0,
-      "proximaRevisao": "2026-09-21T14:30:00.000Z",
-      "ultimaRevisao": null,
-      "createdAt": "2026-09-21T14:30:00.000Z",
-      "updatedAt": "2026-09-21T14:30:00.000Z"
-    }
-  ],
-  "totalPendentes": 7,
-  "limite": 20
-}
+[
+  {
+    "id": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
+    "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
+    "frente": "Passado simples de \"to go\"",
+    "verso": "went",
+    "facilidade": 2.5,
+    "repeticoes": 0,
+    "intervaloDias": 0,
+    "proximaRevisao": "2026-09-21T14:30:00.000Z",
+    "ultimaRevisao": null,
+    "createdAt": "2026-09-21T14:30:00.000Z",
+    "updatedAt": "2026-09-21T14:30:00.000Z"
+  }
+]
 ```
-
-`totalPendentes` conta **todos** os cartões pendentes do baralho, mesmo que `dados` traga só `limite` deles. Quando não há nada para estudar, a resposta é `200` com `dados: []` e `totalPendentes: 0` — não é erro.
 
 **Erros específicos**
 
 | Status | Quando |
 |---|---|
-| `400` | `limite` fora de 1–50 |
+| `400` | `escopo` fora de `pendentes`/`todos`, ou `cartaoId` não é um UUID válido |
 | `401` | Token ausente ou inválido |
 | `404` | Baralho inexistente ou de outro usuário |
 
@@ -691,7 +687,7 @@ Retorna `baralhoId`, `totalCartoes`, `cartoesRevisados` (cartões que têm ao me
 | Versão | Data | Alteração | Impacto nos clientes |
 |---|---|---|---|
 | 1.0 | 21/09/2026 | Versão inicial | — |
-| | | | |
+| 1.1 | 18/10/2026 | `GET /baralhos/:id/estudo` aceita `escopo` e `cartaoId`, retornando a fila sem limite fixo | Web pode revisar todos, somente pendentes ou um cartão |
 
 
 ---

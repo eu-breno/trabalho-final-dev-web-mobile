@@ -48,6 +48,8 @@ export type ApiDeck = {
   descricao: string | null
   totalCartoes: number
   cartoesPendentes: number
+  createdAt: string
+  updatedAt: string
 }
 
 export type ApiCard = {
@@ -55,8 +57,13 @@ export type ApiCard = {
   baralhoId: string
   frente: string
   verso: string
+  facilidade: number
   repeticoes: number
+  intervaloDias: number
   proximaRevisao: string
+  ultimaRevisao: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export type ApiStats = {

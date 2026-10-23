@@ -4,7 +4,6 @@ import * as React from "react"
 
 import { BookCopy } from "lucide-react"
 import { NavMain } from "@/components/navigation/nav-main"
-import { NavSecondary } from "@/components/navigation/nav-secondary"
 import { NavUser } from "@/components/navigation/nav-user"
 import {
   Sidebar,
@@ -15,55 +14,33 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { House, ChartBarIcon, UsersIcon, SearchIcon, Brain } from "lucide-react"
+import { House, ChartBarIcon, UsersIcon, Brain } from "lucide-react"
 
 const data = {
   navMain: [
     {
       title: "Início",
       url: "/dashboard",
-      icon: (
-        <House
-        />
-      ),
+      icon: <House />,
     },
     {
       title: "Baralhos",
       url: "/baralhos",
-      icon: (
-        <BookCopy
-        />
-      ),
+      icon: <BookCopy />,
     },
     {
       title: "Estatísticas",
       url: "/estatisticas",
-      icon: (
-        <ChartBarIcon
-        />
-      ),
-      
+      icon: <ChartBarIcon />,
     },
     {
       title: "Turmas",
       url: "/turmas",
-      icon: (
-        <UsersIcon
-        />
-      ),
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Buscar",
-      url: "/buscar",
-      icon: (
-        <SearchIcon
-        />
-      ),
+      icon: <UsersIcon />,
     },
   ],
 }
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -82,7 +59,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

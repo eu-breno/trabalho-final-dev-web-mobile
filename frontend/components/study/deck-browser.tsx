@@ -6,10 +6,11 @@ import { ArrowDownAZ, ArrowDownWideNarrow, ArrowUpAZ, ArrowUpWideNarrow, Ellipsi
 import { ApiDeck, apiRequest } from "@/lib/api"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TablePagination } from "@/components/ui/table-pagination"
 
 type SortMode = "name-asc" | "name-desc" | "date-asc" | "date-desc"
 
@@ -28,6 +29,8 @@ export function DeckBrowser({
   const [error, setError] = useState<string | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>("name-asc")
   const [reloadKey, setReloadKey] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [editingDeck, setEditingDeck] = useState<ApiDeck | null>(null)
   const [deletingDeck, setDeletingDeck] = useState<ApiDeck | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -66,6 +69,15 @@ export function DeckBrowser({
       return sortMode === "date-asc" ? compared : -compared
     })
   }, [decks, query, sortMode])
+
+  useEffect(() => {
+    setPage(1)
+  }, [query, sortMode, refreshKey, reloadKey])
+
+  const paginatedDecks = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return visibleDecks.slice(start, start + pageSize)
+  }, [page, pageSize, visibleDecks])
 
   async function saveDeck(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -124,18 +136,18 @@ export function DeckBrowser({
             {decks.length} {decks.length === 1 ? "baralho" : "baralhos"}
           </span>
           <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button aria-label="Ordenar baralhos" size="icon" variant="outline" />}
-            >
+            <DropdownMenuTrigger render={<Button aria-label="Ordenar baralhos" size="icon" variant="outline" />}>
               <ArrowDownWideNarrow />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSortMode("name-asc")}><ArrowDownAZ /> Nome (A–Z)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortMode("name-desc")}><ArrowUpAZ /> Nome (Z–A)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortMode("date-desc")}><ArrowDownWideNarrow /> Data (mais recentes)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortMode("date-asc")}><ArrowUpWideNarrow /> Data (mais antigos)</DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSortMode("name-asc")}><ArrowDownAZ /> Nome (A–Z)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortMode("name-desc")}><ArrowUpAZ /> Nome (Z–A)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortMode("date-desc")}><ArrowDownWideNarrow /> Data (mais recentes)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortMode("date-asc")}><ArrowUpWideNarrow /> Data (mais antigos)</DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
           {!discover && onCreate && (
@@ -160,47 +172,84 @@ export function DeckBrowser({
           <p className="mt-1 text-sm text-muted-foreground">{error}</p>
         </div>
       ) : visibleDecks.length ? (
-        <div className="space-y-3">
-          {visibleDecks.map((deck) => (
-            <Card className="rounded-2xl border-border/80 bg-card shadow-sm" key={deck.id}>
-              <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
-                <Link
-                  className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
-                  href={`/baralhos/${deck.id}`}
-                >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-                    <Layers className="size-5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold tracking-tight">{deck.nome}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {deck.totalCartoes} {deck.totalCartoes === 1 ? "cartão" : "cartões"}
-                      <span aria-hidden="true"> · </span>
-                      {deck.cartoesPendentes} pendentes
-                    </span>
-                  </span>
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<Button aria-label={`Ações de ${deck.nome}`} size="icon" variant="ghost" />}
-                  >
-                    <Ellipsis />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => { setActionError(null); setEditingDeck(deck) }}>
-                      <Pencil /> Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => { setActionError(null); setDeletingDeck(deck) }}
-                      variant="destructive"
-                    >
-                      <Trash2 /> Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[38%]">Baralho</TableHead>
+                <TableHead className="w-[14%]">Cartões</TableHead>
+                <TableHead className="w-[18%]">Pendentes</TableHead>
+                <TableHead className="w-[18%]">Criado em</TableHead>
+                <TableHead className="w-[12%] text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedDecks.map((deck) => (
+                <TableRow key={deck.id}>
+                  <TableCell>
+                    <Link className="group flex items-center gap-3" href={`/baralhos/${deck.id}`}>
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+                        <Layers className="size-4" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-foreground group-hover:text-primary">{deck.nome}</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          {deck.descricao ? deck.descricao : "Sem descrição"}
+                        </span>
+                      </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>{deck.totalCartoes}</TableCell>
+                  <TableCell>{deck.cartoesPendentes}</TableCell>
+                  <TableCell>
+                    {new Intl.DateTimeFormat("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }).format(new Date(deck.createdAt))}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Link
+                        className="inline-flex h-7 items-center justify-center rounded-md border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground transition-colors hover:bg-muted"
+                        href={`/baralhos/${deck.id}`}
+                      >
+                        Abrir
+                      </Link>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button aria-label={`Ações de ${deck.nome}`} size="icon-sm" type="button" variant="ghost" />}>
+                          <Ellipsis />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem onClick={() => { setActionError(null); setEditingDeck(deck) }}>
+                              <Pencil /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => { setActionError(null); setDeletingDeck(deck) }}
+                              variant="destructive"
+                            >
+                              <Trash2 /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={visibleDecks.length}
+            onPageChange={setPage}
+            onPageSizeChange={(nextPageSize) => {
+              setPageSize(nextPageSize)
+              setPage(1)
+            }}
+          />
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">

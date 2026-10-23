@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { apiRequest, type ApiCard } from "@/lib/api"
 import { Play } from "lucide-react"
 
 export function NavMain({
@@ -21,6 +23,20 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleStudyStart() {
+    try {
+      const cards = await apiRequest<ApiCard[]>("baralhos/estudo?escopo=pendentes")
+      if (!cards.length) {
+        toast.error("Você não tem cartões pendentes para revisar agora")
+        return
+      }
+      router.push("/revisao")
+    } catch {
+      toast.error("Não foi possível iniciar a revisão agora.")
+    }
+  }
 
   return (
     <SidebarGroup>
@@ -30,7 +46,7 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-              render={<Link href="/baralhos" />}
+              onClick={handleStudyStart}
             >
               <Play />
               <span>Começar a estudar</span>

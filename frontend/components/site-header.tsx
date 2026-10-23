@@ -1,27 +1,65 @@
 "use client"
-{/* esse é o titulo em cima da pagina */}
+
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { apiRequest } from "@/lib/api"
+
+const pageTitles: Record<string, string> = {
+  "/dashboard": "Início",
+  "/baralhos": "Baralhos",
+  "/estatisticas": "Estatísticas",
+  "/turmas": "Turmas",
+}
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const pageTitles: Record<string, string> = {
-    "/dashboard": "Início",
-    "/baralhos": "Baralhos",
-    "/estatisticas": "Estatísticas",
-    "/turmas": "Turmas",
-    "/buscar": "Buscar",
-  }
+  const [deckName, setDeckName] = useState<string | null>(null)
+  const [isDeckLoading, setIsDeckLoading] = useState(false)
+
+  useEffect(() => {
+    const match = pathname.match(/^\/baralhos\/([^/]+)$/)
+    if (!match) {
+      setDeckName(null)
+      setIsDeckLoading(false)
+      return
+    }
+
+    const deckId = match[1]
+    if (!deckId || deckId === "new") {
+      setDeckName(null)
+      return
+    }
+
+    let cancelled = false
+    setIsDeckLoading(true)
+    apiRequest<{ nome?: string }>(`baralhos/${encodeURIComponent(deckId)}`)
+      .then((deck) => {
+        if (!cancelled) setDeckName(deck?.nome ?? "Baralho")
+      })
+      .catch(() => {
+        if (!cancelled) setDeckName("Baralho")
+      })
+      .finally(() => {
+        if (!cancelled) setIsDeckLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [pathname])
+
   const title =
     pageTitles[pathname] ??
-    pathname
-      .split("/")
-      .filter(Boolean)
-      .at(-1)
-      ?.replace(/-/g, " ")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase()) ??
-    "Memora"
+    (pathname.startsWith("/baralhos/") ? (isDeckLoading ? "Baralho" : (deckName ?? "Baralho")) :
+      pathname
+        .split("/")
+        .filter(Boolean)
+        .at(-1)
+        ?.replace(/-/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase()) ??
+      "Memora")
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -36,3 +74,4 @@ export function SiteHeader() {
     </header>
   )
 }
+

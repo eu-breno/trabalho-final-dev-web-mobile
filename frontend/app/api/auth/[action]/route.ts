@@ -12,6 +12,43 @@ const cookieOptions = {
   maxAge: 60 * 60,
 }
 
+async function proxyAuthenticatedJson(
+  request: NextRequest,
+  endpoint: string,
+  method: "GET" | "PATCH" = "GET",
+) {
+  const token = (await cookies()).get("accessToken")?.value
+  if (!token) {
+    return NextResponse.json({ message: "Sua sessão expirou. Entre novamente." }, { status: 401 })
+  }
+
+  try {
+    const body = method === "PATCH" ? await request.arrayBuffer() : undefined
+    const backendResponse = await fetch(backendEndpoint(endpoint), {
+      method,
+      headers: {
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        Authorization: `Bearer ${token}`,
+      },
+      body,
+      cache: "no-store",
+    })
+
+    const payload: unknown = await backendResponse.json().catch(() => null)
+    if (backendResponse.status === 401) (await cookies()).delete("accessToken")
+
+    return NextResponse.json(
+      payload ?? { message: "O servidor de autenticação retornou uma resposta inválida." },
+      { status: backendResponse.status },
+    )
+  } catch {
+    return NextResponse.json(
+      { message: "Não foi possível verificar sua sessão no servidor." },
+      { status: 502 },
+    )
+  }
+}
+
 export async function POST(request: NextRequest, context: RouteContext) {
   const { action } = await context.params
   if (action === "logout") {
@@ -73,32 +110,35 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   const { action } = await context.params
   if (action !== "profile") {
     return NextResponse.json({ message: "Ação de autenticação não encontrada." }, { status: 404 })
   }
 
-  const token = (await cookies()).get("accessToken")?.value
-  if (!token) {
-    return NextResponse.json({ message: "Sua sessão expirou. Entre novamente." }, { status: 401 })
+  return proxyAuthenticatedJson(request, "auth/perfil", "GET")
+}
+
+export async function PATCH(request: NextRequest, context: RouteContext) {
+  const { action } = await context.params
+
+  if (action === "profile" || action === "password") {
+    const payload = await request.json().catch(() => null)
+    if (!payload || typeof payload !== "object") {
+      const message = action === "profile" ? "Dados de perfil inválidos." : "Dados de senha inválidos."
+      return NextResponse.json({ message }, { status: 400 })
+    }
+
+    return proxyAuthenticatedJson(
+      new NextRequest(request.url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+      }),
+      action === "profile" ? "auth/perfil" : "auth/senha",
+      "PATCH",
+    )
   }
 
-  try {
-    const backendResponse = await fetch(backendEndpoint("auth/perfil"), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    })
-    const payload: unknown = await backendResponse.json().catch(() => null)
-    if (backendResponse.status === 401) (await cookies()).delete("accessToken")
-    return NextResponse.json(
-      payload ?? { message: "O servidor de autenticação retornou uma resposta inválida." },
-      { status: backendResponse.status },
-    )
-  } catch {
-    return NextResponse.json(
-      { message: "Não foi possível verificar sua sessão no servidor." },
-      { status: 502 },
-    )
-  }
+  return NextResponse.json({ message: "Ação de autenticação não encontrada." }, { status: 404 })
 }

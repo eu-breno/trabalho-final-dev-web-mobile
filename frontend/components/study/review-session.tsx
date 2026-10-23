@@ -6,6 +6,7 @@ import { X } from "lucide-react"
 import { ApiCard, apiRequest } from "@/lib/api"
 import { AuthProvider } from "@/components/auth/auth-provider"
 import { AppSidebar } from "@/components/navigation/app-sidebar"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -48,19 +49,24 @@ export function ReviewSession() {
   const [confirmExit, setConfirmExit] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [completedNormally, setCompletedNormally] = useState(false)
+  const emptyReviewMessage = "Você não tem cartões pendentes para revisar agora"
   const sessionKey = `${deckId ?? ""}:${cardId ?? ""}:${scope}:${retryKey}`
 
   useEffect(() => {
     let cancelled = false
-    if (!deckId) return
     const query = new URLSearchParams()
     if (cardId) query.set("cartaoId", cardId)
     else query.set("escopo", scope)
 
-    apiRequest<ApiCard[]>(`baralhos/${encodeURIComponent(deckId)}/estudo?${query.toString()}`)
+    const endpoint = deckId
+      ? `baralhos/${encodeURIComponent(deckId)}/estudo?${query.toString()}`
+      : `baralhos/estudo?${query.toString()}`
+
+    apiRequest<ApiCard[]>(endpoint)
       .then((result) => {
         if (cancelled) return
-        setLoadedSession({ key: sessionKey, cards: result, error: null })
+        const nextError = result.length === 0 ? emptyReviewMessage : null
+        setLoadedSession({ key: sessionKey, cards: result, error: nextError })
         setIndex(0)
         setReviewed(0)
         setRatings(emptyCounts)
@@ -85,12 +91,8 @@ export function ReviewSession() {
   }, [cardId, deckId, retryKey, scope, sessionKey])
 
   const cards = loadedSession?.key === sessionKey ? loadedSession.cards : []
-  const loadError = !deckId
-    ? "Não foi informado o baralho desta revisão."
-    : loadedSession?.key === sessionKey
-      ? loadedSession.error
-      : null
-  const isLoading = Boolean(deckId) && loadedSession?.key !== sessionKey
+  const loadError = loadedSession?.key === sessionKey ? loadedSession.error : null
+  const isLoading = loadedSession?.key !== sessionKey
   const currentCard = cards[index]
   const progress = cards.length === 0 ? 0 : Math.round((reviewed / cards.length) * 100)
 
@@ -125,7 +127,7 @@ export function ReviewSession() {
 
   function finishAndReturn() {
     setShowResults(false)
-    router.replace(deckId ? `/baralhos/${encodeURIComponent(deckId)}` : "/baralhos")
+    router.replace(deckId ? `/baralhos/${encodeURIComponent(deckId)}` : "/dashboard")
   }
 
   return (
@@ -163,10 +165,21 @@ export function ReviewSession() {
                 <p className="py-20 text-center text-sm text-muted-foreground">Carregando cartões...</p>
               ) : loadError ? (
                 <div className="space-y-4 rounded-3xl border border-destructive/30 bg-card p-8 text-center">
-                  <p className="font-medium">Não foi possível iniciar a revisão</p>
-                  <p className="text-sm text-muted-foreground">{loadError}</p>
+                  {loadError === emptyReviewMessage ? (
+                    <Alert variant="default" className="border-amber-500/30 bg-amber-500/5 text-left">
+                      <AlertTitle className="text-base font-semibold text-foreground">Sem cartões pendentes</AlertTitle>
+                      <AlertDescription>{loadError}</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <>
+                      <p className="font-medium">Não foi possível iniciar a revisão</p>
+                      <p className="text-sm text-muted-foreground">{loadError}</p>
+                    </>
+                  )}
                   <div className="flex justify-center gap-2">
-                    <Button onClick={() => setRetryKey((value) => value + 1)} type="button" variant="outline">Tentar novamente</Button>
+                    {loadError !== emptyReviewMessage && (
+                      <Button onClick={() => setRetryKey((value) => value + 1)} type="button" variant="outline">Tentar novamente</Button>
+                    )}
                     <Button onClick={finishAndReturn} type="button">Voltar</Button>
                   </div>
                 </div>

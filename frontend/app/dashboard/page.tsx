@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   BookOpenCheck,
@@ -9,16 +10,26 @@ import {
   Sparkles,
   Timer,
 } from "lucide-react"
+import { toast } from "sonner"
 import { AppPageLayout } from "@/components/navigation/app-page-layout"
 import { useAuth } from "@/components/auth/auth-provider"
 import { ApiDeck, ApiStats, apiRequest } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [stats, setStats] = useState<ApiStats | null>(null)
   const [decks, setDecks] = useState<ApiDeck[]>([])
   const [error, setError] = useState<string | null>(null)
   const reviewCount = decks.reduce((total, deck) => total + deck.cartoesPendentes, 0)
+
+  function handleStartReview() {
+    if (reviewCount === 0) {
+      toast.error("Você não tem cartões pendentes para revisar agora")
+      return
+    }
+    router.push("/revisao")
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -69,9 +80,13 @@ export default function DashboardPage() {
                 Você tem <strong className="text-primary-foreground">{reviewCount} cartões</strong> esperando pela revisão de hoje.
                 Revisões curtas ajudam a guardar o conteúdo por mais tempo.
               </p>
-              <Link className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-muted" href="/baralhos">
+              <button
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                onClick={handleStartReview}
+                type="button"
+              >
                 Começar revisão <ArrowRight className="size-4" />
-              </Link>
+              </button>
             </div>
             <div className="hidden size-36 items-center justify-center rounded-full border border-primary-foreground/20 bg-primary-foreground/10 md:flex">
               <BookOpenCheck className="size-16 text-primary-foreground" strokeWidth={1.4} />

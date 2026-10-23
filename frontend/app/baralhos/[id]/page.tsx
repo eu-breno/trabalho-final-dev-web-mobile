@@ -8,11 +8,12 @@ import { AppPageLayout } from "@/components/navigation/app-page-layout"
 import { ApiCard, ApiDeck, apiRequest } from "@/lib/api"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TablePagination } from "@/components/ui/table-pagination"
 import { Textarea } from "@/components/ui/textarea"
 
 type CardDraft = { frente: string; verso: string }
@@ -47,6 +48,8 @@ export default function BaralhoPage() {
   const [deletingDeck, setDeletingDeck] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [cardSort, setCardSort] = useState<CardSort>("date-desc")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [isStartingStudy, setIsStartingStudy] = useState(false)
   const [studyScope, setStudyScope] = useState<StudyScope>("pendentes")
 
@@ -80,6 +83,15 @@ export default function BaralhoPage() {
     const compared = new Date(left.proximaRevisao).getTime() - new Date(right.proximaRevisao).getTime()
     return cardSort === "date-asc" ? compared : -compared
   }), [cards, cardSort])
+
+  useEffect(() => {
+    setPage(1)
+  }, [cardSort, refreshKey])
+
+  const paginatedCards = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return sortedCards.slice(start, start + pageSize)
+  }, [page, pageSize, sortedCards])
 
   function refreshDeck() {
     setActionError(null)
@@ -173,6 +185,10 @@ export default function BaralhoPage() {
   }
 
   function beginStudy(cardId?: string) {
+    if (!cardId && (deck?.cartoesPendentes ?? 0) === 0) {
+      setActionError("Você não tem cartões pendentes para revisar agora.")
+      return
+    }
     const params = new URLSearchParams({ baralhoId: id })
     if (cardId) params.set("cartaoId", cardId)
     else params.set("escopo", studyScope)
@@ -239,7 +255,9 @@ export default function BaralhoPage() {
                       <ArrowDownWideNarrow />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                      </DropdownMenuGroup>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setCardSort("date-desc")}><ArrowDownWideNarrow /> Data (mais recentes)</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setCardSort("date-asc")}><ArrowUpWideNarrow /> Data (mais antigas)</DropdownMenuItem>
@@ -257,45 +275,70 @@ export default function BaralhoPage() {
               </div>
 
               {sortedCards.length ? (
-                <div className="space-y-3">
-                  {sortedCards.map((card) => (
-                    <Card className="rounded-2xl border-border/80 bg-card shadow-sm" key={card.id}>
-                      <CardContent className="flex min-w-0 items-center gap-3 p-3 sm:gap-4 sm:p-4">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                          <GalleryVerticalEnd className="size-5" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium" title={card.frente}>{card.frente}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Próxima revisão: {formatShortDate(card.proximaRevisao)}
-                          </p>
-                        </div>
-                        <Button
-                          aria-label={`Revisar cartão: ${card.frente}`}
-                          onClick={() => beginStudy(card.id)}
-                          size="icon-sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Play />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button aria-label={`Ações do cartão: ${card.frente}`} size="icon-sm" type="button" variant="ghost" />}>
-                            <Ellipsis />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => startEditingCard(card)}><Pencil /> Editar</DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => { setActionError(null); setDeletingCard(card) }}
-                              variant="destructive"
-                            >
-                              <Trash2 /> Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[42%]">Frente</TableHead>
+                        <TableHead className="w-[18%]">Próxima revisão</TableHead>
+                        <TableHead className="w-[14%]">Status</TableHead>
+                        <TableHead className="w-[12%] text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedCards.map((card) => (
+                        <TableRow key={card.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                                <GalleryVerticalEnd className="size-4" />
+                              </span>
+                              <div className="min-w-0">
+                                <p className="truncate font-medium" title={card.frente}>{card.frente}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">{card.verso.slice(0, 80)}{card.verso.length > 80 ? "..." : ""}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{formatShortDate(card.proximaRevisao)}</TableCell>
+                          <TableCell>
+                            <span className="inline-flex rounded-full border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                              {card.intervaloDias === 0 ? "Hoje" : `${card.intervaloDias}d`}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button aria-label={`Revisar cartão: ${card.frente}`} onClick={() => beginStudy(card.id)} size="icon-sm" type="button" variant="outline">
+                                <Play />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger render={<Button aria-label={`Ações do cartão: ${card.frente}`} size="icon-sm" type="button" variant="ghost" />}>
+                                  <Ellipsis />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuGroup>
+                                    <DropdownMenuItem onClick={() => startEditingCard(card)}><Pencil /> Editar</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setActionError(null); setDeletingCard(card) }} variant="destructive">
+                                      <Trash2 /> Excluir
+                                    </DropdownMenuItem>
+                                  </DropdownMenuGroup>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <TablePagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalItems={sortedCards.length}
+                    onPageChange={setPage}
+                    onPageSizeChange={(nextPageSize) => {
+                      setPageSize(nextPageSize)
+                      setPage(1)
+                    }}
+                  />
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-border bg-card py-12 text-center">

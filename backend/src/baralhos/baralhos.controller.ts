@@ -18,6 +18,14 @@ export class BaralhosController {
     return this.baralhosService.listarTodos(usuario.id);
   }
 
+  @Get('estudo')
+  async obterFilaEstudoGlobal(
+    @Query() query: ObterFilaEstudoDTO,
+    @UsuarioAtual() usuario: UsuarioAutenticado,
+  ) {
+    return this.baralhosService.obterFilaEstudoGlobal(usuario.id, query);
+  }
+
   @Get(':id')
   async buscarPorId(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
     return this.baralhosService.buscarPorId(id, usuario.id);

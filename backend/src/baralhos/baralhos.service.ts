@@ -97,4 +97,17 @@ export class BaralhosService {
       orderBy: [{ proximaRevisao: 'asc' }, { id: 'asc' }],
     });
   }
+
+  async obterFilaEstudoGlobal(usuarioId: string, query: ObterFilaEstudoDTO) {
+    const where = query.cartaoId
+      ? { baralho: { usuarioId }, id: query.cartaoId }
+      : query.escopo === 'todos'
+        ? { baralho: { usuarioId } }
+        : { baralho: { usuarioId }, proximaRevisao: { lte: new Date() } };
+
+    return this.prisma.cartao.findMany({
+      where,
+      orderBy: [{ proximaRevisao: 'asc' }, { id: 'asc' }],
+    });
+  }
 }

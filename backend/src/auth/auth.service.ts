@@ -93,4 +93,68 @@ export class AuthService {
 
     return usuario;
   }
+
+  async atualizarPerfil(id: string, dto: { nome?: string; email?: string }) {
+    const dados: Prisma.UsuarioUpdateInput = {};
+
+    if (dto.nome !== undefined) {
+      dados.nome = dto.nome.trim();
+    }
+
+    if (dto.email !== undefined) {
+      dados.email = dto.email.trim();
+    }
+
+    if (!Object.keys(dados).length) {
+      return this.encontrarPorId(id);
+    }
+
+    try {
+      const usuario = await this.prisma.usuario.update({
+        where: { id },
+        data: dados,
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          perfil: true,
+        },
+      });
+
+      return usuario;
+    } catch (erro) {
+      if (
+        erro instanceof Prisma.PrismaClientKnownRequestError &&
+        erro.code === 'P2002'
+      ) {
+        throw new ConflictException('Já existe outro usuário com este email.');
+      }
+      if (
+        erro instanceof Prisma.PrismaClientKnownRequestError &&
+        erro.code === 'P2025'
+      ) {
+        throw new UnauthorizedException('Usuário não encontrado');
+      }
+      throw erro;
+    }
+  }
+
+  async atualizarSenha(id: string, dto: { senha?: string }) {
+    if (!dto.senha) {
+      return this.encontrarPorId(id);
+    }
+
+    if (Buffer.from(dto.senha).length > 72) {
+      throw new BadRequestException('A senha deve ter no máximo 72 bytes em UTF-8');
+    }
+
+    const senhaHash = await bcrypt.hash(dto.senha, CUSTO_HASH);
+
+    await this.prisma.usuario.update({
+      where: { id },
+      data: { senhaHash },
+    });
+
+    return this.encontrarPorId(id);
+  }
 }

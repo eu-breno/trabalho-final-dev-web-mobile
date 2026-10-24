@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDownWideNarrow, ArrowLeft, ArrowUpWideNarrow, Ellipsis, GalleryVerticalEnd, Layers, Pencil, Play, Plus, Trash2 } from "lucide-react"
-import { AppPageLayout } from "@/components/navigation/app-page-layout"
+import { ArrowDownAZ, ArrowDownWideNarrow, ArrowLeft, ArrowUpAZ, CircleAlert, CircleCheck, EllipsisVertical, File, Pencil, Play, PlayingCardsFan, Plus, Trash2 } from "lucide-react"
+import { toast } from "sonner"
+import { AppPageContent } from "@/components/navigation/app-page-layout"
 import { ApiCard, ApiDeck, apiRequest } from "@/lib/api"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
@@ -15,9 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { TablePagination } from "@/components/ui/table-pagination"
 import { Textarea } from "@/components/ui/textarea"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { notifyNoReviewCards } from "@/lib/review-notifications"
 
 type CardDraft = { frente: string; verso: string }
-type CardSort = "date-asc" | "date-desc" | "name-asc" | "name-desc"
+type CardSort = "name-asc" | "name-desc"
 type StudyScope = "todos" | "pendentes"
 
 const emptyDraft: CardDraft = { frente: "", verso: "" }
@@ -44,11 +47,12 @@ export default function BaralhoPage() {
   const [draft, setDraft] = useState<CardDraft>(emptyDraft)
   const [editingCard, setEditingCard] = useState<ApiCard | "new" | null>(null)
   const [editingDeck, setEditingDeck] = useState(false)
+  const [deckDraft, setDeckDraft] = useState({ nome: "", descricao: "" })
   const [deletingCard, setDeletingCard] = useState<ApiCard | null>(null)
   const [deletingDeck, setDeletingDeck] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [cardSort, setCardSort] = useState<CardSort>("date-desc")
-  const [page, setPage] = useState(1)
+  const [cardSort, setCardSort] = useState<CardSort>("name-asc")
+  const [pageState, setPageState] = useState({ page: 1, key: "" })
   const [pageSize, setPageSize] = useState(10)
   const [isStartingStudy, setIsStartingStudy] = useState(false)
   const [studyScope, setStudyScope] = useState<StudyScope>("pendentes")
@@ -76,22 +80,21 @@ export default function BaralhoPage() {
   }, [id, refreshKey])
 
   const sortedCards = useMemo(() => [...cards].sort((left, right) => {
-    if (cardSort.startsWith("name")) {
-      const compared = left.frente.localeCompare(right.frente, "pt-BR", { sensitivity: "base" })
-      return cardSort === "name-asc" ? compared : -compared
-    }
-    const compared = new Date(left.proximaRevisao).getTime() - new Date(right.proximaRevisao).getTime()
-    return cardSort === "date-asc" ? compared : -compared
+    const compared = left.frente.localeCompare(right.frente, "pt-BR", { sensitivity: "base" })
+    return cardSort === "name-asc" ? compared : -compared
   }), [cards, cardSort])
 
-  useEffect(() => {
-    setPage(1)
-  }, [cardSort, refreshKey])
+  const pageKey = `${cardSort}:${refreshKey}`
+  const page = pageState.key === pageKey ? pageState.page : 1
 
   const paginatedCards = useMemo(() => {
     const start = (page - 1) * pageSize
     return sortedCards.slice(start, start + pageSize)
   }, [page, pageSize, sortedCards])
+
+  function changePage(nextPage: number) {
+    setPageState({ page: nextPage, key: pageKey })
+  }
 
   function refreshDeck() {
     setActionError(null)
@@ -122,11 +125,14 @@ export default function BaralhoPage() {
           body: JSON.stringify(draft),
         })
       }
+      toast.success(editingCard === "new" ? "Cartão criado com sucesso." : "Cartão atualizado com sucesso.")
       setEditingCard(null)
       setDraft(emptyDraft)
       refreshDeck()
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível salvar o cartão.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível salvar o cartão."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -138,10 +144,13 @@ export default function BaralhoPage() {
     setActionError(null)
     try {
       await apiRequest<void>(`cartoes/${encodeURIComponent(deletingCard.id)}`, { method: "DELETE" })
+      toast.success("Cartão excluído com sucesso.")
       setDeletingCard(null)
       refreshDeck()
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível remover o cartão.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível remover o cartão."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -150,21 +159,20 @@ export default function BaralhoPage() {
   async function saveDeck(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!deck) return
-    const formData = new FormData(event.currentTarget)
     setIsSaving(true)
     setActionError(null)
     try {
       const updated = await apiRequest<ApiDeck>(`baralhos/${encodeURIComponent(deck.id)}`, {
         method: "PATCH",
-        body: JSON.stringify({
-          nome: formData.get("nome"),
-          descricao: formData.get("descricao") || undefined,
-        }),
+        body: JSON.stringify({ nome: deckDraft.nome, descricao: deckDraft.descricao || undefined }),
       })
       setDeck(updated)
       setEditingDeck(false)
+      toast.success("Baralho atualizado com sucesso.")
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível atualizar o baralho.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível atualizar o baralho."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -176,28 +184,40 @@ export default function BaralhoPage() {
     setActionError(null)
     try {
       await apiRequest<void>(`baralhos/${encodeURIComponent(deck.id)}`, { method: "DELETE" })
+      toast.success("Baralho excluído com sucesso.")
       router.replace("/baralhos")
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível excluir o baralho.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível excluir o baralho."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
   }
 
   function beginStudy(cardId?: string) {
-    if (!cardId && (deck?.cartoesPendentes ?? 0) === 0) {
-      setActionError("Você não tem cartões pendentes para revisar agora.")
+    if (cardId) {
+      const params = new URLSearchParams({ baralhoId: id, cartaoId: cardId })
+      router.push(`/revisao?${params.toString()}`)
+      return
+    }
+    if ((deck?.totalCartoes ?? 0) === 0) {
+      notifyNoReviewCards("Este baralho ainda não tem cartões.")
+      return
+    }
+    if (studyScope === "pendentes" && (deck?.cartoesPendentes ?? 0) === 0) {
+      notifyNoReviewCards("Você não tem cartões pendentes para revisar agora.")
       return
     }
     const params = new URLSearchParams({ baralhoId: id })
-    if (cardId) params.set("cartaoId", cardId)
-    else params.set("escopo", studyScope)
+    params.set("escopo", studyScope)
+    setIsStartingStudy(false)
     router.push(`/revisao?${params.toString()}`)
   }
 
   return (
-    <AppPageLayout>
-      <div className="mx-auto w-full max-w-5xl space-y-7 py-2">
+    <>
+      <AppPageContent>
         <Link className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground" href="/baralhos">
           <ArrowLeft className="size-4" /> Voltar aos baralhos
         </Link>
@@ -215,7 +235,7 @@ export default function BaralhoPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-card text-foreground">
-                    <Layers className="size-5" />
+                    <PlayingCardsFan className="size-5" />
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-muted-foreground">SEU BARALHO</p>
@@ -227,14 +247,21 @@ export default function BaralhoPage() {
                   {deck.totalCartoes} {deck.totalCartoes === 1 ? "cartão" : "cartões"} · {deck.cartoesPendentes} pendentes
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
-                <Button onClick={() => { setActionError(null); setEditingDeck(true) }} size="sm" type="button" variant="outline">
-                  <Pencil /> Editar
-                </Button>
-                <Button onClick={() => { setActionError(null); setDeletingDeck(true) }} size="sm" type="button" variant="outline">
-                  <Trash2 /> Excluir
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button aria-label="Ações do baralho" size="icon" type="button" variant="ghost" />}>
+                  <EllipsisVertical />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => { setActionError(null); setDeckDraft({ nome: deck.nome, descricao: deck.descricao ?? "" }); setEditingDeck(true) }}>
+                      <Pencil /> Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setActionError(null); setDeletingDeck(true) }} variant="destructive">
+                      <Trash2 /> Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </section>
 
             {actionError && (
@@ -246,7 +273,7 @@ export default function BaralhoPage() {
             <section className="space-y-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
-                  <GalleryVerticalEnd className="size-5 text-muted-foreground" />
+                  <PlayingCardsFan className="size-5 text-muted-foreground" />
                   <h2 className="text-xl font-semibold">Cartões deste baralho</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -259,14 +286,12 @@ export default function BaralhoPage() {
                         <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setCardSort("date-desc")}><ArrowDownWideNarrow /> Data (mais recentes)</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setCardSort("date-asc")}><ArrowUpWideNarrow /> Data (mais antigas)</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setCardSort("name-asc")}>Nome (A–Z)</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setCardSort("name-desc")}>Nome (Z–A)</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCardSort("name-asc")}><ArrowDownAZ /> Nome (A–Z)</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCardSort("name-desc")}><ArrowUpAZ /> Nome (Z–A)</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button onClick={() => { setStudyScope("pendentes"); setIsStartingStudy(true) }} size="sm" type="button" variant="outline">
-                    <Play /> Começar revisão
+                  <Button aria-label="Começar revisão" onClick={() => { setStudyScope("pendentes"); setIsStartingStudy(true) }} size="icon-sm" type="button" variant="ghost">
+                    <Play />
                   </Button>
                   <Button onClick={() => startEditingCard()} size="sm" type="button">
                     <Plus /> Adicionar cartão
@@ -279,10 +304,9 @@ export default function BaralhoPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[42%]">Frente</TableHead>
-                        <TableHead className="w-[18%]">Próxima revisão</TableHead>
-                        <TableHead className="w-[14%]">Status</TableHead>
-                        <TableHead className="w-[12%] text-right">Ações</TableHead>
+                        <TableHead className="w-[60%]">Frente</TableHead>
+                        <TableHead className="w-[20%]">Status</TableHead>
+                        <TableHead className="w-[20%] text-right" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -291,33 +315,42 @@ export default function BaralhoPage() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                                <GalleryVerticalEnd className="size-4" />
+                                <File className="size-4" />
                               </span>
                               <div className="min-w-0">
-                                <p className="truncate font-medium" title={card.frente}>{card.frente}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">{card.verso.slice(0, 80)}{card.verso.length > 80 ? "..." : ""}</p>
+                                <HoverCard>
+                                  <HoverCardTrigger render={<button className="w-full min-w-0 text-left" type="button" />}>
+                                    <p className="truncate font-medium" title={card.frente}>{card.frente}</p>
+                                    <p className="mt-1 truncate text-xs text-muted-foreground">{card.verso.slice(0, 80)}{card.verso.length > 80 ? "..." : ""}</p>
+                                  </HoverCardTrigger>
+                                  <HoverCardContent>
+                                    <p className="font-medium">Próxima revisão</p>
+                                    <p className="mt-1 text-muted-foreground">{formatShortDate(card.proximaRevisao)}</p>
+                                  </HoverCardContent>
+                                </HoverCard>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{formatShortDate(card.proximaRevisao)}</TableCell>
                           <TableCell>
-                            <span className="inline-flex rounded-full border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                              {card.intervaloDias === 0 ? "Hoje" : `${card.intervaloDias}d`}
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${new Date(card.proximaRevisao) <= new Date() ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`}>
+                              {new Date(card.proximaRevisao) <= new Date()
+                                ? <><CircleAlert className="size-4" /> Pendente</>
+                                : <><CircleCheck className="size-4" /> Em dia</>}
                             </span>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
                             <div className="flex justify-end gap-2">
-                              <Button aria-label={`Revisar cartão: ${card.frente}`} onClick={() => beginStudy(card.id)} size="icon-sm" type="button" variant="outline">
+                              <Button aria-label={`Revisar cartão: ${card.frente}`} className="hover:bg-muted" onClick={() => beginStudy(card.id)} size="icon-sm" type="button" variant="ghost">
                                 <Play />
                               </Button>
                               <DropdownMenu>
-                                <DropdownMenuTrigger render={<Button aria-label={`Ações do cartão: ${card.frente}`} size="icon-sm" type="button" variant="ghost" />}>
-                                  <Ellipsis />
+                                <DropdownMenuTrigger render={<Button aria-label={`Ações do cartão: ${card.frente}`} onClick={(event) => event.stopPropagation()} size="icon-sm" type="button" variant="ghost" />}>
+                                  <EllipsisVertical />
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
                                   <DropdownMenuGroup>
-                                    <DropdownMenuItem onClick={() => startEditingCard(card)}><Pencil /> Editar</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => { setActionError(null); setDeletingCard(card) }} variant="destructive">
+                                    <DropdownMenuItem onClick={(event) => { event.stopPropagation(); startEditingCard(card) }}><Pencil /> Editar</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={(event) => { event.stopPropagation(); setActionError(null); setDeletingCard(card) }} variant="destructive">
                                       <Trash2 /> Excluir
                                     </DropdownMenuItem>
                                   </DropdownMenuGroup>
@@ -333,10 +366,10 @@ export default function BaralhoPage() {
                     page={page}
                     pageSize={pageSize}
                     totalItems={sortedCards.length}
-                    onPageChange={setPage}
+                    onPageChange={changePage}
                     onPageSizeChange={(nextPageSize) => {
                       setPageSize(nextPageSize)
-                      setPage(1)
+                      setPageState({ page: 1, key: pageKey })
                     }}
                   />
                 </div>
@@ -349,7 +382,7 @@ export default function BaralhoPage() {
             </section>
           </>
         ) : null}
-      </div>
+      </AppPageContent>
 
       <Dialog open={editingCard !== null} onOpenChange={(open) => { if (!open) { setEditingCard(null); setActionError(null) } }}>
         <DialogContent>
@@ -375,7 +408,11 @@ export default function BaralhoPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={editingDeck} onOpenChange={(open) => { setEditingDeck(open); if (!open) setActionError(null) }}>
+      <Dialog open={editingDeck} onOpenChange={(open) => {
+        if (open && deck) setDeckDraft({ nome: deck.nome, descricao: deck.descricao ?? "" })
+        setEditingDeck(open)
+        if (!open) setActionError(null)
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar baralho</DialogTitle>
@@ -384,11 +421,11 @@ export default function BaralhoPage() {
           <form className="space-y-4" onSubmit={saveDeck}>
             <label className="block space-y-2 text-sm font-medium" htmlFor="deck-edit-name">
               Nome
-              <Input autoFocus defaultValue={deck?.nome ?? ""} id="deck-edit-name" maxLength={80} name="nome" required />
+              <Input autoFocus id="deck-edit-name" maxLength={80} name="nome" onChange={(event) => setDeckDraft((value) => ({ ...value, nome: event.target.value }))} required value={deckDraft.nome} />
             </label>
             <label className="block space-y-2 text-sm font-medium" htmlFor="deck-edit-description">
               Descrição
-              <Textarea defaultValue={deck?.descricao ?? ""} id="deck-edit-description" maxLength={300} name="descricao" rows={3} />
+              <Textarea id="deck-edit-description" maxLength={300} name="descricao" onChange={(event) => setDeckDraft((value) => ({ ...value, descricao: event.target.value }))} rows={3} value={deckDraft.descricao} />
             </label>
             {actionError && <p aria-live="polite" className="text-sm text-destructive">{actionError}</p>}
             <DialogFooter>
@@ -472,6 +509,6 @@ export default function BaralhoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppPageLayout>
+    </>
   )
 }

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { AppPageLayout } from "@/components/navigation/app-page-layout"
+import { toast } from "sonner"
+import { AppPageContent } from "@/components/navigation/app-page-layout"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -28,18 +29,21 @@ export default function BaralhosPage() {
           descricao: data.get("description") || undefined,
         }),
       })
+      toast.success("Baralho criado com sucesso.")
       setIsCreating(false)
       setRefreshKey((value) => value + 1)
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível criar o baralho.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível criar o baralho."
+      setError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
   }
 
   return (
-    <AppPageLayout>
-      <div className="mx-auto w-full max-w-7xl space-y-8 py-2">
+    <>
+      <AppPageContent>
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Meus baralhos</h1>
           <p className="mt-2 text-muted-foreground">Organize seus estudos e revise no seu próprio ritmo.</p>
@@ -49,7 +53,7 @@ export default function BaralhosPage() {
           onCreate={() => { setError(null); setIsCreating(true) }}
           refreshKey={refreshKey}
         />
-      </div>
+      </AppPageContent>
 
       <Dialog open={isCreating} onOpenChange={(open) => { setIsCreating(open); if (!open) setError(null) }}>
         <DialogContent>
@@ -74,6 +78,6 @@ export default function BaralhosPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </AppPageLayout>
+    </>
   )
 }

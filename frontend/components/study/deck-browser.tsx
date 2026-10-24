@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import Link from "next/link"
-import { ArrowDownAZ, ArrowDownWideNarrow, ArrowUpAZ, ArrowUpWideNarrow, Ellipsis, Layers, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowDownAZ, ArrowDownWideNarrow, ArrowUpAZ, ArrowUpWideNarrow, EllipsisVertical, Pencil, PlayingCardsFan, Plus, Search, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { ApiDeck, apiRequest } from "@/lib/api"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
@@ -23,15 +25,17 @@ export function DeckBrowser({
   refreshKey?: number
   onCreate?: () => void
 }) {
+  const router = useRouter()
   const [query, setQuery] = useState("")
   const [decks, setDecks] = useState<ApiDeck[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>("name-asc")
   const [reloadKey, setReloadKey] = useState(0)
-  const [page, setPage] = useState(1)
+  const [pageState, setPageState] = useState({ page: 1, key: "" })
   const [pageSize, setPageSize] = useState(10)
   const [editingDeck, setEditingDeck] = useState<ApiDeck | null>(null)
+  const [editingDeckName, setEditingDeckName] = useState("")
   const [deletingDeck, setDeletingDeck] = useState<ApiDeck | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -45,7 +49,11 @@ export function DeckBrowser({
         setError(null)
       })
       .catch((reason: unknown) => {
-        if (!cancelled) setError(reason instanceof Error ? reason.message : "Não foi possível carregar seus baralhos.")
+        if (!cancelled) {
+          const message = reason instanceof Error ? reason.message : "Não foi possível carregar seus baralhos."
+          setError(message)
+          toast.error(message)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -70,32 +78,37 @@ export function DeckBrowser({
     })
   }, [decks, query, sortMode])
 
-  useEffect(() => {
-    setPage(1)
-  }, [query, sortMode, refreshKey, reloadKey])
+  const pageKey = `${query}:${sortMode}:${refreshKey}:${reloadKey}`
+  const page = pageState.key === pageKey ? pageState.page : 1
 
   const paginatedDecks = useMemo(() => {
     const start = (page - 1) * pageSize
     return visibleDecks.slice(start, start + pageSize)
   }, [page, pageSize, visibleDecks])
 
+  function changePage(nextPage: number) {
+    setPageState({ page: nextPage, key: pageKey })
+  }
+
   async function saveDeck(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!editingDeck) return
-    const formData = new FormData(event.currentTarget)
     setIsSaving(true)
     setError(null)
     setActionError(null)
     try {
       await apiRequest<ApiDeck>(`baralhos/${encodeURIComponent(editingDeck.id)}`, {
         method: "PATCH",
-        body: JSON.stringify({ nome: formData.get("nome") }),
+        body: JSON.stringify({ nome: editingDeckName }),
       })
+      toast.success("Baralho atualizado com sucesso.")
       setEditingDeck(null)
       setLoading(true)
       setReloadKey((value) => value + 1)
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível atualizar o baralho.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível atualizar o baralho."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -108,11 +121,14 @@ export function DeckBrowser({
     setActionError(null)
     try {
       await apiRequest<void>(`baralhos/${encodeURIComponent(deletingDeck.id)}`, { method: "DELETE" })
+      toast.success("Baralho excluído com sucesso.")
       setDeletingDeck(null)
       setLoading(true)
       setReloadKey((value) => value + 1)
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Não foi possível excluir o baralho.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível excluir o baralho."
+      setActionError(message)
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -180,16 +196,31 @@ export function DeckBrowser({
                 <TableHead className="w-[14%]">Cartões</TableHead>
                 <TableHead className="w-[18%]">Pendentes</TableHead>
                 <TableHead className="w-[18%]">Criado em</TableHead>
-                <TableHead className="w-[12%] text-right">Ações</TableHead>
+                <TableHead className="w-[12%] text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedDecks.map((deck) => (
-                <TableRow key={deck.id}>
+                <TableRow
+                  className="cursor-pointer"
+                  key={deck.id}
+                  onClick={(event) => {
+                    if (event.target instanceof Element && event.target.closest("a, button")) return
+                    router.push(`/baralhos/${deck.id}`)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      router.push(`/baralhos/${deck.id}`)
+                    }
+                  }}
+                  tabIndex={0}
+                >
                   <TableCell>
                     <Link className="group flex items-center gap-3" href={`/baralhos/${deck.id}`}>
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
-                        <Layers className="size-4" />
+                        <PlayingCardsFan className="size-4" />
                       </span>
                       <span className="min-w-0">
                         <span className="block truncate font-medium text-foreground group-hover:text-primary">{deck.nome}</span>
@@ -208,25 +239,19 @@ export function DeckBrowser({
                       year: "numeric",
                     }).format(new Date(deck.createdAt))}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
                     <div className="flex justify-end gap-2">
-                      <Link
-                        className="inline-flex h-7 items-center justify-center rounded-md border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground transition-colors hover:bg-muted"
-                        href={`/baralhos/${deck.id}`}
-                      >
-                        Abrir
-                      </Link>
                       <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button aria-label={`Ações de ${deck.nome}`} size="icon-sm" type="button" variant="ghost" />}>
-                          <Ellipsis />
+                        <DropdownMenuTrigger render={<Button aria-label={`Ações de ${deck.nome}`} onClick={(event) => event.stopPropagation()} size="icon-sm" type="button" variant="ghost" />}>
+                          <EllipsisVertical />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
                           <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => { setActionError(null); setEditingDeck(deck) }}>
+                            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); setActionError(null); setEditingDeckName(deck.nome); setEditingDeck(deck) }}>
                               <Pencil /> Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => { setActionError(null); setDeletingDeck(deck) }}
+                              onClick={(event) => { event.stopPropagation(); setActionError(null); setDeletingDeck(deck) }}
                               variant="destructive"
                             >
                               <Trash2 /> Excluir
@@ -244,10 +269,10 @@ export function DeckBrowser({
             page={page}
             pageSize={pageSize}
             totalItems={visibleDecks.length}
-            onPageChange={setPage}
+            onPageChange={changePage}
             onPageSizeChange={(nextPageSize) => {
               setPageSize(nextPageSize)
-              setPage(1)
+              setPageState({ page: 1, key: pageKey })
             }}
           />
         </div>
@@ -269,7 +294,7 @@ export function DeckBrowser({
           <form className="space-y-4" onSubmit={saveDeck}>
             <label className="block space-y-2 text-sm font-medium" htmlFor="edit-deck-name">
               Nome
-              <Input autoFocus defaultValue={editingDeck?.nome ?? ""} id="edit-deck-name" maxLength={80} name="nome" required />
+              <Input autoFocus id="edit-deck-name" maxLength={80} name="nome" onChange={(event) => setEditingDeckName(event.target.value)} required value={editingDeckName} />
             </label>
             {actionError && <p aria-live="polite" className="text-sm text-destructive">{actionError}</p>}
             <DialogFooter>

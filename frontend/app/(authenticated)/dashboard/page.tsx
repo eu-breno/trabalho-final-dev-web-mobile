@@ -10,8 +10,7 @@ import {
   Sparkles,
   Timer,
 } from "lucide-react"
-import { toast } from "sonner"
-import { AppPageLayout } from "@/components/navigation/app-page-layout"
+import { notifyNoReviewCards } from "@/lib/review-notifications"
 import { useAuth } from "@/components/auth/auth-provider"
 import { ApiDeck, ApiStats, apiRequest } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,7 +24,7 @@ export default function DashboardPage() {
 
   function handleStartReview() {
     if (reviewCount === 0) {
-      toast.error("Você não tem cartões pendentes para revisar agora")
+      notifyNoReviewCards("Você não tem cartões pendentes para revisar agora")
       return
     }
     router.push("/revisao")
@@ -59,7 +58,6 @@ export default function DashboardPage() {
   const weekMaximum = Math.max(1, ...(stats?.atividadeSemanal.map((item) => item.total) ?? [0]))
 
   return (
-    <AppPageLayout>
       <div className="mx-auto w-full max-w-7xl space-y-8 py-2">
         <section className="flex flex-col gap-2">
           <p className="text-sm font-medium text-muted-foreground">SEU ESPAÇO DE ESTUDOS</p>
@@ -164,7 +162,6 @@ export default function DashboardPage() {
         </section>
         {error && <p aria-live="polite" className="text-sm text-destructive">{error}</p>}
       </div>
-    </AppPageLayout>
   )
 }
 

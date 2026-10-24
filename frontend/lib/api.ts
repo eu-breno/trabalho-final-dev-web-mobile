@@ -75,3 +75,10 @@ export type ApiStats = {
   periodoFiltro: string
   atividadeSemanal: { dia: string; total: number }[]
 }
+
+export type ApiDailyActivity = {
+  data: string
+  total: number
+  acertos: number
+  erros: number
+}

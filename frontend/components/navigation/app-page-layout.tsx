@@ -4,7 +4,11 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AuthProvider } from "@/components/auth/auth-provider"
 
-export function AppPageLayout({ children }: { children: ReactNode }) {
+export function AppPageContent({ children }: { children: ReactNode }) {
+  return <div className="mx-auto w-full max-w-7xl space-y-8 py-2">{children}</div>
+}
+
+export function AuthenticatedAppLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <SidebarProvider

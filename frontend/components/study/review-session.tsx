@@ -1,17 +1,15 @@
 "use client"
 
-import { useEffect, useState, type CSSProperties } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { X } from "lucide-react"
+import { toast } from "sonner"
 import { ApiCard, apiRequest } from "@/lib/api"
-import { AuthProvider } from "@/components/auth/auth-provider"
-import { AppSidebar } from "@/components/navigation/app-sidebar"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Progress, ProgressLabel } from "@/components/ui/progress"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { notifyNoReviewCards } from "@/lib/review-notifications"
 
 type Rating = "errei" | "dificil" | "bom" | "facil"
 type RatingCounts = Record<Rating, number>
@@ -41,6 +39,7 @@ export function ReviewSession() {
   const [index, setIndex] = useState(0)
   const [reviewed, setReviewed] = useState(0)
   const [ratings, setRatings] = useState<RatingCounts>(emptyCounts)
+  const [wrongCardIds, setWrongCardIds] = useState<string[]>([])
   const [isSending, setIsSending] = useState(false)
   const [showAnswer, setShowAnswer] = useState(false)
   const [selectedRating, setSelectedRating] = useState<Rating | null>(null)
@@ -49,7 +48,11 @@ export function ReviewSession() {
   const [confirmExit, setConfirmExit] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [completedNormally, setCompletedNormally] = useState(false)
-  const emptyReviewMessage = "Você não tem cartões pendentes para revisar agora"
+  const emptyReviewMessage = scope === "todos" && deckId
+    ? "Este baralho ainda não tem cartões."
+    : scope === "todos"
+      ? "Você ainda não tem cartões para revisar."
+      : "Você não tem cartões pendentes para revisar agora."
   const sessionKey = `${deckId ?? ""}:${cardId ?? ""}:${scope}:${retryKey}`
 
   useEffect(() => {
@@ -66,29 +69,33 @@ export function ReviewSession() {
       .then((result) => {
         if (cancelled) return
         const nextError = result.length === 0 ? emptyReviewMessage : null
+        if (nextError) notifyNoReviewCards(nextError)
         setLoadedSession({ key: sessionKey, cards: result, error: nextError })
         setIndex(0)
         setReviewed(0)
         setRatings(emptyCounts)
+        setWrongCardIds([])
         setShowAnswer(false)
         setSelectedRating(null)
         setReviewError(null)
-        setCompletedNormally(result.length === 0)
-        setShowResults(result.length === 0)
+        setCompletedNormally(false)
+        setShowResults(false)
       })
       .catch((reason: unknown) => {
         if (!cancelled) {
+          const message = reason instanceof Error ? reason.message : "Não foi possível carregar os cartões."
+          toast.error(message)
           setLoadedSession({
             key: sessionKey,
             cards: [],
-            error: reason instanceof Error ? reason.message : "Não foi possível carregar os cartões.",
+            error: message,
           })
         }
       })
     return () => {
       cancelled = true
     }
-  }, [cardId, deckId, retryKey, scope, sessionKey])
+  }, [cardId, deckId, emptyReviewMessage, retryKey, scope, sessionKey])
 
   const cards = loadedSession?.key === sessionKey ? loadedSession.cards : []
   const loadError = loadedSession?.key === sessionKey ? loadedSession.error : null
@@ -108,6 +115,9 @@ export function ReviewSession() {
       const nextRatings = { ...ratings, [selectedRating]: ratings[selectedRating] + 1 }
       const nextReviewed = reviewed + 1
       setRatings(nextRatings)
+      if (selectedRating === "errei") {
+        setWrongCardIds((current) => [...current, currentCard.id])
+      }
       setReviewed(nextReviewed)
       setShowAnswer(false)
       setSelectedRating(null)
@@ -119,7 +129,9 @@ export function ReviewSession() {
         setIndex((value) => value + 1)
       }
     } catch (reason) {
-      setReviewError(reason instanceof Error ? reason.message : "Não foi possível registrar sua avaliação.")
+      const message = reason instanceof Error ? reason.message : "Não foi possível registrar sua avaliação."
+      setReviewError(message)
+      toast.error(message)
     } finally {
       setIsSending(false)
     }
@@ -130,18 +142,24 @@ export function ReviewSession() {
     router.replace(deckId ? `/baralhos/${encodeURIComponent(deckId)}` : "/dashboard")
   }
 
+  function reviewErrors() {
+    if (!loadedSession || wrongCardIds.length === 0) return
+    const wrongCards = loadedSession.cards.filter((card) => wrongCardIds.includes(card.id))
+    setLoadedSession({ key: sessionKey, cards: wrongCards, error: null })
+    setIndex(0)
+    setReviewed(0)
+    setRatings(emptyCounts)
+    setWrongCardIds([])
+    setShowAnswer(false)
+    setSelectedRating(null)
+    setReviewError(null)
+    setCompletedNormally(false)
+    setShowResults(false)
+  }
+
   return (
-    <AuthProvider>
-      <SidebarProvider
-        defaultOpen={false}
-        style={{
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as CSSProperties}
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <main className="relative flex min-h-svh flex-1 flex-col items-center px-4 py-6 sm:px-8 sm:py-10">
+    <>
+          <section className="relative flex min-h-[calc(100svh-var(--header-height))] flex-1 flex-col items-center px-4 py-6 sm:px-8 sm:py-10">
             <Button
               aria-label="Sair da revisão"
               className="absolute left-4 top-4 sm:left-8 sm:top-8"
@@ -166,10 +184,10 @@ export function ReviewSession() {
               ) : loadError ? (
                 <div className="space-y-4 rounded-3xl border border-destructive/30 bg-card p-8 text-center">
                   {loadError === emptyReviewMessage ? (
-                    <Alert variant="default" className="border-amber-500/30 bg-amber-500/5 text-left">
-                      <AlertTitle className="text-base font-semibold text-foreground">Sem cartões pendentes</AlertTitle>
-                      <AlertDescription>{loadError}</AlertDescription>
-                    </Alert>
+                    <div className="space-y-2">
+                      <p className="font-medium">Sem cartões para revisar</p>
+                      <p className="text-sm text-muted-foreground">{loadError}</p>
+                    </div>
                   ) : (
                     <>
                       <p className="font-medium">Não foi possível iniciar a revisão</p>
@@ -233,9 +251,7 @@ export function ReviewSession() {
                 </>
               ) : null}
             </div>
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
+          </section>
 
       <AlertDialog open={confirmExit} onOpenChange={setConfirmExit}>
         <AlertDialogContent>
@@ -280,9 +296,16 @@ export function ReviewSession() {
               {ratings.errei} errados · {ratings.dificil} difíceis · {ratings.bom} bons · {ratings.facil} fáceis
             </p>
           </div>
-          <Button onClick={finishAndReturn} type="button">Voltar ao baralho</Button>
+          <div className="space-y-2">
+            <Button className="w-full" onClick={finishAndReturn} type="button">Voltar ao baralho</Button>
+            {ratings.errei > 0 && (
+              <Button className="w-full" onClick={reviewErrors} type="button" variant="outline">
+                Revisar erros
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
-    </AuthProvider>
+    </>
   )
 }

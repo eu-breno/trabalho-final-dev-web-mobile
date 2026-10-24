@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { apiRequest, type ApiCard } from "@/lib/api"
 import { Play } from "lucide-react"
+import { notifyNoReviewCards } from "@/lib/review-notifications"
 
 export function NavMain({
   items,
@@ -29,7 +30,7 @@ export function NavMain({
     try {
       const cards = await apiRequest<ApiCard[]>("baralhos/estudo?escopo=pendentes")
       if (!cards.length) {
-        toast.error("Você não tem cartões pendentes para revisar agora")
+        notifyNoReviewCards("Você não tem cartões pendentes para revisar agora")
         return
       }
       router.push("/revisao")

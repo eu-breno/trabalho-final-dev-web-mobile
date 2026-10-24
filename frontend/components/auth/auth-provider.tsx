@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ApiError, requestJson } from "@/lib/api"
@@ -62,8 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("memora:session-expired", handleExpiredSession)
   }, [router])
 
+  const contextValue = useMemo(
+    () => ({ user, status, error, reload }),
+    [user, status, error, reload],
+  )
+
   return (
-    <AuthContext.Provider value={{ user, status, error, reload }}>
+    <AuthContext.Provider value={contextValue}>
       {status === "loading" && (
         <main className="flex min-h-svh items-center justify-center bg-background text-sm text-muted-foreground">
           Verificando sua sessão...

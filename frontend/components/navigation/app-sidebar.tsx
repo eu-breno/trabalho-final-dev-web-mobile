@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 
 import { BookCopy } from "lucide-react"
 import { NavMain } from "@/components/navigation/nav-main"
@@ -49,7 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="/dashboard" />}
+              render={<Link href="/dashboard" />}
             >
               <Brain className="size-7!" />
               <span className="text-base font-semibold">Memora</span>

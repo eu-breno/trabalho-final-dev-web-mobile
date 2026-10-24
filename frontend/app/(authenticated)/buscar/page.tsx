@@ -1,10 +1,8 @@
 import { Compass, Sparkles } from "lucide-react"
-import { AppPageLayout } from "@/components/navigation/app-page-layout"
 import { DeckBrowser } from "@/components/study/deck-browser"
 
 export default function BuscarPage() {
   return (
-    <AppPageLayout>
       <div className="mx-auto w-full max-w-7xl space-y-8 py-2">
         <section className="overflow-hidden rounded-3xl border border-border bg-muted p-6 sm:p-9">
           <div className="flex max-w-2xl items-start gap-4">
@@ -18,6 +16,5 @@ export default function BuscarPage() {
         </section>
         <DeckBrowser discover />
       </div>
-    </AppPageLayout>
   )
 }

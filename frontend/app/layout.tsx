@@ -36,7 +36,7 @@ export default function RootLayout({
       <body className={`${geistSans.className} min-h-full flex flex-col`}>
         <ThemeProvider>
           {children}
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="top-left" richColors closeButton />
         </ThemeProvider>
       </body>
     </html>

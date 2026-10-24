@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { ArrowUpRight, BookOpen, GraduationCap, Users } from "lucide-react"
-import { AppPageLayout } from "@/components/navigation/app-page-layout"
 import { Card, CardContent } from "@/components/ui/card"
 
 const classes = [
@@ -11,7 +10,6 @@ const classes = [
 
 export default function TurmasPage() {
   return (
-    <AppPageLayout>
       <div className="mx-auto w-full max-w-7xl space-y-8 py-2">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -66,6 +64,5 @@ export default function TurmasPage() {
           </div>
         </section>
       </div>
-    </AppPageLayout>
   )
 }

@@ -19,6 +19,13 @@ export interface EstatisticasBaralho {
   retencaoPorcentagem: number;
 }
 
+export interface AtividadeDiaria {
+  data: string;
+  total: number;
+  acertos: number;
+  erros: number;
+}
+
 const timezone = 'America/Sao_Paulo';
 const formatadorData = new Intl.DateTimeFormat('en-US', {
   timeZone: timezone,
@@ -65,6 +72,47 @@ function dataInicioNoFuso(chave: string) {
 @Injectable()
 export class EstatisticasService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async obterAtividade(usuarioId: string, dias: number): Promise<AtividadeDiaria[]> {
+    const hoje = chaveDoDia(new Date());
+    const inicioCalendario = new Date(`${hoje}T00:00:00Z`);
+    inicioCalendario.setUTCDate(inicioCalendario.getUTCDate() - (dias - 1));
+    const inicioChave = inicioCalendario.toISOString().slice(0, 10);
+    const fimCalendario = new Date(`${hoje}T00:00:00Z`);
+    fimCalendario.setUTCDate(fimCalendario.getUTCDate() + 1);
+    const fimChave = fimCalendario.toISOString().slice(0, 10);
+    const revisoes = await this.prisma.revisao.findMany({
+      where: {
+        cartao: { baralho: { usuarioId } },
+        revisadoEm: {
+          gte: dataInicioNoFuso(inicioChave),
+          lt: dataInicioNoFuso(fimChave),
+        },
+      },
+      select: { nota: true, revisadoEm: true },
+    });
+
+    const atividade = new Map<string, AtividadeDiaria>();
+    for (let indice = 0; indice < dias; indice += 1) {
+      const data = new Date(`${inicioChave}T00:00:00Z`);
+      data.setUTCDate(data.getUTCDate() + indice);
+      const chave = data.toISOString().slice(0, 10);
+      atividade.set(chave, { data: chave, total: 0, acertos: 0, erros: 0 });
+    }
+
+    for (const revisao of revisoes) {
+      const dia = atividade.get(chaveDoDia(revisao.revisadoEm));
+      if (!dia) continue;
+      dia.total += 1;
+      if (revisao.nota === 'bom' || revisao.nota === 'facil') {
+        dia.acertos += 1;
+      } else {
+        dia.erros += 1;
+      }
+    }
+
+    return [...atividade.values()];
+  }
 
   async obterGerais(
     usuarioId: string,

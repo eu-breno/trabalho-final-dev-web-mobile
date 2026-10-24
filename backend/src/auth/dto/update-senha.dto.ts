@@ -1,11 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateSenhaDto {
-  @ApiProperty({ example: 'novaSenhaForte123', minLength: 8, required: false })
-  @IsOptional()
+  @ApiProperty({ example: 'senhaAtual123', minLength: 8 })
   @IsString({ message: 'a senha deve ser um texto' })
-  @MinLength(8, { message: 'a senha deve ter pelo menos 8 caracteres' })
-  @MaxLength(72, { message: 'a senha deve ter no máximo 72 bytes' })
-  senha?: string;
+  @MinLength(8, { message: 'a senha atual deve ter pelo menos 8 caracteres' })
+  senhaAtual!: string;
+
+  @ApiProperty({ example: 'novaSenhaForte123', minLength: 8 })
+  @IsString({ message: 'a nova senha deve ser um texto' })
+  @MinLength(8, { message: 'a nova senha deve ter pelo menos 8 caracteres' })
+  @MaxLength(72, { message: 'a nova senha deve ter no máximo 72 caracteres' })
+  novaSenha!: string;
 }

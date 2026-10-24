@@ -139,16 +139,23 @@ export class AuthService {
     }
   }
 
-  async atualizarSenha(id: string, dto: { senha?: string }) {
-    if (!dto.senha) {
-      return this.encontrarPorId(id);
+  async atualizarSenha(
+    id: string,
+    dto: { senhaAtual: string; novaSenha: string },
+  ) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: { senhaHash: true },
+    });
+    if (!usuario || !(await bcrypt.compare(dto.senhaAtual, usuario.senhaHash))) {
+      throw new UnauthorizedException('A senha atual está incorreta');
     }
 
-    if (Buffer.from(dto.senha).length > 72) {
+    if (Buffer.from(dto.novaSenha).length > 72) {
       throw new BadRequestException('A senha deve ter no máximo 72 bytes em UTF-8');
     }
 
-    const senhaHash = await bcrypt.hash(dto.senha, CUSTO_HASH);
+    const senhaHash = await bcrypt.hash(dto.novaSenha, CUSTO_HASH);
 
     await this.prisma.usuario.update({
       where: { id },

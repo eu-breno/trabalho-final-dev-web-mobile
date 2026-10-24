@@ -24,8 +24,8 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 | Campo | Valor |
 |---|---|
 | **Projeto** | Memora — flashcards com repetição espaçada |
-| **Versão do contrato** | 1.0 |
-| **Última atualização** | 21/09/2026 |
+| **Versão do contrato** | 1.2 |
+| **Última atualização** | 24/10/2026 |
 | **URL base (desenvolvimento)** | `http://localhost:3000` |
 | **Formato** | JSON (`Content-Type: application/json`) |
 
@@ -204,7 +204,7 @@ Auto-cadastro. Sempre cria um usuário de perfil `estudante`; o perfil não pode
 | `400` | Campo obrigatório ausente, e-mail inválido, senha fora da faixa |
 | `409` | Já existe usuário com esse e-mail |
 
-#### `GET /auth/me`
+#### `GET /auth/perfil`
 
 Devolve o usuário dono do token. Serve para o cliente restaurar a sessão.
 
@@ -222,6 +222,37 @@ Devolve o usuário dono do token. Serve para o cliente restaurar a sessão.
 | Status | Quando |
 |---|---|
 | `401` | Token ausente, inválido ou expirado |
+
+#### `PATCH /auth/perfil`
+
+Atualiza nome e/ou e-mail. Envie somente os campos que deseja alterar; a resposta retorna o perfil público atualizado.
+
+```json
+{
+  "nome": "Marina Souza",
+  "email": "marina@exemplo.com"
+}
+```
+
+| Campo | Regra |
+|---|---|
+| `nome` | opcional; texto de 2 a 120 caracteres |
+| `email` | opcional; e-mail válido de até 180 caracteres |
+
+Retorna `409` se o e-mail já pertencer a outra conta.
+
+#### `PATCH /auth/senha`
+
+Altera a senha somente após validar a senha atual. O servidor armazena apenas o hash.
+
+```json
+{
+  "senhaAtual": "senhaAtual123",
+  "novaSenha": "novaSenhaForte123"
+}
+```
+
+Ambos os campos são obrigatórios; a nova senha deve ter ao menos 8 caracteres e no máximo 72 bytes em UTF-8. Senha atual incorreta retorna `401`.
 
 ### 2.3 Perfis e permissões
 
@@ -545,7 +576,7 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 
 ### 4.2 `POST /cartoes/:id/revisoes`
 
-**O que faz:** registra a avaliação que o usuário deu ao cartão e **reagenda o cartão** pelo algoritmo de repetição espaçada (variante do SM-2). A criação da revisão e a atualização do cartão acontecem na mesma transação.
+**O que faz:** registra a avaliação que o usuário deu ao cartão e **reagenda o cartão**. A criação da revisão e a atualização do cartão acontecem na mesma transação; a resposta é o cartão atualizado.
 
 **Pré-condições:** o cartão existe e pertence ao usuário. O cartão **não** precisa estar pendente: revisar antes da hora é aceito e reagenda normalmente.
 
@@ -561,29 +592,21 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 |---|---|
 | `nota` | obrigatório; enum `errei` \| `dificil` \| `bom` \| `facil` |
 
-**Resposta `201`**
+**Resposta `201`** — cartão atualizado.
 
 ```json
 {
-  "id": "0a9f6d2e-31c8-4e57-8b14-7d5c3a9e0f21",
-  "cartaoId": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
-  "nota": "bom",
-  "intervaloAnteriorDias": 0,
-  "intervaloNovoDias": 1,
-  "revisadoEm": "2026-09-21T14:35:00.000Z",
-  "cartao": {
-    "id": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
-    "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
-    "frente": "Passado simples de \"to go\"",
-    "verso": "went",
-    "facilidade": 2.5,
-    "repeticoes": 1,
-    "intervaloDias": 1,
-    "proximaRevisao": "2026-09-22T14:35:00.000Z",
-    "ultimaRevisao": "2026-09-21T14:35:00.000Z",
-    "createdAt": "2026-09-21T14:30:00.000Z",
-    "updatedAt": "2026-09-21T14:35:00.000Z"
-  }
+  "id": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
+  "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
+  "frente": "Passado simples de \"to go\"",
+  "verso": "went",
+  "facilidade": 2.5,
+  "repeticoes": 1,
+  "intervaloDias": 3,
+  "proximaRevisao": "2026-09-24T14:35:00.000Z",
+  "ultimaRevisao": "2026-09-21T14:35:00.000Z",
+  "createdAt": "2026-09-21T14:30:00.000Z",
+  "updatedAt": "2026-09-21T14:35:00.000Z"
 }
 ```
 
@@ -595,16 +618,16 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 | `401` | Token ausente ou inválido |
 | `404` | Cartão inexistente ou de outro usuário |
 
-**Regra do cálculo.** Sejam `f`, `r` e `i` a `facilidade`, as `repeticoes` e o `intervaloDias` do cartão **antes** da avaliação. Depois dela:
+**Regra atualmente implementada.** O backend incrementa `repeticoes`, mantém `facilidade` e escolhe um intervalo fixo:
 
 | `nota` | `repeticoes` | `facilidade` | `intervaloDias` |
 |---|---|---|---|
-| `errei` | `0` | `max(1.3, f − 0.20)` | `1` |
-| `dificil` | `r + 1` | `max(1.3, f − 0.15)` | `max(1, round(i × 1.2))` |
-| `bom` | `r + 1` | `f` (não muda) | se `r = 0`: `1`; se `r = 1`: `6`; senão `round(i × f)` |
-| `facil` | `r + 1` | `f + 0.15` | se `r = 0`: `4`; se `r = 1`: `10`; senão `round(i × f × 1.3)` |
+| `errei` | `r + 1` | `f` (não muda) | `0` |
+| `dificil` | `r + 1` | `f` (não muda) | `1` |
+| `bom` | `r + 1` | `f` (não muda) | `3` |
+| `facil` | `r + 1` | `f` (não muda) | `7` |
 
-Em todos os casos, `proximaRevisao = revisadoEm + intervaloDias dias` e `ultimaRevisao = revisadoEm`. Onde a fórmula usa `f`, é o valor **antes** da atualização. **O cálculo é feito no servidor** — o cliente exibe o que recebe e nunca o recalcula. O cliente pode mostrar "volta em N dias" usando `cartao.intervaloDias` da resposta.
+Em todos os casos, `proximaRevisao` é calculada a partir do instante da revisão e `ultimaRevisao` recebe esse instante. Para `errei`, o intervalo `0` deixa a data vencida imediatamente; a fila de pendentes compara `proximaRevisao <= agora`, então o cartão permanece pendente e pode ser revisado novamente no mesmo dia. **O cálculo é feito no servidor** — o cliente exibe o que recebe e nunca o recalcula.
 
 ### 4.3 Estatísticas
 
@@ -651,6 +674,24 @@ Retorna `baralhoId`, `totalCartoes`, `cartoesRevisados` (cartões que têm ao me
 | `401` | Token ausente ou inválido |
 | `404` | Baralho inexistente ou de outro usuário |
 
+#### `GET /estatisticas/atividade`
+
+Retorna uma série diária de revisões para o usuário autenticado. Aceita `dias=7`, `dias=30` ou `dias=90` (padrão: `7`), sempre incluindo os dias sem atividade. `bom` e `facil` contam como acertos; `errei` e `dificil` como erros/não acertados, em linha com a taxa de acerto.
+
+**Resposta `200`**
+
+```json
+[
+  { "data": "2026-10-18", "total": 3, "acertos": 2, "erros": 1 },
+  { "data": "2026-10-19", "total": 0, "acertos": 0, "erros": 0 }
+]
+```
+
+| Status | Quando |
+|---|---|
+| `400` | `dias` não é 7, 30 ou 90 |
+| `401` | Token ausente ou inválido |
+
 ---
 
 ## 5. Diferenças de consumo entre os clientes
@@ -688,6 +729,7 @@ Retorna `baralhoId`, `totalCartoes`, `cartoesRevisados` (cartões que têm ao me
 |---|---|---|---|
 | 1.0 | 21/09/2026 | Versão inicial | — |
 | 1.1 | 18/10/2026 | `GET /baralhos/:id/estudo` aceita `escopo` e `cartaoId`, retornando a fila sem limite fixo | Web pode revisar todos, somente pendentes ou um cartão |
+| 1.2 | 24/10/2026 | `PATCH /auth/senha` valida senha atual e recebe `senhaAtual`/`novaSenha`; adicionado `GET /estatisticas/atividade` com períodos de 7, 30 ou 90 dias | Web pode alterar a senha com segurança e exibir atividade diária no gráfico |
 
 
 ---

@@ -14,13 +14,41 @@ model Usuario {
   senhaHash String
   perfil    Perfil    @default(estudante)
   baralhos  Baralho[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+
+  turmas TurmaUsuario[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Perfil {
   estudante
   administrador
+}
+
+model Turma {
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+  codigo    String  @unique
+
+  membros  TurmaUsuario[]
+  baralhos Baralho[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TurmaUsuario {
+  id        String   @id @default(uuid())
+  usuarioId String
+  turmaId   String
+  entrouEm  DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  turma   Turma   @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, turmaId]) // Evita que o usuário entre na mesma turma duas vezes
 }
 
 model Baralho {
@@ -31,18 +59,21 @@ model Baralho {
   usuarioId String
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
-  cartoes Cartao[]
+  turmaId String?
+  turma   Turma?  @relation(fields: [turmaId], references: [id], onDelete: SetNull)
 
-  @@unique([usuarioId, nome])
+  cartoes Cartao[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([usuarioId, nome])
 }
 
 model Cartao {
-  id       String @id @default(uuid())
-  frente   String
-  verso    String
+  id     String @id @default(uuid())
+  frente String
+  verso  String
 
   baralhoId String
   baralho   Baralho @relation(fields: [baralhoId], references: [id], onDelete: Cascade)
@@ -69,12 +100,12 @@ enum Nota {
 }
 
 model Revisao {
-  id          String    @id @default(uuid())
+  id       String @id @default(uuid())
   cartaoId String
   cartao   Cartao @relation(fields: [cartaoId], references: [id], onDelete: Cascade)
 
-  nota                    Nota
-  intervaloAnteriorDias   Int
-  intervaloNovoDias      Int
-  revisadoEm              DateTime @default(now())
+  nota                  Nota
+  intervaloAnteriorDias Int
+  intervaloNovoDias     Int
+  revisadoEm            DateTime @default(now())
 }

@@ -5,6 +5,7 @@ import { CartoesModule } from './cartoes/cartoes.module.js';
 import { EstatisticasModule } from './estatisticas/estatisticas.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ConfigModule } from '@nestjs/config';
+import { TurmasModule } from './turmas/turmas.module.js';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
     BaralhosModule,
     CartoesModule,
     EstatisticasModule,
+    TurmasModule,
   ],
   controllers: [],
   providers: [],

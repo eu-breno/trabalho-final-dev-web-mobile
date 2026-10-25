@@ -18,3 +18,13 @@ Content-Type: application/json
   "email": "m@exemplo.com",
   "senha": "12345678"
 }
+
+### Criar uma nova turma
+POST http://localhost:3000/turmas/criar_turma
+Content-Type: application/json
+
+{
+  "nome": "Matemática — 1º semestre",
+  "descricao": "Turma focada no primeiro semestre",
+  "codigo": "MAT-101"
+}

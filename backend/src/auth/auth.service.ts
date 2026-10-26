@@ -10,6 +10,7 @@ import { RegistrarDto } from './dto/registrar.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { JwtService } from '@nestjs/jwt';
+import { Perfil } from '../../generated/prisma/enums.js';
 
 const CUSTO_HASH = 10; // Defina o custo do salt aqui ou via variáveis de ambiente
 
@@ -37,6 +38,7 @@ export class AuthService {
           nome: dto.nome,
           email: dto.email,
           senhaHash,
+          perfil: Perfil.estudante,
         },
       });
 

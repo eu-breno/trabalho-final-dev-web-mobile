@@ -23,6 +23,6 @@ export class PapeisGuard implements CanActivate {
       .getRequest<RequisicaoAutenticada>();
     const usuario = requisicao.user;
 
-    return !!usuario && papeisNecessarios.includes(usuario.papel);
+    return !!usuario && papeisNecessarios.includes(usuario.perfil);
   }
 }

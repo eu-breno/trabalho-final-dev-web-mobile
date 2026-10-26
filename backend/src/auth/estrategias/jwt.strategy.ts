@@ -29,6 +29,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // formato que o resto da aplicação consome (UsuarioAutenticado), e não
   // no formato bruto do payload.
   validate(payload: PayloadJwt): UsuarioAutenticado {
-    return { id: payload.sub, papel: payload.perfil };
+    return { id: payload.sub, perfil: payload.perfil };
   }
 }

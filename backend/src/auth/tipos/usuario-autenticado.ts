@@ -7,7 +7,7 @@ import { Perfil } from '../../../generated/prisma/enums.js';
 // PapeisGuard e @UsuarioAtual() leem.
 export interface UsuarioAutenticado {
   id: string;
-  papel: Perfil;
+  perfil: Perfil;
 }
 
 // A mesma técnica de tipagem explícita do Request usada em

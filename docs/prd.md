@@ -12,9 +12,9 @@
 |---|---|
 | **Nome do projeto** | Memora |
 | **Grupo** | Breno Olliari e Matheus Savegnagi |
-| **Versão do documento** | 1.0 |
+| **Versão do documento** | 1.1 |
 | **Data de criação** | 21/09/2026 |
-| **Última atualização** | 21/09/2026 |
+| **Última atualização** | 02/11/2026 |
 | **Documento de Visão (ref.)** | `docs/visao.md` |
 | **Contrato da API (ref.)** | `docs/contrato-api.md` |
 
@@ -24,7 +24,7 @@
 
 > Em no máximo 4 linhas, descreva o que o produto faz, para quem e qual problema resolve. Deve ser consistente com a seção 2.1 do Documento de Visão.
 
-O MemoCards permite que estudantes criem baralhos de flashcards e os revisem com repetição espaçada: o sistema decide quando cada cartão volta a aparecer, com base em como o estudante avaliou a última revisão. O objetivo é fixar conteúdo com menos tempo de estudo do que a releitura, resolvendo o problema de não saber o que revisar nem quando.
+O Memora permite que estudantes criem baralhos de flashcards e os revisem com repetição espaçada: o sistema decide quando cada cartão volta a aparecer, com base em como o estudante avaliou a última revisão. O objetivo é fixar conteúdo com menos tempo de estudo do que a releitura, resolvendo o problema de não saber o que revisar nem quando.
 
 > **Status do Checkpoint 1 (24/09/2026):** a entrega prioriza a API NestJS com persistência Prisma/PostgreSQL para baralhos, cartões, fila de estudo e revisões. A autenticação JWT, o cliente web, o app mobile, estatísticas e permissões administrativas ficam para etapas posteriores. Durante o desenvolvimento, a API usa um usuário técnico fixo, documentado no backend, apenas para exercitar os endpoints do MVP.
 
@@ -146,8 +146,8 @@ O MemoCards permite que estudantes criem baralhos de flashcards e os revisem com
 
 | ID | Regra | Validação antecipada no cliente? |
 |---|---|---|
-| RN-001 | Todo cartão novo começa com facilidade 2.5, 0 repetições, intervalo de 0 dias e já nasce pendente | não |
-| RN-002 | Cada avaliação (`errei`, `dificil`, `bom`, `facil`) atualiza repetições, facilidade e intervalo do cartão conforme a tabela do contrato, seção 4.2, e define a próxima revisão | não |
+| RN-001 | Todo cartão novo mantém facilidade 2.5, começa com 0 repetições e intervalo de 0 dias e já nasce pendente | não |
+| RN-002 | Cada avaliação (`errei`, `dificil`, `bom`, `facil`) incrementa repetições e escolhe o intervalo fixo definido pelo contrato; facilidade e intervalos anteriores não são calculados pelo algoritmo SM-2 | não |
 | RN-003 | A facilidade de um cartão nunca fica abaixo de 1.3 | não |
 | RN-004 | Um cartão está pendente quando sua data de próxima revisão é menor ou igual ao momento atual | não |
 | RN-005 | Editar frente ou verso de um cartão não reinicia seu progresso | não |
@@ -267,9 +267,9 @@ Restrições do banco: `USUARIO.email` único; `BARALHO` único em (`usuarioId`,
 
 ```mermaid
 flowchart TD
-  W["Cliente web — Next.js 15 (App Router)<br/>Server e Client Components"]
-  M["App mobile — Flutter 3<br/>Screens, Widgets e camada de servico"]
-  A["API REST — NestJS 11<br/>Controller · Service · Prisma"]
+  W["Cliente web — Next.js 16 (App Router)<br/>Server e Client Components"]
+  M["App mobile — Flutter/Dart<br/>Screens, widgets e camada de serviço"]
+  A["API REST — NestJS 12<br/>Controller · Service · Prisma"]
   D["PostgreSQL 18"]
   W -->|HTTP / JSON| A
   M -->|HTTP / JSON| A
@@ -294,12 +294,12 @@ flowchart TD
 
 | Módulo | Recurso do domínio | Endpoints previstos |
 |---|---|---|
-| `auth` | Autenticação (JWT, guards) | `POST /auth/registro`, `POST /auth/login`, `GET /auth/me` |
+| `auth` | Autenticação (JWT, guards) | `POST /auth/registro`, `POST /auth/login`, `GET /auth/perfil`, `PATCH /auth/perfil`, `PATCH /auth/senha` |
 | `usuarios` | `Usuario` | `GET /usuarios` |
 | `baralhos` | `Baralho` | `GET/POST /baralhos`, `GET/PATCH/DELETE /baralhos/:id`, `GET /baralhos/:id/estudo` |
 | `cartoes` | `Cartao` | `GET/POST /baralhos/:baralhoId/cartoes`, `GET/PATCH/DELETE /cartoes/:id` |
 | `revisoes` | `Revisao` e algoritmo de repetição espaçada | `POST /cartoes/:id/revisoes` |
-| `estatisticas` | Consultas agregadas (sem entidade própria) | `GET /estatisticas/resumo` |
+| `estatisticas` | Consultas agregadas (sem entidade própria) | `GET /estatisticas`, `GET /estatisticas/baralhos/:baralhoId`, `GET /estatisticas/atividade` |
 
 ### 8.4 Decisões técnicas por componente
 
@@ -325,13 +325,13 @@ flowchart TD
 
 | Tecnologia | Versão | Papel |
 |---|---|---|
-| Node.js | 22 LTS | Runtime do backend |
-| NestJS | 11 | Framework da API |
-| Prisma | 7 (com `@prisma/adapter-pg`) | ORM e migrations |
+| Node.js | 24.18.0 na máquina de Breno; Matheus não registrou | Runtime do backend |
+| NestJS | 12.0.1 | Framework da API |
+| Prisma | 7.10.0 (com `@prisma/adapter-pg`) | ORM e migrations |
 | PostgreSQL | 18 | Banco de dados |
 | React | 19 | Biblioteca de interface |
-| Next.js | 15 (App Router) | Framework do cliente web |
-| Flutter / Dart | 3 | Framework do app mobile |
+| Next.js | 16.3.5 (App Router) | Framework do cliente web |
+| Flutter / Dart | versão ainda não registrada pela equipe | Framework do app mobile |
 | Docker | — | Banco de dados local |
 
 ---
@@ -344,12 +344,12 @@ flowchart TD
 
 | Sprint | Etapa | Tema | Requisitos previstos | Responsáveis | Entregáveis |
 |---|---|---|---|---|---|
-| 1 | Etapa 1 | Contrato e fundação | — | _[definir]_ | PRD, contrato e backend rodando (projeto NestJS, Prisma, PostgreSQL no Docker) |
-| 2 | Etapa 2 | Backend: núcleo | RF-010 a RF-013, RF-020 a RF-023, RF-030, RF-031 | _[definir]_ | Baralhos, cartões, fila de estudo e revisões com o algoritmo |
-| 3 | Etapa 2 / 3 | Backend: acesso + início do web | RF-001 a RF-003, RF-040, RF-050; web: login e baralhos | _[definir]_ | JWT e guards, estatísticas, Swagger; **checkpoint do backend** |
-| 4 | Etapa 3 | Web | RF-011, RF-021 a RF-023, RF-030 a RF-033, RF-040 | _[definir]_ | Telas de cartões, estudo e progresso; **checkpoint do web** |
-| 5 | Etapa 4 | Mobile | RF-001, RF-002, RF-011, RF-020, RF-030 a RF-033 | _[definir]_ | App com login, lista de baralhos, estudo e criação de cartão; **checkpoint do mobile** |
-| 6 | Etapa 5 | Integração e fechamento | — | todos | Entrega final |
+| 1 | Etapa 1 | Contrato e fundação | — | Breno | PRD, contrato e backend em desenvolvimento (NestJS, Prisma, PostgreSQL no Docker) |
+| 2 | Etapa 2 | Backend: núcleo | RF-010 a RF-013, RF-020 a RF-023, RF-030, RF-031 | Breno e Matheus | Baralhos, cartões, fila de estudo e revisões implementados |
+| 3 | Etapa 2 / 3 | Backend: acesso + início do web | RF-001 a RF-003, RF-040, RF-050; web: login e baralhos | Matheus (auth); Breno (stats/web) | JWT, guards, estatísticas e integração inicial do backend |
+| 4 | Etapa 3 | Web | RF-011, RF-021 a RF-023, RF-030 a RF-033, RF-040 | Breno | Telas de cartões, estudo e progresso implementadas |
+| 5 | Etapa 4 | Mobile | RF-001, RF-002, RF-011, RF-020, RF-030 a RF-033 | Matheus | Projeto iniciado e tela estática de login; integração ainda pendente |
+| 6 | Etapa 5 | Integração e fechamento | RF-001 a RF-050 | Breno e Matheus | Entrega final dos três componentes; não concluída até 02/11/2026 |
 
 > Os três checkpoints caem ao final das etapas 2, 3 e 4 — um por componente. Distribua as sprints de forma que cada etapa chegue ao seu checkpoint com o componente correspondente funcionando.
 
@@ -361,10 +361,10 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 
 > Quais são as condições mínimas para considerar o projeto concluído? Liste os cenários principais. Ao menos um critério deve ser de integração — algo que só se verifica com os três componentes no ar.
 
-- [ ] Um estudante se cadastra, faz login e vê a lista de baralhos vazia
-- [ ] Um estudante cria um baralho e cadastra cartões nele
-- [ ] A sessão de estudo mostra os cartões pendentes; após avaliar, o cartão sai da fila e reaparece na data calculada pelo servidor
-- [ ] A avaliação `errei` faz o cartão voltar em 1 dia; `bom` em um cartão novo faz voltar em 1 dia, e no seguinte em 6 dias
+- [x] Um estudante se cadastra, faz login e vê a lista de baralhos vazia
+- [x] Um estudante cria um baralho e cadastra cartões nele
+- [x] A sessão de estudo mostra os cartões pendentes; após avaliar, o cartão sai da fila e reaparece na data calculada pelo servidor
+- [ ] A avaliação fixa os intervalos implementados: errei 0, difícil 1, bom 3 e fácil 7 dias
 - [ ] Acessar o baralho de outro usuário resulta em `404`; estudante acessando `GET /usuarios` recebe `403`; requisição sem token recebe `401`
 - [ ] Remover um baralho remove os cartões dele
 - [ ] Um registro criado pelo cliente web aparece corretamente no app mobile, e vice-versa
@@ -383,7 +383,7 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 - Modo offline e sincronização no app mobile
 - Notificações push de lembrete
 - Tags, categorias e mover cartões entre baralhos
-- Algoritmos mais avançados que a variante do SM-2 (como o FSRS)
+- Algoritmos avançados de repetição espaçada, como SM-2 completo ou FSRS
 
 ---
 
@@ -392,4 +392,4 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 21/09/2026 | Versão inicial |
-| | | |
+| 1.1 | 02/11/2026 | Versões, endpoints, plano de sprints, algoritmo e status de implementação alinhados ao código |

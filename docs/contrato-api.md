@@ -24,9 +24,9 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 | Campo | Valor |
 |---|---|
 | **Projeto** | Memora — flashcards com repetição espaçada |
-| **Versão do contrato** | 1.2 |
-| **Última atualização** | 24/10/2026 |
-| **URL base (desenvolvimento)** | `http://localhost:3000` |
+| **Versão do contrato** | 1.3 |
+| **Última atualização** | 02/11/2026 |
+| **URL base do backend** | `http://localhost:3000` |
 | **Formato** | JSON (`Content-Type: application/json`) |
 
 > **Nota para o app mobile:** `localhost` dentro do emulador Android aponta para o próprio emulador, não para a máquina do desenvolvedor. Use `http://10.0.2.2:3000` no emulador Android, ou o IP da máquina na rede local para dispositivo físico. Registre a URL usada por cada ambiente na configuração do app, nunca fixa no meio do código.
@@ -89,7 +89,9 @@ Toda resposta de erro segue o mesmo formato, em qualquer endpoint:
 
 > Descreva a estratégia adotada nas listagens. Exemplo:
 
-`GET /recursos?page=1&limit=20` (padrão `page=1`, `limit=20`, máximo `limit=100`)
+O modelo de paginação abaixo vale somente para listagens que o implementam. No estado atual, `GET /usuarios` implementa `page`/`limit`; `GET /baralhos` e `GET /baralhos/:baralhoId/cartoes` retornam listas completas, sem objeto paginado.
+
+Exemplo de objeto paginado:
 
 ```json
 {
@@ -142,17 +144,11 @@ Autentica o usuário e devolve o token de acesso.
 }
 ```
 
-**Resposta `200`** — mesmo corpo do registro (ver `POST /auth/registro`).
+**Resposta `200`** — somente o token; os dados do usuário podem ser obtidos em `GET /auth/perfil`.
 
 ```json
 {
-  "accessToken": "eyJhbGciOi...",
-  "usuario": {
-    "id": "5b0e1c7a-2f44-4d0b-9f3e-6a1d8c2b9e10",
-    "nome": "Marina Souza",
-    "email": "marina@exemplo.com",
-    "perfil": "estudante"
-  }
+  "accessToken": "token-jwt-assinado"
 }
 ```
 
@@ -181,21 +177,20 @@ Auto-cadastro. Sempre cria um usuário de perfil `estudante`; o perfil não pode
 
 | Campo | Regra |
 |---|---|
-| `nome` | string, 1–80, obrigatório |
-| `email` | e-mail válido, até 120, obrigatório, único no sistema (sem diferenciar maiúsculas) |
-| `senha` | string, 8–72, obrigatório |
+| `nome` | string, obrigatório, máximo 120 caracteres |
+| `email` | e-mail válido, máximo 180 caracteres, obrigatório, único no sistema |
+| `senha` | string, mínimo 8 caracteres; máximo de 72 bytes em UTF-8 |
 
-**Resposta `201`** — já devolve o token, para o cliente entrar direto (mesmo formato do login).
+**Resposta `201`** — devolve o usuário público criado, sem token. O cliente chama `POST /auth/login` para obter o JWT.
 
 ```json
 {
-  "accessToken": "eyJhbGciOi...",
-  "usuario": {
-    "id": "5b0e1c7a-2f44-4d0b-9f3e-6a1d8c2b9e10",
-    "nome": "Marina Souza",
-    "email": "marina@exemplo.com",
-    "perfil": "estudante"
-  }
+  "id": "5b0e1c7a-2f44-4d0b-9f3e-6a1d8c2b9e10",
+  "nome": "Marina Souza",
+  "email": "marina@exemplo.com",
+  "perfil": "estudante",
+  "createdAt": "2026-09-21T14:30:00.000Z",
+  "updatedAt": "2026-09-21T14:30:00.000Z"
 }
 ```
 
@@ -315,15 +310,9 @@ Cada linha da coluna "Não pode" vira um teste (`403` ou `404`) e um caso no gua
 
 #### `GET /baralhos`
 
-Lista os baralhos do usuário autenticado, ordenados por nome (A–Z).
+Lista os baralhos do usuário autenticado, ordenados por nome (A–Z). 
 
-| Parâmetro de consulta | Tipo | Descrição |
-|---|---|---|
-| `page` | número | Página, padrão 1 |
-| `limit` | número | Itens por página, padrão 20, máximo 100 |
-| `busca` | string | Filtra por nome, sem diferenciar maiúsculas |
-
-**Resposta `200`** — objeto paginado conforme a seção 1.4, com `dados` contendo baralhos.
+**Resposta `200`** — lista completa de baralhos, sem envelope `dados`, `total`, `page` ou `limit`.
 
 | Status | Quando |
 |---|---|
@@ -420,14 +409,7 @@ Remove o baralho **e todos os seus cartões e revisões** (remoção em cascata)
 
 Lista os cartões de um baralho, ordenados do mais recente para o mais antigo.
 
-| Parâmetro de consulta | Tipo | Descrição |
-|---|---|---|
-| `page` | número | Página, padrão 1 |
-| `limit` | número | Itens por página, padrão 20, máximo 100 |
-| `busca` | string | Filtra por texto da frente ou do verso, sem diferenciar maiúsculas |
-| `pendentes` | booleano | `true` devolve apenas cartões com `proximaRevisao` menor ou igual a agora |
-
-**Resposta `200`** — objeto paginado conforme a seção 1.4.
+**Resposta `200`** — lista completa de cartões.
 
 | Status | Quando |
 |---|---|
@@ -479,6 +461,29 @@ Remove o cartão e o histórico de revisões dele.
 
 ---
 
+#### `POST /cartoes`
+
+Cria um cartão informando `baralhoId` diretamente no corpo.
+
+```json
+{
+  "baralhoId": "c7d2a1f0-8e35-4b6a-a1c9-0f3e5d7b2a48",
+  "frente": "Passado simples de \"to go\"",
+  "verso": "went"
+}
+```
+
+Campos somente leitura não são aceitos. O baralho deve pertencer ao usuário autenticado.
+
+| Status | Quando |
+|---|---|
+| `201` | Cartão criado |
+| `400` | Campo inválido ou ausente |
+| `401` | Token ausente ou inválido |
+| `404` | Baralho inexistente ou de outro usuário |
+
+---
+
 ### 3.3 `Revisao`
 
 **Descrição:** registro imutável de uma avaliação feita pelo usuário durante o estudo. Não pode ser editada nem removida diretamente; é criada por `POST /cartoes/:id/revisoes` (seção 4.2) e removida apenas junto com o cartão.
@@ -493,7 +498,7 @@ Remove o cartão e o histórico de revisões dele.
   "cartaoId": "e41b9d3c-6a72-4f18-b5d0-9c8a2e7f1b63",
   "nota": "bom",
   "intervaloAnteriorDias": 0,
-  "intervaloNovoDias": 1,
+  "intervaloNovoDias": 3,
   "revisadoEm": "2026-09-21T14:35:00.000Z"
 }
 ```
@@ -573,6 +578,16 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 | `400` | `escopo` fora de `pendentes`/`todos`, ou `cartaoId` não é um UUID válido |
 | `401` | Token ausente ou inválido |
 | `404` | Baralho inexistente ou de outro usuário |
+
+### 4.1.1 `GET /baralhos/estudo`
+
+Devolve a fila global de estudos de todos os baralhos do usuário autenticado. Aceita os mesmos parâmetros `escopo` e `cartaoId` definidos em `GET /baralhos/:id/estudo`.
+
+| Status | Quando |
+|---|---|
+| `200` | Lista encontrada, inclusive `[]` quando não há cartões correspondentes |
+| `400` | `escopo` ou `cartaoId` inválido |
+| `401` | Token ausente ou inválido |
 
 ### 4.2 `POST /cartoes/:id/revisoes`
 
@@ -700,8 +715,8 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 
 | Endpoint | Diferença | Cliente | Motivo |
 |---|---|---|---|
-| `GET /baralhos/:id/estudo` | Mobile usa `limite=10` (sessões curtas); web usa o padrão (20) | mobile | Estudo em pequenos intervalos, com a tela pequena |
-| `GET /baralhos` | Mobile usa `limit=50` e sem paginação visível; web pagina | ambos | Poucos baralhos por usuário; a lista cabe em uma tela rolável |
+| `GET /baralhos/:id/estudo` | Mobile e web usam apenas `escopo`; não há limite fixo implementado nesta rota | mobile | Estudo em pequenos intervalos, com a tela pequena |
+| `GET /baralhos` | Nenhum dos dois clientes implementa paginação nesta rota; o backend retorna lista completa | ambos | Poucos baralhos por usuário; a lista cabe em uma tela rolável |
 | `GET /estatisticas` | Consumido só pelo web no MVP | web | Recorte do mobile (PRD, seção 7) |
 | `GET /usuarios` | Consumido só pelo web | web | Tela administrativa |
 
@@ -712,9 +727,9 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 > Registre como o grupo confere que a API implementada corresponde a este documento.
 
 - [ ] Coleção de requisições versionada no repositório _(arquivo `.http`, Insomnia, Postman)_
-- [ ] Swagger habilitado no backend _(`@nestjs/swagger`)_ — URL: `http://localhost:3000/api`
-- [ ] Tipos do cliente web derivados do contrato, em `web/src/types/`
-- [ ] Modelos do mobile derivados do contrato, em `mobile/lib/models/`
+- [ ] Swagger habilitado no backend _(`@nestjs/swagger`)_ — ainda não configurado na inicialização atual
+- [x] Tipos usados pelo cliente web derivados da implementação e conferidos com o contrato atual
+- [ ] Modelos do mobile derivados do contrato, em `mobile/lib/models/`; o mobile ainda não possui modelos HTTP
 - [ ] Um cenário de ponta a ponta executado na coleção: registro → login → criar baralho → criar cartão → `GET /estudo` → `POST /revisoes` → conferir `proximaRevisao`
 
 > Se o grupo habilitar o Swagger, este documento continua sendo necessário: o Swagger descreve a API que **existe**, e o contrato descreve a que foi **acordada**. Os dois convergem na entrega final, mas cumprem papéis diferentes durante o projeto.
@@ -730,161 +745,4 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 | 1.0 | 21/09/2026 | Versão inicial | — |
 | 1.1 | 18/10/2026 | `GET /baralhos/:id/estudo` aceita `escopo` e `cartaoId`, retornando a fila sem limite fixo | Web pode revisar todos, somente pendentes ou um cartão |
 | 1.2 | 24/10/2026 | `PATCH /auth/senha` valida senha atual e recebe `senhaAtual`/`novaSenha`; adicionado `GET /estatisticas/atividade` com períodos de 7, 30 ou 90 dias | Web pode alterar a senha com segurança e exibir atividade diária no gráfico |
-
-
----
-
-## Anexo A — exemplo preenchido (domínio de biblioteca)
-
-> Este anexo existe para mostrar **a forma**, não o conteúdo. Ele usa o domínio de biblioteca justamente porque ele é o das aulas práticas e **não pode ser o tema do trabalho** — não há como copiar daqui para o seu projeto, só como se orientar pelo nível de detalhe.
->
-> Repare no que faz este exemplo funcionar: todo campo tem tipo, toda operação tem os códigos de status que devolve, e as regras que impedem uma operação estão escritas como resposta de erro, não como texto solto. É esse nível que permite alguém implementar o cliente sem perguntar nada.
->
-> Apague este anexo do seu contrato depois de preencher o documento.
-
-### A.1 `Livro`
-
-**Descrição:** obra disponível no acervo. Um livro pode ter vários exemplares emprestados ao longo do tempo, mas só um empréstimo ativo por vez.
-
-**Consumido por:** web (cadastro e acervo completo) e mobile (busca e consulta)
-
-#### Representação
-
-```json
-{
-  "id": "9f1c2b6e-4a7d-4b28-9a4e-2d5f8c1e7b30",
-  "titulo": "Dom Casmurro",
-  "autor": "Machado de Assis",
-  "isbn": "9788525406958",
-  "anoPublicacao": 1899,
-  "situacao": "disponivel",
-  "createdAt": "2026-03-10T13:02:41.000Z",
-  "updatedAt": "2026-03-10T13:02:41.000Z"
-}
-```
-
-| Campo | Tipo | Obrigatório na criação | Observação |
-|---|---|---|---|
-| `id` | uuid | — | Gerado pelo servidor |
-| `titulo` | string (1–200) | sim | |
-| `autor` | string (1–120) | sim | |
-| `isbn` | string (13) | sim | Único no acervo |
-| `anoPublicacao` | número inteiro | não | Entre 1450 e o ano corrente |
-| `situacao` | enum | — | `disponivel` \| `emprestado`; calculada pelo servidor, nunca enviada pelo cliente |
-| `createdAt`, `updatedAt` | ISO 8601 | — | Gerados pelo servidor |
-
-#### `GET /livros`
-
-Lista o acervo. Rota autenticada — qualquer perfil.
-
-| Parâmetro de consulta | Tipo | Descrição |
-|---|---|---|
-| `page` | número | Página, padrão 1 |
-| `limit` | número | Itens por página, padrão 20, máximo 100 |
-| `busca` | string | Filtra por título ou autor, sem diferenciar maiúsculas |
-| `situacao` | enum | `disponivel` ou `emprestado` |
-
-**Resposta `200`**
-
-```json
-{
-  "dados": [ { "id": "...", "titulo": "Dom Casmurro", "autor": "Machado de Assis", "isbn": "9788525406958", "anoPublicacao": 1899, "situacao": "disponivel", "createdAt": "...", "updatedAt": "..." } ],
-  "total": 143,
-  "page": 1,
-  "limit": 20
-}
-```
-
-| Status | Quando |
-|---|---|
-| `200` | Sucesso, mesmo que a lista venha vazia |
-| `401` | Token ausente ou inválido |
-
-#### `GET /livros/:id`
-
-**Resposta `200`** — a representação acima.
-
-| Status | Quando |
-|---|---|
-| `404` | Não existe livro com esse `id` |
-
-#### `POST /livros`
-
-Cadastra um livro. Rota autenticada — **somente perfil `bibliotecario`**.
-
-**Requisição**
-
-```json
-{
-  "titulo": "Memórias Póstumas de Brás Cubas",
-  "autor": "Machado de Assis",
-  "isbn": "9788535911503",
-  "anoPublicacao": 1881
-}
-```
-
-**Resposta `201`** — a representação criada, com `situacao` em `disponivel`.
-
-| Status | Quando |
-|---|---|
-| `400` | Campo obrigatório ausente, ISBN fora do formato, ano fora da faixa |
-| `403` | Perfil `leitor` tentando cadastrar |
-| `409` | Já existe livro com esse ISBN |
-
-#### `DELETE /livros/:id`
-
-**Resposta `204`** — sem corpo.
-
-| Status | Quando |
-|---|---|
-| `403` | Perfil `leitor` |
-| `404` | Livro inexistente |
-| `409` | Livro com empréstimo ativo — devolva antes de remover |
-
----
-
-### A.2 Endpoint de regra de negócio — devolução
-
-> Este é o tipo de endpoint que sustenta o "lógica além do CRUD". Repare que ele **não** é um `PATCH` genérico: a devolução é uma operação do domínio, com pré-condições próprias, e por isso vira um sub-recurso.
-
-#### `POST /emprestimos/:id/devolucao`
-
-**O que faz:** encerra um empréstimo ativo, devolve o livro ao acervo e calcula a multa por atraso.
-
-**Pré-condições:** o empréstimo existe e está com `situacao` em `ativo`.
-
-**Requisição:** sem corpo.
-
-**Resposta `200`**
-
-```json
-{
-  "id": "3c8a1f04-77b2-4c19-8e55-a1d9b6f2c084",
-  "livroId": "9f1c2b6e-4a7d-4b28-9a4e-2d5f8c1e7b30",
-  "dataEmprestimo": "2026-03-01T14:00:00.000Z",
-  "dataPrevistaDevolucao": "2026-03-15T14:00:00.000Z",
-  "dataDevolucao": "2026-03-18T09:12:00.000Z",
-  "diasAtraso": 3,
-  "multa": 4.5,
-  "situacao": "devolvido"
-}
-```
-
-| Status | Quando |
-|---|---|
-| `401` | Token ausente ou inválido |
-| `404` | Não existe empréstimo com esse `id` |
-| `409` | O empréstimo já foi devolvido |
-
-**Regra do cálculo:** `multa = diasAtraso × 1,50`, com `diasAtraso` contado em dias corridos a partir de `dataPrevistaDevolucao`. Sem atraso, `diasAtraso` é `0` e `multa` é `0`. **O cálculo é feito no servidor** — o cliente exibe o valor que recebe, nunca o recalcula.
-
----
-
-### A.3 Perfis e permissões do exemplo
-
-| Perfil | Pode | Não pode |
-|---|---|---|
-| `bibliotecario` | Cadastrar, editar e remover livros; registrar empréstimos e devoluções de qualquer leitor | — |
-| `leitor` | Consultar o acervo; ver e devolver os próprios empréstimos | Cadastrar livros; ver empréstimos de outros leitores |
-
-> A coluna "Não pode" não é decorativa: cada linha dela vira um teste de `403` e um caso no guard de autorização.
+| 1.3 | 02/11/2026 | Login, registro, rotas de criação/listagem e estado real do mobile alinhados ao código | Remove divergências documentais; nenhum endpoint novo foi criado nesta revisão |

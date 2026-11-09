@@ -6,6 +6,7 @@ Este anexo reúne o texto dos prompts citados na seção 2.3 de `docs/relatorio.
 |---|---|---|
 | 10/10/2026 | Frontend: telas de revisão, baralhos e detalhe do baralho | A1, B |
 | 25/10/2026 | Administrador/professor: análise, implementação e diagnóstico do projeto | A2, C1, C2, D, E, F |
+| 09/11/2026 | Atualização documental do mobile, equipe e integração | G |
 
 ---
 
@@ -453,3 +454,21 @@ Responda nas seções abaixo:
 
 Formato: use títulos e listas curtas, em português.
 ````
+
+## Etapa 4 — App mobile
+
+### G. Apoio do Copilot à criação das telas e dos fluxos
+
+- **Quem conduziu:** Matheus · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Período:** Etapa 4, iniciada em 26/10/2026 e em desenvolvimento até 09/11/2026
+- **Resultado:** o Copilot apoiou a criação e o refinamento da interface mobile. Matheus integrou as telas aos fluxos do aplicativo e à API existente.
+
+**Prompt utilizado:**
+
+````text
+Com base na estrutura e na identidade visual do Memora, ajude a criar e revisar as telas do aplicativo Flutter. Implemente os fluxos de login e cadastro, navegação após autenticação, dashboard, baralhos e seus cartões, sessão de estudo com avaliação, estatísticas e configurações da conta. Mantenha os componentes e a navegação consistentes entre as telas e conecte as ações aos endpoints existentes da API.
+````
+
+- **O que foi solicitado à IA:** elaborar e revisar a interface das telas mobile e apoiar a organização dos fluxos de autenticação, navegação, gerenciamento de conteúdo, estudo e acompanhamento do progresso.
+- **Código gerado e efetivamente aproveitado:** estruturas e componentes de interface para login e cadastro; dashboard com menu lateral, resumo e ações; telas de baralhos e cartões com criação, edição e exclusão; sessão de estudo com frente/verso, notas de revisão, progresso e revisão de erros; estatísticas; e configurações de conta. A assistência foi usada como ponto de partida para as telas e seus estados visuais.
+- **Código adaptado por Matheus:** integração das telas com os endpoints REST existentes; configuração de URL da API para emulador ou via `API_BASE_URL`; envio das credenciais; persistência/restauração do token com `SharedPreferences`; navegação entre login, cadastro, dashboard, baralhos e estudo; estados de carregamento, timeout, erro e nova tentativa; e ajuste dos fluxos de revisão para enviar a nota à API.
+- **Commit relacionado:** `113cd46`; commit do projeto mobile com as telas e funcionalidades descritas acima, previsto para 09/11/2026 por Matheus 

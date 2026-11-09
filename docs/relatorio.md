@@ -25,14 +25,17 @@
 | Git | 2.51.0 (Windows) | Breno |
 | NestJS CLI | 12.0.0 | Breno |
 | NestJS, Next.js, React, Prisma | 12.0.1, 16.3.5, 19.2.8 e 7.10.0 (conforme `package-lock.json`) | Ambos |
-| Flutter SDK | Não instalado de Breno; Matheus: não registrado | Matheus |
+| Flutter SDK / Dart | Flutter 3.47.8 / Dart 3.13.7, verificados no ambiente mobile em 09/11/2026 | Matheus |
 | PostgreSQL | 18 (imagem Docker, usada por Breno) | Breno; Matheus: não registrado |
 | Docker | 29.8.0 na máquina de Breno | Breno; Matheus: não registrado |
-| Emulador ou dispositivo usado no mobile | Não utilizado até 01/11/2026; a interface mobile não foi executada em dispositivo nesta etapa | Matheus |
-| Sistema operacional | Windows 11 Pro (10.0.26200) na máquina de Breno | Breno; Matheus: não registrado |
-| Editor | WebStorm e VS Code (com GitHub Copilot) | Breno |
+| SDK mínimo do app | Dart `^3.13.7` em `mobile/pubspec.yaml` (mínimo 3.13.7; não é a versão mínima do Android) | Mobile |
+| Emulador ou dispositivo usado no mobile | Nenhum Android/iOS detectado ou validado; `flutter devices` encontrou Windows, Chrome e Edge | Mobile |
+| Sistema operacional | Windows 10 Pro (10.0.19045.7807), observado no ambiente mobile em 09/11/2026 | Matheus |
+| Editor ou IDE | VS Code | Matheus |
 
 **Como o banco foi provisionado:** (x) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado
+
+**Comandos do mobile:** executar a partir de `mobile/`: `flutter pub get`, `flutter run` (emulador Android padrão) ou `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` (dispositivo físico), `flutter test` e `dart analyze`. Nesta atualização, `flutter test` passou (11 testes) e `dart analyze` não encontrou problemas; `flutter analyze` foi tentado, mas o servidor de análise Dart encerrou com erro interno. Nenhum desses testes foi executado em aparelho nem contra uma API real.
 
 ### 1.2 Divergências em relação ao README
 
@@ -46,13 +49,16 @@
 | Ambiente | O Docker não estava instalado na máquina de Breno no início, o que impedia subir o PostgreSQL | Instalação do Docker e uso do `docker-compose.yml` do repositório |
 | Web | A API e o frontend usam a porta 3000 por padrão | Subir a API primeiro; o Next.js passa para a 3001 quando a 3000 está ocupada, e o README também sugere `-p 3001`. Na prática, o frontend roda na 3001 |
 
-### 1.3 Endereços de rede entre os componentes
+### 1.3 Endereços de rede configurados e usados entre os componentes
 
-| Origem | URL da API usada | Observação |
+| Origem | Endereço configurado ou usado | Observação |
 |---|---|---|
 | Web (navegador) | `http://localhost:3000` (variável `NEXT_PUBLIC_API_URL`, lida em `frontend/lib/backend-url.ts`) | As chamadas passam pelas rotas do Next.js, que repassam ao backend |
-| Mobile (emulador) | Não aplicável até 01/11/2026 | O app ainda não chama a API; quando chamar, `localhost` apontará para o próprio emulador, não para o computador |
-| Mobile (dispositivo físico) | Não usado | Nenhuma integração HTTP ou teste em dispositivo físico foi feito nesta etapa |
+| Mobile (emulador Android) | `http://10.0.2.2:3000` por padrão | Configurado em `mobile/lib/app_mobile/api_config.dart`; `10.0.2.2` encaminha ao computador host do emulador Android. Não há evidência de execução nesse emulador |
+| Mobile (iOS Simulator, Windows, web e demais destinos) | `http://localhost:3000` por padrão | É o fallback do app; `localhost` aponta para a máquina/dispositivo que executa o cliente |
+| Mobile (dispositivo físico) | `http://<IP-LOCAL-DA-MAQUINA>:3000` via `API_BASE_URL` | O IP precisa ser obtido na máquina do backend (por exemplo, `ipconfig` no Windows) e ambos precisam estar na mesma rede; nenhum IP/dispositivo de teste foi registrado |
+
+O app também aceita uma URL completa com `--dart-define=API_BASE_URL=...`; a URL usada em execução real não foi comprovada. CORS não é configurado/tratado no cliente Flutter nativo e não foi testado; é uma política do navegador, relevante para Flutter Web.
 
 ---
 
@@ -64,7 +70,7 @@
 |---|---|---|---|
 | GitHub Copilot (Chat, modo Agent, no VS Code) | Plano gratuito | Breno | Backend, web e documentação |
 | Claude (claude.ai) | Plano gratuito | Breno | Decisões de projeto, diagnóstico, elaboração de prompts para o Copilot (inclusive o do visual do frontend) e revisão da documentação |
-| Nenhuma outra ferramenta de IA adicional | Não registrada pela equipe até 02/11/2026 | Matheus | — |
+| GitHub Copilot (VS Code) | Versão/plano não registrados | Matheus | App mobile: apoio à criação e revisão de telas e fluxos |
 
 ### 2.2 Atenção específica desta stack
 
@@ -73,12 +79,12 @@
 | Código gerado com Next.js Pages Router (`getServerSideProps`, `pages/api/`) | Não | Verificado em 25/10: o frontend usa App Router e não há pasta `pages/` nem `getServerSideProps` |
 | Prisma sem o adaptador `@prisma/adapter-pg`, ou importando de `@prisma/client` em vez do caminho gerado | Não | A seed gerada usou `PrismaPg` e o cliente gerado, como pedido no prompt |
 | Decorators ou módulos de versão antiga do NestJS | Não identificado | |
-| Pacotes Flutter descontinuados ou incompatíveis com Flutter 3 | Não aplicável até agora | O app está no início (Etapa 4) |
+| Pacotes Flutter descontinuados ou incompatíveis com Flutter 3 | Não identificado pelo `dart analyze`; não foi feita auditoria de compatibilidade completa | `flutter test` e `dart analyze` passaram; testes contra dispositivos/backend continuam pendentes |
 | Outro | Sim | O comando de execução da seed sugerido pela IA não funcionava no ambiente (ver 1.2); foi trocado por `tsx` |
 
 ### 2.3 Evidências de uso
 
-Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados, exceto os prompts das telas e da análise do administrador, recuperados de um arquivo de anotações. A partir de 25/10/2026 o texto exato dos prompts passou a ser guardado. Os textos estão em `docs/anexo-prompts-ia.md`.
+Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados, exceto os prompts das telas e da análise do administrador, recuperados de um arquivo de anotações. A partir de 25/10/2026 o texto exato dos prompts passou a ser guardado para as atividades registradas. O uso de IA no mobile foi reconstruído como resumo fiel, pois o texto exato não foi registrado. Os registros estão em `docs/anexo-prompts-ia.md`.
 
 ---
 
@@ -154,7 +160,7 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 
 #### Etapa 4 — App mobile
 
-- Não utilizado nesta etapa até 01/11/2026; Matheus confirmou pelo estado da pasta `mobile/` que o trabalho realizado até a data foi apenas a inicialização do projeto e a tela estática de login.
+- Matheus confirmou a autoria das funcionalidades mobile presentes no worktree; o estado, os testes e o histórico estão descritos na seção Etapa 4 deste relatório. O commit das funcionalidades estava previsto para 09/11/2026 e ainda não constava no histórico quando esta revisão foi feita.
 ---
 
 #### Diagnóstico do projeto e da documentação (prompts de leitura)
@@ -169,7 +175,7 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 
 ### 2.4 Reflexão sobre o uso de IA
 
-A IA acelerou principalmente duas tarefas: revisar o código de cartões e DTOs feito por Matheus, apontando a necessidade de substituir dados em memória por persistência PostgreSQL/Prisma, e transformar um esqueleto manual do frontend em telas mais completas com os componentes do shadcn/ui. No segundo caso, fornecer à IA o layout inicial, os componentes já instalados e um prompt detalhado sobre comportamentos funcionou melhor do que pedir uma tela inteira do zero. Os erros percebidos foram poucos e ficaram mais visíveis na interface: ícones temáticos gerados automaticamente não eram a melhor representação para todos os baralhos. Aprendemos que IA é útil para explorar alternativas, identificar problemas e produzir código inicial, mas não deve substituir a revisão humana. A equipe passou a registrar os prompts, analisar o resultado, corrigir decisões incorretas e validar builds e fluxos antes dos commits.
+A IA acelerou principalmente a revisão do código de cartões e DTOs feito por Matheus, apontando a necessidade de substituir dados em memória por persistência PostgreSQL/Prisma; a criação de telas web mais completas com os componentes do shadcn/ui; e o desenvolvimento mobile, em que o Copilot apoiou a criação e o refinamento das telas de autenticação, dashboard, baralhos, cartões e estudo. No frontend web, fornecer à IA o layout inicial, os componentes já instalados e um prompt detalhado sobre comportamentos funcionou melhor do que pedir uma tela inteira do zero. No mobile, Matheus integrou as telas aos endpoints existentes e implementou sessão, navegação e estados de carregamento e erro. Os testes mobile atuais usam respostas HTTP simuladas e não substituem a validação contra backend real. Os erros percebidos no frontend incluíram ícones temáticos gerados automaticamente que não eram a melhor representação para todos os baralhos. Aprendemos que IA é útil para explorar alternativas, identificar problemas e produzir código inicial, mas não substitui revisão humana. A equipe deve registrar prompts, revisar o código, corrigir decisões incorretas e validar builds e fluxos antes dos commits.
 
 ---
 
@@ -284,34 +290,56 @@ A IA acelerou principalmente duas tarefas: revisar o código de cartões e DTOs 
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** de 26/10/2026 a 01/11/2026 (etapa iniciada, sem integração concluída) · **Redigido por:** Matheus
+**Período:** iniciada em 26/10/2026; estado conferido em 09/11/2026 · **Responsável:** Matheus
 
-**O que foi implementado:** projeto Flutter inicializado em 26/10/2026 por Matheus (`113cd46`), na pasta `mobile/` da branch `back_admin`. Até 01/11/2026 existe uma tela estática de login inspirada na identidade visual do cliente web, com campos de e-mail e senha e o botão "Entrar". O projeto usa o SDK do Dart definido em `mobile/pubspec.yaml`; não possui pacote HTTP, não envia credenciais à API, não possui navegação autenticada nem telas de baralhos, cartões ou revisão.
+**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas, turmas e configurações de conta. O commit dessas funcionalidades estava previsto para 09/11/2026; o histórico ainda não continha esse commit no momento da conferência.
+
+**Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Os comandos são `flutter pub get`, `flutter run`, `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` para dispositivo físico, `flutter test` e `dart analyze`. Os 11 testes widget/HTTP mock passaram; eles não validam conectividade com o backend real. `dart analyze` não encontrou problemas; `flutter analyze` encerrou com erro interno do servidor de análise.
+
+**Telas e navegação:** login, cadastro, dashboard, lista/gestão de baralhos, detalhe/lista de cartões, estudo, estatísticas, turmas e diálogo de configurações. A navegação usa rotas Flutter, menu lateral e páginas de detalhe. O cadastro volta ao login após o sucesso; o login abre o dashboard. Há atualização/reload e botão "Tentar novamente" em telas de dados. Turmas aparece no menu, mas seu uso integrado à API não foi validado.
+
+**Sessão e autenticação:** o app envia `POST /auth/login`, lê `accessToken` e persiste-o em `SharedPreferences` (`memora.accessToken`). Ao iniciar, tenta restaurar a sessão e abre login ou dashboard; portanto, fechar e reabrir mantém a sessão salva. O logout remove a chave e limpa a pilha de navegação. As chamadas protegidas enviam o token da sessão no cabeçalho `Authorization` com esquema Bearer. Não há renovação/refresh nem tratamento dedicado de token expirado; a autenticação no backend real ainda precisa ser validada.
+
+**Funcionalidades e endpoints no código:** login `POST /auth/login`; cadastro `POST /auth/registro`; perfil `GET/PATCH /auth/perfil`; senha `PATCH /auth/senha`; dashboard `GET /estatisticas?periodo=geral`; estatísticas `GET /estatisticas?periodo=semana`, `GET /estatisticas/baralhos/:id` e `GET /estatisticas/atividade?dias=7|30|90`; baralhos `GET/POST /baralhos`, `GET/PATCH/DELETE /baralhos/:id`; cartões `GET/POST /baralhos/:id/cartoes`, `PATCH/DELETE /cartoes/:id`; fila `GET /baralhos/estudo?escopo=...` ou `GET /baralhos/:id/estudo?escopo=...`; revisão `POST /cartoes/:id/revisoes`. Os formulários permitem criar cartão dentro do detalhe do baralho; não foi identificada uma criação rápida fora desse contexto. O estudo envia uma das notas `errei`, `dificil`, `bom`, `facil`, avança a fila localmente após resposta de sucesso e tem opção de rever cartões errados. Não há confirmação de que a próxima revisão foi atualizada no backend real nem de que a fila seja recarregada após cada revisão.
+
+| Requisição / fluxo | Resultado verificado |
+|---|---|
+| `POST /auth/login` e leitura do token | Teste automatizado com HTTP simulado passou; backend real não testado |
+| `POST /auth/registro` | Teste automatizado com HTTP simulado passou; backend real não testado |
+| `GET /auth/perfil`, `GET /estatisticas?periodo=geral`, `GET /baralhos` | Teste de carregamento do dashboard com HTTP simulado passou |
+| `PATCH /auth/perfil` e `PATCH /auth/senha` | Testes de configurações com HTTP simulado passaram |
+| `POST /baralhos` e `POST /baralhos/:id/cartoes` | Teste de criação com HTTP simulado passou |
+| Fila de estudo e `POST /cartoes/:id/revisoes` | Teste de carregamento de fila e envio de avaliações com HTTP simulado passou; resposta não comprova persistência real ou próxima revisão no backend |
+| `GET/PATCH/DELETE /baralhos/:id`; `GET /baralhos/:id/cartoes`; `PATCH/DELETE /cartoes/:id` | Implementados no código; teste individual e chamada contra backend real não comprovados |
+| Estatísticas semanais, por baralho e atividade | Implementadas no código; teste individual e chamada contra backend real não comprovados |
+| Sem conexão, token expirado, usuário ou recurso inexistente | Não há resultado de teste registrado; a UI apresenta erros recebidos, mas sem validação real |
+
+**Resultados e tratamento de erros:** os testes com HTTP simulado cobrem login/token, cadastro, dados do dashboard, criação de baralho/cartão e envio de avaliações; também cobrem configurações/sessão. Não cobrem chamadas reais. As chamadas HTTP aplicam timeout de 15 segundos; a UI mostra mensagens para timeout, falha de conexão e erros HTTP devolvidos pela API, e telas de carregamento/retentativa. Token expirado, usuário/recurso inexistente e modo sem conexão não foram validados contra backend; erros retornados são exibidos, mas não há logout automático em 401/403. CORS não se aplica ao cliente nativo e não foi testado.
 
 **Decisões técnicas:**
 
 | Decisão | Alternativas consideradas | Justificativa | Risco ou consequência |
 |---|---|---|---|
-| Autenticação simplificada no app (login real contra a API, token em memória) | Completa (token persistido, expiração e logout) ou simulada | Prazo e equipe de 2 pessoas, conforme o PRD | O app não trata expiração nem refresh; a API continua protegida |
-| Recorte do app: estudar um baralho e criar cartão rápido | Mais telas e casos de uso | O enunciado pede de 1 a 3 casos de uso completos, ao menos um alterando dados | O app cobre só o essencial |
+| Persistir o token localmente e oferecer logout | Manter token só em memória | Implementação em `SessionStore` com `SharedPreferences` | A sessão continua ao fechar o app; não há refresh nem tratamento dedicado de expiração |
+| Organizar o app em telas de autenticação, dashboard, baralhos, estudo e estatísticas | Manter apenas a tela inicial estática | Implementação de Matheus para cobrir os fluxos principais do cliente mobile | Turmas aparece na navegação, mas não tem integração funcional validada nesta etapa |
 
-**Mudanças no contrato da API:** nenhuma. O contrato não mudou nesta etapa porque o mobile ainda não implementa chamadas HTTP nem novo comportamento da API.
+**Mudanças no contrato da API:** nenhuma alteração de contrato foi registrada para viabilizar o mobile; o app consome rotas já existentes no backend.
 
-**Dificuldades:** iniciar o ambiente Flutter/Dart, estruturar o projeto e confirmar o ambiente de execução em cada máquina. Além disso, a tela foi implementada sem integração, portanto não foi possível validar autenticação nem consumo real dos endpoints.
+**Dificuldades e pendências:** não há evidência de emulador/dispositivo Android ou iOS configurado nem de teste contra o servidor real. Também não foram comprovados tratamento de token expirado, uso offline, CORS ou resultados para usuário/recurso inexistente. É necessário executar os casos contra backend e registrar dispositivo, URL e resultados.
 
-**O que ficou para a próxima etapa:** conectar o app à API, definir a URL de base de acordo com emulador ou dispositivo físico, implementar login real, manter o token em memória, apresentar baralhos e implementar pelo menos um caso de uso completo que altere dados, como criar um cartão ou concluir uma revisão.
+**Casos de uso validados:** os testes automatizados com respostas HTTP simuladas cobrem envio de credenciais e leitura do token, cadastro, dashboard, criação de baralho/cartão e avaliação de cartão. Não comprovam login, baralho, revisão ou persistência em backend real. Sem conexão, token expirado e usuário/recurso inexistente não têm teste de integração registrado. O POST de revisão é seguido pelo avanço da fila no estado local; atualização da próxima revisão no backend e reconsulta da fila precisam de validação real.
 
 ---
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** não concluído até 02/11/2026 · **Redigido por:** Breno e Matheus
+**Período:** não concluído em 09/11/2026 · **Redigido por:** pendente
 
-**O que foi ajustado para os três componentes conversarem:** até a data do relatório, não houve integração concluída dos três componentes. O backend continua acessível em `http://localhost:3000` e o cliente web usa `frontend/app/api/backend/[...path]/route.ts`; o app mobile não possui código HTTP nem URL configurada.
+**Integração web, mobile e backend:** não preencher como integração concluída. Há código mobile apontando para a API e código web integrado ao backend, mas não há comprovação de fluxo real compartilhado entre os três. Não há evidência dos testes de criação web→mobile, mobile→web, login nos dois clientes, conta/dados compartilhados, logout ou testes simultâneos dos três componentes.
 
-**Inconsistências encontradas entre os clientes, e como foram resolvidas:** não foram encontrados erros de integração entre mobile e backend porque essa integração ainda não existe. Web e backend têm divergências pontuais já documentadas no diário, principalmente em formatos de respostas, paginação e rotas que ainda precisam ser alinhadas ao contrato.
+**Condição para concluir:** validar o envio do token, rodar o backend, web e mobile juntos, validar os casos de uso cruzados solicitados e registrar os resultados, conflitos e resolução. Até lá, a Etapa 5 permanece pendente; não há resultado final de integração a declarar.
 
-**Dificuldades:** conciliar prazos e responsabilidades entre os integrantes, confirmar ambientes individuais de Flutter e completar o app além da tela inicial. Também faltava validar backend, proxy web e mobile com endereços de rede adequados para emulador ou dispositivo físico.
+**Histórico e revisão do mobile:** o commit mobile de Matheus identificado no histórico é `113cd46`; a branch de trabalho é `back_admin`. Não foi identificado PR mobile, revisão de Breno ou merge das funcionalidades recentes. O commit das alterações de Matheus estava previsto para 09/11/2026, mas ainda não aparecia no histórico no momento desta conferência.
 
 ---
 
@@ -334,13 +362,14 @@ A regra de negócio fica no backend: o cliente envia apenas a nota (errei, difí
 | Aspecto | Registro |
 |---|---|
 | Nível adotado | Simplificada (declarado no PRD) |
-| Como o app obtém o token | Ainda não implementado. A tela atual não envia credenciais nem recebe `accessToken` da API |
-| O que deixou de ser tratado (expiração, refresh, logout) | Persistência de sessão, refresh, detecção de expiração, renovação automática e logout não foram implementados |
-| Rotas da API afetadas pela escolha | Nenhuma |
+| Como o app obtém e armazena o token | `POST /auth/login` lê `accessToken`; `SessionStore` persiste em `SharedPreferences` (`memora.accessToken`) |
+| Restauração e logout | Sessão lida ao iniciar; logout remove o token e redireciona ao login |
+| Limitações | Sem refresh ou detecção/logout automático em expiração. O código envia o token no cabeçalho Authorization; autenticação ainda sem validação contra backend real |
+| Rotas da API afetadas pela escolha | Login e rotas autenticadas de perfil, baralhos, cartões, estudo e estatísticas |
 
 ### 4.4 O que os dois clientes compartilham e o que não
 
-Web e mobile são dois clientes da mesma API REST, mas usam mecanismos de sessão diferentes na implementação planejada. O web guarda o token em cookie `httpOnly` e envia chamadas por rotas intermediárias do Next.js; o mobile terá, conforme o nível simplificado do PRD, o token em memória. Ambos deverão respeitar o mesmo contrato sem acesso direto ao banco ou duplicação das regras de revisão. Até 01/11/2026, essa equivalência só existia entre web e backend; o mobile ainda não a implementou.
+Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `httpOnly` e encaminha chamadas por rotas do Next.js; o mobile persiste o token em `SharedPreferences` e envia o token no cabeçalho Authorization com esquema Bearer. O código contém chamadas às rotas existentes, mas não há teste contra o backend real. A equivalência dos clientes e o compartilhamento real de dados continuam sem validação integrada.
 
 ---
 
@@ -352,7 +381,7 @@ Web e mobile são dois clientes da mesma API REST, mas usam mecanismos de sessã
 
 ## 6. Reflexão final
 
-Fechamento parcial em 02/11/2026; a Etapa 5 ainda não havia sido concluída.
+Fechamento parcial atualizado em 09/11/2026; a Etapa 5 continua pendente.
 
 ### 6.1 O que funcionou bem
 
@@ -368,7 +397,7 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 |---|---|
 | Backend | NestJS, Prisma 7, guards, DTOs, transações e isolamento por usuário exigem testar não só o retorno feliz, mas também autorização, propriedade dos dados e divergências do contrato |
 | Web | App Router, proxy HTTP, cookie `httpOnly`, hidratação e estados de sessão exigem cuidados além da implementação visual |
-| Mobile | Inicializar o projeto é apenas o começo: ambiente, endereço de rede, HTTP, estado e navegação precisam ser planejados antes da tela final |
+| Mobile | Além de telas e estado local, a integração só é comprovada quando o token correto chega ao backend e os fluxos são executados com API e clientes reais |
 | Integração e processo | Contrato, decisões, versões e commits precisam ser verificados contra o código; IA acelera, mas não substitui revisão humana |
 
 ### 6.4 Autoavaliação
@@ -395,4 +424,4 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 |---|---|---|---|
 | 1.0 | 30/08/2026 | Criação do documento | Breno |
 | 1.1 | 01/11/2026 | Diário das etapas 0 a 3, arquitetura, ambiente e uso de IA até a data | Breno |
-| 1. | | Versão final | |
+| 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus|

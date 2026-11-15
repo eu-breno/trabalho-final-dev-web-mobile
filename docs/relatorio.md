@@ -10,6 +10,7 @@
 | **Grupo** | Grupo H |
 | **Integrantes** | Breno Olliari e Matheus dos Santos Savegnagi |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
+| **Última atualização** | 15/11/2026 |
 | **Vídeo de apresentação** | Ainda não registrado neste relatório |
 
 ---
@@ -84,7 +85,7 @@ O app também aceita uma URL completa com `--dart-define=API_BASE_URL=...`; a UR
 
 ### 2.3 Evidências de uso
 
-Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados, exceto os prompts das telas e da análise do administrador, recuperados de um arquivo de anotações. A partir de 25/10/2026 o texto exato dos prompts passou a ser guardado para as atividades registradas. O uso de IA no mobile foi reconstruído como resumo fiel, pois o texto exato não foi registrado. Os registros estão em `docs/anexo-prompts-ia.md`.
+Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados. Alguns prompts foram recuperados de anotações; o uso mobile permanece como resumo, pois o texto exato não foi registrado. Os registros encontrados estão em [docs/anexo-prompts-ia.md](anexo-prompts-ia.md), com um [índice cronológico](prompts/README.md). Os arquivos separados de cada etapa que deveriam compor `docs/prompts/` não estavam disponíveis neste checkout.
 
 ---
 
@@ -154,7 +155,7 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 - **Ferramenta e data:** Claude (elaboração do prompt) e GitHub Copilot (análise), por volta de 25/10/2026
 - **Objetivo da tarefa:** sem escrever código, levantar o que existia e propor uma área de administrador/professor simples, avaliando o impacto no contrato, no PRD e no MVP.
 - **Prompt utilizado:** texto no Anexo (`docs/anexo-prompts-ia.md`), seção C1 (rascunho do Claude) e seção C2 (prompt entregue ao Copilot).
-- **Análise crítica:** o Copilot recomendou começar por uma área administrativa enxuta (página de usuários e controle de acesso por papel) e deixar professores, turmas e compartilhamento de baralhos como evolução futura, e essa recomendação foi adotada em 25/10. A resposta, porém, veio genérica: não seguiu o formato pedido, com os fatos confirmados em arquivos e a lista de endpoints. Por isso a decisão final também se apoiou no enunciado e no diagnóstico de 25/10.
+- **Análise crítica:** a resposta do Copilot foi considerada como apoio e veio genérica: não seguiu o formato pedido, com fatos confirmados em arquivos e lista de endpoints. Breno definiu o recorte administrativo com base nos requisitos, no contrato e no diagnóstico do projeto; a discussão sobre professores e compartilhamento continuou fora do escopo atual.
 - **Evidência no repositório:** `3d1cd16` (implementação do administrador mínimo)
 ---
 
@@ -168,14 +169,14 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 - **Quem conduziu:** Breno
 - **Ferramenta e data:** GitHub Copilot (Agent, VS Code), com planejamento no Claude. Diagnóstico geral e verificação de versões em 25/10/2026; auditoria dos documentos, levantamento do Git e inspeção do commit `6c6ed78` entre 25/10 e 01/11/2026.
 - **Objetivo da tarefa:** descobrir o estado real do código e dos documentos antes de atualizar a documentação (somente leitura, sem alterar arquivos).
-- **Prompt utilizado:** os resumos dos prompts estão registrados neste relatório; os textos completos deveriam ficar em `docs/anexo-prompts-ia.md`, mas esse arquivo não existia em 01/11/2026. Por isso, os prompts de auditoria do Git, inspeção do commit `6c6ed78` e levantamento de ambiente não puderam ser reproduzidos literalmente.
+- **Prompt utilizado:** os resumos estão registrados neste relatório. Na revisão de 01/11/2026, o anexo ainda não continha esses registros; por isso, os prompts de auditoria do Git, inspeção do commit `6c6ed78` e levantamento do ambiente não podem ser reproduzidos literalmente.
 - **Análise crítica:** as respostas foram conferidas contra os arquivos. Pontos que exigiram cuidado: a contagem de commits por autor veio inflada por 21 commits de sessões do próprio agente (referências `refs/agents/`), que não são do projeto e foram descartados; o Copilot classificou commits como "frontend" mesmo quando continham só arquivos gerados do Next.js, e por isso a autoria do commit `6c6ed78` foi checada arquivo a arquivo; algumas divergências entre o contrato e o código só ficaram claras ao comparar os controllers com o texto do contrato.
 - **Evidência no repositório:** este relatório, `docs/equipe.md` e `docs/visao.md` foram atualizados a partir desse levantamento.
 ---
 
 ### 2.4 Reflexão sobre o uso de IA
 
-A IA acelerou principalmente a revisão do código de cartões e DTOs feito por Matheus, apontando a necessidade de substituir dados em memória por persistência PostgreSQL/Prisma; a criação de telas web mais completas com os componentes do shadcn/ui; e o desenvolvimento mobile, em que o Copilot apoiou a criação e o refinamento das telas de autenticação, dashboard, baralhos, cartões e estudo. No frontend web, fornecer à IA o layout inicial, os componentes já instalados e um prompt detalhado sobre comportamentos funcionou melhor do que pedir uma tela inteira do zero. No mobile, Matheus integrou as telas aos endpoints existentes e implementou sessão, navegação e estados de carregamento e erro. Os testes mobile atuais usam respostas HTTP simuladas e não substituem a validação contra backend real. Os erros percebidos no frontend incluíram ícones temáticos gerados automaticamente que não eram a melhor representação para todos os baralhos. Aprendemos que IA é útil para explorar alternativas, identificar problemas e produzir código inicial, mas não substitui revisão humana. A equipe deve registrar prompts, revisar o código, corrigir decisões incorretas e validar builds e fluxos antes dos commits.
+Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetura e decisões, leu os relatórios das etapas e validou os resultados com build, lint, testes automatizados do backend e validação manual das telas. Claude apoiou o planejamento, o refinamento dos prompts e a análise de segurança, contrato e casos de borda; GitHub Copilot apoiou a implementação do contrato, backend, frontend, ajustes e documentação. As ferramentas reduziram o esforço de digitação e implementação. A responsabilidade pelas decisões, pela revisão do trabalho e pelo resultado final permaneceu com o autor. Os testes mobile usam respostas HTTP simuladas e não substituem a validação contra backend real.
 
 ---
 
@@ -240,8 +241,8 @@ A IA acelerou principalmente a revisão do código de cartões e DTOs feito por 
 | Usuário técnico temporário no lugar da autenticação (24/09) | Implementar o JWT antes dos recursos do MVP | O checkpoint 1 não cobrava o JWT, e o usuário técnico permitiu avançar nos recursos | O cliente web só passou a usar sessão real depois que o JWT ficou pronto (10 a 11/10) |
 | Mesmo erro de login para e-mail inexistente e senha errada | Mensagens distintas para cada caso | Não revelar quais e-mails têm conta | Menos detalhe para o usuário em caso de erro |
 | Intervalos fixos de revisão por nota (errei 0, difícil 1, bom 3 e fácil 7 dias) | Algoritmo SM-2 completo, como descrito no PRD | O cartão errado volta no mesmo dia (0 dia), para o estudante fixar o erro na hora; também é mais simples para o MVP | A facilidade do cartão não é atualizada, e o PRD precisa ser alinhado ao comportamento real |
-| Perfil administrador mínimo (25/10) | Professores e turmas, com baralhos compartilhados; administrador com gestão completa de usuários; não ter administrador | O enunciado exige autorização por perfil, a análise feita com o Copilot recomendou uma área administrativa enxuta (página de usuários e acesso por papel), e a versão mínima não altera o contrato nem os outros módulos | O administrador só lista usuários |
-| Turmas fora do escopo (25/10) | Integrar turmas, com baralhos compartilhados e cópia de baralhos entre usuários | Não faz parte do tema e exigiria mudar contrato, API e telas | A funcionalidade colaborativa fica para uma evolução futura; o trabalho está guardado na branch `backend` |
+| Perfil administrador mínimo (25/10) | Professores e compartilhamento de conteúdo, com gestão completa de usuários; não ter administrador | O enunciado exige autorização por perfil. Após analisar as alternativas com apoio de IA, Breno definiu um perfil administrador mínimo para manter o escopo viável; a decisão inicial foi ampliada posteriormente no contrato v1.4 | Naquele momento, o administrador só listava usuários; a área foi ampliada posteriormente |
+| Colaboração fora do escopo (25/10) | Integrar compartilhamento de baralhos e funcionalidades colaborativas entre usuários | Não faz parte do tema e exigiria mudar contrato, API e telas | A funcionalidade colaborativa fica para uma evolução futura |
 
 **Mudanças no contrato da API:**
 
@@ -267,8 +268,8 @@ A IA acelerou principalmente a revisão do código de cartões e DTOs feito por 
 **O que foi implementado:**
 
 - **12/09:** projeto Next.js criado.
-- **04/10 a 10/10:** instalação dos blocos do shadcn/ui (dashboard-01 e login-03) por Breno. O commit `6c6ed78` (Matheus, 10/10) incluiu no repositório o layout do dashboard e as telas de login e cadastro, já integradas à API de autenticação. As telas de baralhos, busca, estatísticas e turmas tinham conteúdo de demonstração.
-- **11/10:** integração do cliente com a API: validação e mensagens de erro nas telas de login e cadastro; sessão com o token em cookie `httpOnly`, com rotas do Next.js intermediando as chamadas ao backend; perfil do usuário no menu e botão de sair; listagem, busca e criação de baralhos com dados reais; cartões (adicionar, editar e excluir); sessão de estudo com avaliação (errei, difícil, bom e fácil); dashboard e estatísticas com dados da API. A tela de turmas continuou só como demonstração.
+- **04/10 a 10/10:** instalação dos blocos do shadcn/ui (dashboard-01 e login-03) por Breno. O commit `6c6ed78` (Matheus, 10/10) incluiu no repositório o layout do dashboard e as telas de login e cadastro, já integradas à API de autenticação. As telas de baralhos, busca e estatísticas tinham conteúdo de demonstração.
+- **11/10:** integração do cliente com a API: validação e mensagens de erro nas telas de login e cadastro; sessão com o token em cookie `httpOnly`, com rotas do Next.js intermediando as chamadas ao backend; perfil do usuário no menu e botão de sair; listagem, busca e criação de baralhos com dados reais; cartões (adicionar, editar e excluir); sessão de estudo com avaliação (errei, difícil, bom e fácil); dashboard e estatísticas com dados da API.
 - **18/10:** página própria de revisão (progresso, confirmação ao sair e resumo), e baralhos e detalhes com lista, ordenação e busca.
 - **23/10:** baralhos em tabela (nome, cartões, pendentes, data de modificação e ações, com ordenação, paginação e menu para renomear e excluir); botão de revisar todo o baralho ou só os pendentes; diálogo de configurações (nome, e-mail, senha e tema claro, escuro ou do sistema); tratamento de token e sessão expirada no proxy; botão "Revisar erros".
 - **24/10:** páginas autenticadas reunidas em um grupo de rotas com layout, barra lateral e provedores compartilhados, sem alterar as URLs; ajustes de hidratação e de espaçamento; links com o componente `Link` do Next.js.
@@ -292,11 +293,11 @@ A IA acelerou principalmente a revisão do código de cartões e DTOs feito por 
 
 **Período:** iniciada em 26/10/2026; estado conferido em 09/11/2026 · **Responsável:** Matheus
 
-**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas, turmas e configurações de conta. O commit dessas funcionalidades estava previsto para 09/11/2026; o histórico ainda não continha esse commit no momento da conferência.
+**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. O commit dessas funcionalidades estava previsto para 09/11/2026; o histórico ainda não continha esse commit no momento da conferência.
 
 **Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Os comandos são `flutter pub get`, `flutter run`, `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` para dispositivo físico, `flutter test` e `dart analyze`. Os 11 testes widget/HTTP mock passaram; eles não validam conectividade com o backend real. `dart analyze` não encontrou problemas; `flutter analyze` encerrou com erro interno do servidor de análise.
 
-**Telas e navegação:** login, cadastro, dashboard, lista/gestão de baralhos, detalhe/lista de cartões, estudo, estatísticas, turmas e diálogo de configurações. A navegação usa rotas Flutter, menu lateral e páginas de detalhe. O cadastro volta ao login após o sucesso; o login abre o dashboard. Há atualização/reload e botão "Tentar novamente" em telas de dados. Turmas aparece no menu, mas seu uso integrado à API não foi validado.
+**Telas e navegação:** login, cadastro, dashboard, lista/gestão de baralhos, detalhe/lista de cartões, estudo, estatísticas e diálogo de configurações. A navegação usa rotas Flutter, menu lateral e páginas de detalhe. O cadastro volta ao login após o sucesso; o login abre o dashboard. Há atualização/reload e botão "Tentar novamente" em telas de dados.
 
 **Sessão e autenticação:** o app envia `POST /auth/login`, lê `accessToken` e persiste-o em `SharedPreferences` (`memora.accessToken`). Ao iniciar, tenta restaurar a sessão e abre login ou dashboard; portanto, fechar e reabrir mantém a sessão salva. O logout remove a chave e limpa a pilha de navegação. As chamadas protegidas enviam o token da sessão no cabeçalho `Authorization` com esquema Bearer. Não há renovação/refresh nem tratamento dedicado de token expirado; a autenticação no backend real ainda precisa ser validada.
 
@@ -321,7 +322,7 @@ A IA acelerou principalmente a revisão do código de cartões e DTOs feito por 
 | Decisão | Alternativas consideradas | Justificativa | Risco ou consequência |
 |---|---|---|---|
 | Persistir o token localmente e oferecer logout | Manter token só em memória | Implementação em `SessionStore` com `SharedPreferences` | A sessão continua ao fechar o app; não há refresh nem tratamento dedicado de expiração |
-| Organizar o app em telas de autenticação, dashboard, baralhos, estudo e estatísticas | Manter apenas a tela inicial estática | Implementação de Matheus para cobrir os fluxos principais do cliente mobile | Turmas aparece na navegação, mas não tem integração funcional validada nesta etapa |
+| Organizar o app em telas de autenticação, dashboard, baralhos, estudo e estatísticas | Manter apenas a tela inicial estática | Implementação de Matheus para cobrir os fluxos principais do cliente mobile | Navegação funcional, sem integração adicional fora do escopo atual |
 
 **Mudanças no contrato da API:** nenhuma alteração de contrato foi registrada para viabilizar o mobile; o app consome rotas já existentes no backend.
 
@@ -347,11 +348,11 @@ A IA acelerou principalmente a revisão do código de cartões e DTOs feito por 
 
 ### 4.1 Estrutura final
 
-| Componente | Desvio em relação ao README | Motivo |
-|---|---|---|
-| Web | A pasta se chama `frontend/` em vez de `web/` | Nome dado na criação do projeto com `create-next-app` (12/09) |
-| Backend e web | NestJS 12 e Next.js 16 em vez de NestJS 11 e Next.js 15 | Versões atuais na criação dos projetos; App Router, Prisma 7 e adaptador `pg` mantidos |
-| Backend | `prisma.config.ts` em vez de `prisma7.config.ts` | Nome esperado pelo Prisma 7 |
+| Componente | Estrutura |
+|---|---|
+| Backend | `backend/src/` por módulos NestJS; `backend/prisma/` para schema, migrations e seed |
+| Web | `frontend/app/` (App Router), `frontend/components/` e `frontend/lib/` |
+| Mobile | `mobile/lib/app_mobile/` |
 
 ### 4.2 Fronteira entre backend e clientes
 
@@ -361,7 +362,7 @@ A regra de negócio fica no backend: o cliente envia apenas a nota (errei, difí
 
 | Aspecto | Registro |
 |---|---|
-| Nível adotado | Simplificada (declarado no PRD) |
+| Nível adotado | Persistida |
 | Como o app obtém e armazena o token | `POST /auth/login` lê `accessToken`; `SessionStore` persiste em `SharedPreferences` (`memora.accessToken`) |
 | Restauração e logout | Sessão lida ao iniciar; logout remove o token e redireciona ao login |
 | Limitações | Sem refresh ou detecção/logout automático em expiração. O código envia o token no cabeçalho Authorization; autenticação ainda sem validação contra backend real |
@@ -424,4 +425,5 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 |---|---|---|---|
 | 1.0 | 30/08/2026 | Criação do documento | Breno |
 | 1.1 | 01/11/2026 | Diário das etapas 0 a 3, arquitetura, ambiente e uso de IA até a data | Breno |
-| 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus|
+| 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus |
+| 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |

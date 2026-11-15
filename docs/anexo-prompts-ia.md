@@ -472,3 +472,208 @@ Com base na estrutura e na identidade visual do Memora, ajude a criar e revisar 
 - **Código gerado e efetivamente aproveitado:** estruturas e componentes de interface para login e cadastro; dashboard com menu lateral, resumo e ações; telas de baralhos e cartões com criação, edição e exclusão; sessão de estudo com frente/verso, notas de revisão, progresso e revisão de erros; estatísticas; e configurações de conta. A assistência foi usada como ponto de partida para as telas e seus estados visuais.
 - **Código adaptado por Matheus:** integração das telas com os endpoints REST existentes; configuração de URL da API para emulador ou via `API_BASE_URL`; envio das credenciais; persistência/restauração do token com `SharedPreferences`; navegação entre login, cadastro, dashboard, baralhos e estudo; estados de carregamento, timeout, erro e nova tentativa; e ajuste dos fluxos de revisão para enviar a nota à API.
 - **Commit relacionado:** `113cd46`; commit do projeto mobile com as telas e funcionalidades descritas acima, previsto para 09/11/2026 por Matheus 
+
+(ajustar formatacao dos textos abaixo):
+
+de breno para claude:
+Quero implementar um módulo completo de administração de usuários no nosso projeto NestJS + Next.js (sistema de flashcards com Prisma, JWT e Tailwind/Shadcn).
+
+Preciso que você refine e estruture as minhas anotações abaixo em um prompt mestre passo a passo rigoroso para eu passar para o Copilot/Agente executar sem quebrar padrões ou inventar arquitetura. O plano deve ser dividido em 6 etapas:
+
+Contrato da API (v1.4): Documentar DELETE /usuarios/:id, GETs de perfil, estatísticas e baralhos com validações estritas (ex: senha máx 72 bytes UTF-8, 403 para senha incorreta em vez de 401 para não expirar sessão, UUID pipe).
+
+Backend - Exclusão: Rota DELETE com JwtAuthGuard + PapeisGuard (@Roles('administrador')), validação de senha com bcrypt.compare, autoexclusão bloqueada, cascata no Prisma, validação no JwtStrategy e testes Vitest.
+
+Backend - Leitura e Estatísticas: Rotas GET para dados do usuário-alvo (/usuarios/:id, estatísticas e baralhos), reaproveitando os services existentes sem duplicar código nem alterar o comportamento das rotas do usuário logado.
+
+Frontend - Menu e Tabela: Sidebar condicional por perfil, tabela com paginação, menu de ações com dropdown, dialog de exclusão seguro com confirmação de senha inline e tratamento de erros (403, etc.).
+
+Frontend - Página de Detalhe: Rota /admin/usuarios/[id] refatorando os componentes de estatísticas existentes para aceitar userId por prop sem quebrar a tela atual.
+
+Revisão Final: Checklist de segurança, guards, tipos e testes.
+
+Formate a saída de forma extremamente técnica, clara e com todas as restrições de código necessárias para que a IA executora siga à risca.
+
+resposta do claude: 
+Etapa 1: Contrato da API (primeiro, só documentação)
+
+
+
+Atualize SOMENTE o contrato da API (contrato-api.md). Não altere código.
+
+
+
+Contexto: vamos criar funcionalidades de administração de usuários. Todas as rotas abaixo exigem JwtAuthGuard + PapeisGuard com @Roles(administrador), ficam no módulo usuarios e usam o padrão de documentação já existente no arquivo. Suba a versão do contrato para 1.4 e registre no histórico, se houver.
+
+
+
+Rotas a documentar (método, rota, parâmetros, body, resposta de sucesso, erros):
+
+
+
+DELETE /usuarios/:id
+Body: { senha: string } (senha do administrador logado; máx. 72 bytes UTF-8, mesma regra do login)
+204 sem corpo em sucesso. Exclui o usuário e, em cascata, baralhos, cartões e revisões.
+Erros: 400 (body inválido), 401 (token ausente/inválido), 403 (não é admin OU senha de confirmação incorreta, com mensagens distintas), 404 (usuário não existe), 409 ou 403 (tentativa de excluir a si mesmo; escolha o que for mais coerente com o padrão do projeto e justifique em uma linha).
+Explicar que senha incorreta NÃO retorna 401, porque o cliente trata 401 como sessão expirada.
+
+
+2. GET /usuarios/:id
+
+Resposta: { id, nome, email, perfil, createdAt, totalBaralhos, totalCartoes, cartoesPendentes }. Pendentes = proximaRevisao <= agora, somando todos os baralhos do usuário.
+Erros: 401, 403, 404.
+
+
+3. GET /usuarios/:id/estatisticas?periodo=hoje|semana|mes|geral
+
+Mesmo formato de resposta de GET /estatisticas, mas para o usuário-alvo.
+
+
+4. GET /usuarios/:id/estatisticas/atividade?dias=7|30|90
+
+Mesmo formato de GET /estatisticas/atividade, para o usuário-alvo.
+
+
+5. GET /usuarios/:id/baralhos
+
+Lista de baralhos do usuário-alvo com as mesmas informações e contagens que a tela de Estatísticas usa hoje (confira em api.ts e no backend quais campos/métricas por baralho a tela de Estatísticas consome e inclua todos).
+
+
+Em todas as rotas :id é UUID; documente o 400 para UUID inválido se o projeto já usa ParseUUIDPipe, ou sinalize que deve passar a usar.
+
+
+
+Ao final, liste qualquer dúvida ou inconsistência que encontrou no contrato atual (sem corrigir o que não for relacionado).
+
+Etapa 2: Backend, exclusão de usuário
+
+
+
+Implemente no backend (NestJS) a rota DELETE /usuarios/:id conforme o contrato-api.md v1.4 que acabamos de atualizar. Leia o contrato antes.
+
+
+
+Requisitos:
+
+Controller em usuarios.controller.ts com @UseGuards(JwtAuthGuard, PapeisGuard) e @Roles(administrador), @HttpCode(204), @UsuarioAtual() para obter o admin logado.
+Novo DTO em backend/src/usuarios/dtos/ (ex.: ExcluirUsuarioDto) com campo `senha`: IsString, IsNotEmpty, limite de 72 bytes UTF-8 reaproveitando a validação que já existe no auth (se estiver inline, extraia para algo reutilizável sem quebrar o auth).
+Regras no service, nesta ordem: (1) buscar o admin logado no banco pelo id do token; (2) comparar a senha com bcrypt.compare contra o senhaHash do admin logado; se incorreta, lançar ForbiddenException (NUNCA 401); (3) bloquear se id alvo == id do admin logado; (4) 404 se o alvo não existe; (5) prisma.usuario.delete (a cascata do schema já cuida do resto).
+Nunca retornar nem logar senha ou hash.
+Em seguida, ajuste a JwtStrategy.validate para confirmar que o usuário do token ainda existe no banco (e usar o perfil atual do banco, não só o do token), lançando UnauthorizedException se não existir. Verifique os testes existentes que dependem da strategy e mantenha-os passando.
+Testes Vitest em usuarios.service.spec.ts: senha incorreta (403), autoexclusão bloqueada, usuário inexistente (404), exclusão com sucesso. Teste também que a ordem das validações não permite descobrir se um id existe sem senha correta.
+
+
+Rode lint, build e testes do backend e relate o resultado. Não mexa no frontend.
+
+Etapa 3: Backend, detalhe e estatísticas por usuário
+
+
+
+Implemente no backend as rotas administrativas de leitura definidas no contrato-api.md v1.4:
+
+GET /usuarios/:id, GET /usuarios/:id/estatisticas, GET /usuarios/:id/estatisticas/atividade e GET /usuarios/:id/baralhos. Leia o contrato antes.
+
+
+
+Requisitos:
+
+Todas com JwtAuthGuard + PapeisGuard + @Roles(administrador) e ParseUUIDPipe no :id.
+Reaproveite a lógica existente: EstatisticasService e BaralhosService já recebem usuarioId como parâmetro. NÃO duplique cálculo e NÃO altere as rotas atuais (/estatisticas, /baralhos), que continuam sempre usando o usuário do token. As rotas novas só chamam os mesmos métodos passando o id do usuário-alvo.
+Se necessário, exponha métodos públicos no service em vez de copiar queries; se UsuariosModule precisar importar EstatisticasModule/BaralhosModule, resolva dependência circular se aparecer.
+GET /usuarios/:id deve retornar 404 se o usuário não existe. Os totais (totalBaralhos, totalCartoes, cartoesPendentes) devem ser calculados com consultas agregadas (count com where por relação), sem carregar todos os cartões em memória. Pendentes = proximaRevisao <= agora.
+Nunca retornar senhaHash.
+Para as rotas de estatísticas e baralhos do alvo, também retorne 404 se o usuário não existir.
+Testes Vitest: totais corretos (incluindo pendentes), 404, e que as rotas atuais não mudaram de comportamento.
+
+
+Rode lint, build e testes do backend e relate o resultado. Não mexa no frontend.
+
+Etapa 4: Frontend, menu, tabela e exclusão
+
+
+
+No frontend (Next.js), evolua a tela de administração de usuários existente (frontend/app/(authenticated)/admin/usuarios/page.tsx). Leia o contrato-api.md v1.4 antes.
+
+
+
+Menu: adicione em app-sidebar.tsx o item "Usuários" (rota /admin/usuarios, ícone coerente com os demais do Lucide) visível SOMENTE quando useAuth().user?.perfil === "administrador". Não renderize o item para outros perfis (nem escondido por CSS). Se o perfil em AuthUser está tipado como string, tipar melhor (union) sem quebrar o resto.
+
+
+2. Tabela: use o mesmo padrão visual e os mesmos componentes do DeckBrowser (Table, TablePagination, estilo de linha, hover). Mantenha a paginação no servidor que já existe (page/limit). Colunas: Nome, E-mail, Tipo ("Usuário" para estudante, "Administrador" para administrador, idealmente com Badge) e uma coluna de ações com o botão de 3 pontinhos (DropdownMenu) contendo "Excluir usuário" (destrutivo). Remova a coluna de data de criação só se atrapalhar o layout; senão pode manter.
+
+
+
+3. Clique na linha navega para /admin/usuarios/[id] (a página de detalhe vem na próxima etapa; pode deixar a rota apontando, sem implementar). O clique no menu de ações NÃO pode navegar: use stopPropagation como o DeckBrowser faz. A linha deve ser acessível por teclado (Enter) como no DeckBrowser, se ele já faz isso.
+
+
+
+4. Exclusão: AlertDialog único, na ordem: título + texto perguntando se tem certeza (cite nome e e-mail do usuário e avise que baralhos, cartões e histórico de revisões serão apagados permanentemente e que não dá para desfazer), abaixo um campo de senha ("Sua senha de administrador", type=password, autoComplete="current-password", autoFocus), abaixo os botões Cancelar e Confirmar exclusão (destrutivo). Confirmar fica desabilitado enquanto a senha está vazia e durante o envio (com indicador de carregamento). Chama DELETE /usuarios/:id com body { senha } via apiRequest (confirme que o proxy do Next repassa body em DELETE; se não repassar, ajuste o proxy). Em 403 de senha incorreta: manter o dialog aberto, mostrar o erro inline no dialog e limpar o campo. Em sucesso: fechar, toast.success, recarregar a lista (se a página ficou vazia, voltar uma página). Outros erros: toast.error. Ao fechar/cancelar, limpar a senha do estado.
+
+
+
+5. Desabilitar "Excluir usuário" para a linha do próprio admin logado (com tooltip ou texto explicando), além da validação do backend.
+
+
+
+6. Atualize os tipos em lib/api.ts. Rode lint e build do frontend e relate. Não implemente a página de detalhe ainda.
+
+Etapa 5: Frontend, página de detalhe
+
+
+
+Crie a página de detalhe do usuário em /admin/usuarios/[id] (frontend/app/(authenticated)/admin/usuarios/[id]/page.tsx). Leia o contrato-api.md v1.4 antes.
+
+
+
+Conteúdo:
+
+Cabeçalho com botão voltar para /admin/usuarios, nome, e-mail, badge do tipo e data de criação.
+Cards de resumo com: quantidade de baralhos, quantidade de cartas e quantidade de cartas pendentes (GET /usuarios/:id).
+Tudo o que a tela de Estatísticas mostra hoje, mas para este usuário: resumo por período, gráfico de atividade e métricas por baralho, usando as rotas /usuarios/:id/estatisticas, /usuarios/:id/estatisticas/atividade e /usuarios/:id/baralhos.
+
+
+Reaproveitamento (importante): NÃO copie e cole a tela de Estatísticas nem o ChartAreaInteractive. Refatore os componentes de estatísticas para receberem a fonte de dados por prop (por exemplo `userId?: string`, ou funções/URLs de fetch injetadas), de modo que sem a prop o comportamento atual da tela /estatisticas fique 100% idêntico. Se for mais limpo, extraia o conteúdo da página de Estatísticas para um componente compartilhado usado pelas duas telas. Confirme visualmente por leitura de código que a tela original não regrediu.
+
+
+
+Comportamento:
+
+Guard no cliente: se o usuário logado não for administrador, redirecionar/mostrar acesso negado; tratar 403 e 404 (usuário não encontrado, com link para voltar).
+Estados de loading (skeleton, seguindo o padrão do projeto) e de erro com opção de tentar de novo.
+Se o usuário não tiver baralhos/atividade, mostrar estado vazio sensato nos gráficos.
+Opcional, se for simples: botão "Excluir usuário" no cabeçalho reutilizando o MESMO componente de dialog de exclusão da etapa anterior (extraia-o para um componente compartilhado se ainda estiver embutido na página da lista), e voltar para a lista após excluir.
+
+
+Atualize os tipos em lib/api.ts, rode lint e build e relate o que foi alterado, incluindo os arquivos de estatísticas refatorados.
+
+Etapa 6: Revisão final
+
+
+
+Faça uma revisão (sem alterar arquivos, só relatório) de toda a funcionalidade de administração de usuários, comparando implementação com contrato-api.md v1.4:
+
+Todas as rotas novas estão protegidas com JwtAuthGuard + PapeisGuard e @Roles(administrador)?
+Alguma resposta vaza senhaHash ou campos indevidos?
+Senha incorreta realmente retorna 403 e o frontend trata isso sem cair no fluxo de sessão expirada?
+O contrato bate com DTOs, controllers e tipos do frontend (campos, nomes, status codes)?
+As rotas antigas (/estatisticas, /baralhos) mudaram de comportamento?
+Há casos de borda sem tratamento: página vazia após exclusão, id inválido, usuário excluído com token ainda ativo, duplo clique em Confirmar?
+Liste testes que faltam e o que rodar manualmente para validar (passo a passo curto). 
+
+a resposta do claude foi passada ao copilot agente. Resposta do copilot:
+Concluído — etapas 1 a 6
+Contrato: atualizado para v1.4 em contrato-api.md, com as rotas administrativas, respostas, erros e a regra de autoexclusão (409).
+
+Backend: usuarios.controller.ts e usuarios.service.ts agora atendem exclusão, detalhe, estatísticas, atividade e baralhos do usuário-alvo. As rotas exigem JWT e papel administrador; os IDs são validados como UUID v4. A exclusão compara a senha do admin no servidor, retorna 403 para senha incorreta e impede autoexclusão. A estratégia JWT consulta o usuário e o perfil atuais no banco. Não foi necessária migration: o schema já define as cascatas.
+
+Frontend: o menu condicional e a tabela administrativa com paginação de servidor, navegação para detalhe e diálogo de exclusão estão em app-sidebar.tsx e page.tsx. O detalhe está em page.tsx. A tela original e o detalhe compartilham statistics-dashboard.tsx e chart-area-interactive.tsx; os tipos novos estão em api.ts.
+
+Validação
+Backend: 19 testes em 7 arquivos passaram; build e lint passaram. Foram incluídos testes de senha/ordem de validação, autoexclusão, contagens, usuário inexistente, perfil atual no JWT e preservação do escopo das rotas existentes.
+Frontend: build passou e ESLint nos arquivos alterados passou.
+O lint global do frontend ainda falha em três pontos de arquivos não alterados: site-header.tsx, carousel.tsx e use-mobile.ts.
+git diff --check passou. Não rodei testes e2e nem há suíte de testes frontend configurada.
+Pontos restantes
+GET /usuarios/:id/baralhos calcula métricas reutilizando o serviço existente por baralho; isso gera consultas paralelas por baralho e pode ser otimizado se houver usuários com muitos baralhos.
+A regra impede autoexclusão, mas não protege contra duas exclusões concorrentes de administradores que eliminem todas as contas admin.
+Validação manual recomendada: confirmar que o item de menu não aparece para estudante; tentar excluir um usuário com senha errada e correta; verificar a proteção de autoexclusão; abrir o detalhe de um usuário sem atividade/baralhos; e conferir que /estatisticas e /baralhos continuam mostrando dados do usuário autenticado.

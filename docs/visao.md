@@ -11,8 +11,8 @@
 | **Integrantes** | Breno Olliari e Matheus dos Santos Savegnagi (detalhamento em `docs/equipe.md`) |
 | **Disciplina** | Programação Web e Mobile |
 | **Data de criação** | 30/08/2026 |
-| **Última atualização** | 02/11/2026 |
-| **Versão** | 1.2 |
+| **Última atualização** | 15/11/2026 |
+| **Versão** | 1.3 |
 
 ---
 
@@ -29,12 +29,12 @@ Este documento descreve a visão do Memora, um sistema de flashcards com repeti�
 - Oferecer uma sessão de estudo em que o estudante vê a frente do cartão, revela o verso e avalia a própria resposta (errei, difícil, bom ou fácil); o sistema reagenda o cartão conforme a avaliação.
 - Indicar, a cada dia, quais cartões estão pendentes de revisão.
 - Mostrar o progresso do estudante: revisões feitas, cartões pendentes, taxa de acerto e sequência de dias estudados.
-- Ter dois perfis de acesso, estudante e administrador; o administrador consulta a lista de usuários cadastrados.
+- Ter dois perfis de acesso, estudante e administrador. O administrador pode listar usuários, abrir o detalhe com estatísticas e totais, e excluir outra conta após confirmar sua própria senha.
 - Servir os dois clientes, web e mobile, por uma única API REST, que concentra as regras de negócio e os dados.
 
 **O sistema não irá (fora do escopo):**
 - Refresh token e recuperação de senha por e-mail.
-- Baralhos compartilhados ou públicos entre usuários, incluindo o conceito de turmas.
+- Baralhos compartilhados ou públicos entre usuários.
 - Importação e exportação de cartões (CSV, Anki).
 - Imagens e áudio nos cartões.
 - Modo offline e sincronização no aplicativo mobile.
@@ -53,7 +53,7 @@ Este documento descreve a visão do Memora, um sistema de flashcards com repeti�
 | Avaliação | Nota que o estudante dá a si mesmo ao revisar um cartão: errei, difícil, bom ou fácil. |
 | Sessão de estudo | Sequência de cartões pendentes apresentados ao estudante para revisão. |
 | Estudante | Perfil de usuário que cria baralhos e cartões e estuda. |
-| Administrador | Perfil de usuário que consulta os usuários cadastrados no sistema. |
+| Administrador | Perfil que consulta a lista e o detalhe dos usuários e pode excluir outra conta mediante confirmação da própria senha. |
 | API REST | Serviço que expõe os dados e as regras do sistema por HTTP, consumido pelos dois clientes. |
 | JWT | Token usado para autenticar as requisições feitas à API. |
 
@@ -124,11 +124,11 @@ No sistema há dois perfis de acesso (estudante e administrador). Os dois primei
 | Campo | Descrição |
 |---|---|
 | **Descrição** | Responsável por acompanhar quem utiliza o sistema |
-| **Responsabilidades** | Consultar a lista de usuários cadastrados |
+| **Responsabilidades** | Consultar a lista e o detalhe estatístico dos usuários cadastrados e excluir outra conta após confirmar a própria senha |
 | **Contexto de uso** | No computador; tarefa administrativa, feita de vez em quando |
 | **Nível técnico** | Intermediário |
 | **Frequência de uso** | Eventual |
-| **Principal necessidade** | Ver os usuários cadastrados, sem acesso aos baralhos e cartões de ninguém |
+| **Principal necessidade** | Acompanhar contas e estatísticas agregadas dos usuários, sem navegar pelo conteúdo individual dos cartões |
 
 ---
 
@@ -142,22 +142,22 @@ O Memora é um sistema independente, sem integração com sistemas externos. Ele
 
 O Memora tem dois contextos de uso diferentes, e cada cliente atende ao seu.
 
-**O que acontece na tela grande, e por quê:** é onde o conteúdo é construído e analisado. Criar e organizar baralhos, cadastrar muitos cartões de uma vez, editar e remover cartões e consultar as estatísticas de progresso exigem teclado e espaço de tela. A administração de usuários também é uma tarefa de mesa.
+**O que acontece na tela grande, e por quê:** é onde o conteúdo é construído e analisado. Criar e organizar baralhos, cadastrar muitos cartões de uma vez, editar e remover cartões e consultar as estatísticas de progresso exigem teclado e espaço de tela. A administração de usuários — lista paginada, detalhe estatístico e exclusão protegida por senha — também é uma tarefa de mesa.
 
 **O que acontece no celular, e por quê:** é onde a maior parte do estudo acontece. A revisão de cartões cabe em intervalos curtos e imprevisíveis do dia (ônibus, intervalo entre aulas, fila), e o celular é o que o estudante tem à mão nesses momentos. O app também permite registrar um cartão novo na hora em que uma dúvida aparece, sem esperar o momento de sentar ao computador.
 
-**O que faz sentido existir nos dois:** o login, a lista de baralhos com a quantidade de cartões pendentes e a sessão de estudo. Como os dois clientes usam a mesma API, um cartão criado no computador aparece no celular, e uma revisão feita no celular atualiza o que o computador mostra.
+**O que faz sentido existir nos dois:** o login, a lista de baralhos com a quantidade de cartões pendentes, a sessão de estudo e as estatísticas. Os dois clientes usam a mesma API e o mesmo banco; a sincronização ponta a ponta entre web, mobile e backend ainda não foi validada.
 
 ### 5.3 Capacidades principais
 
 | # | Capacidade | Descrição resumida | Cliente principal |
 |---|---|---|---|
 | C01 | Conta e acesso | Cadastro, login, logout e perfis de acesso (estudante e administrador) | ambos (cadastro no web) |
-| C02 | Gestão de baralhos | Criar, listar, editar e remover baralhos, com total de cartões e pendentes | web (listagem também no mobile) |
-| C03 | Gestão de cartões | Criar, buscar, editar e remover cartões de um baralho | web (criação também no mobile) |
+| C02 | Gestão de baralhos | Criar, listar, editar e remover baralhos, com total de cartões e pendentes | web e mobile |
+| C03 | Gestão de cartões | Criar, buscar, editar e remover cartões de um baralho | web e mobile |
 | C04 | Estudo com repetição espaçada | Sessão de revisão com avaliação em quatro níveis e reagendamento automático | ambos |
-| C05 | Acompanhamento do progresso | Revisões, cartões pendentes, taxa de acerto, sequência de dias e atividade por período | web |
-| C06 | Administração de usuários | Listagem dos usuários cadastrados, restrita ao administrador | web |
+| C05 | Acompanhamento do progresso | Revisões, cartões pendentes, taxa de acerto, sequência de dias e atividade por período | web e mobile |
+| C06 | Administração de usuários | Listagem paginada, detalhe com estatísticas e totais, e exclusão confirmada por senha; restrita ao administrador | web |
 
 ### 5.4 Suposições e dependências
 
@@ -166,6 +166,7 @@ O Memora tem dois contextos de uso diferentes, e cada cliente atende ao seu.
 - O estudante tem conexão com a internet ao usar os clientes, já que não há modo offline.
 - A repetição espaçada só traz benefício se o estudante revisar com regularidade, nos dias indicados pelo sistema.
 - O administrador é criado por uma carga inicial (seed) no banco; o cadastro público cria sempre estudantes.
+- Funcionalidades colaborativas e compartilhadas não fazem parte do escopo atual.
 
 **Dependências:**
 - A API e o banco de dados PostgreSQL precisam estar no ar para qualquer cliente funcionar.
@@ -180,15 +181,15 @@ O Memora tem dois contextos de uso diferentes, e cada cliente atende ao seu.
 |---|---|
 | Backend | NestJS + Prisma 7 (com `@prisma/adapter-pg`) + PostgreSQL 18 |
 | Cliente web | React 19 + Next.js com App Router |
-| Cliente mobile | Flutter e Dart configurados pelo projeto; versões do SDK do Matheus ainda não registradas |
-| Versões | NestJS 12, Next.js 16, React 19 e Prisma 7 são os valores efetivamente adotados; o mobile ainda não possui stack HTTP/estado implementada |
-| Autenticação | JWT com guards no backend; sessão completa no cliente web; no app mobile, sessão simplificada (login real contra a API, token mantido em memória) |
+| Cliente mobile | Flutter/Dart, com chamadas HTTP e sessão persistida em `SharedPreferences` |
+| Versões | NestJS 12, Next.js 16, React 19, Prisma 7 e PostgreSQL 18; o `mobile/pubspec.yaml` exige Dart `^3.13.7` |
+| Autenticação | JWT com guards no backend; no web, token em cookie `httpOnly`; no mobile, token persistido em `SharedPreferences` e enviado como Bearer |
 | Arquitetura | Regra de negócio no backend; clientes não acessam o banco |
 | Controle de versão | Repositório único do grupo no GitHub, criado a partir do repositório-modelo da disciplina |
 | Prazo | Etapas 0 a 5 conforme o calendário da turma, mais apresentação |
 | Documentação | Markdown, versionada no mesmo repositório |
 | Equipe | Grupo de 2 integrantes, com os três componentes (backend, web e mobile) a cargo dos dois |
-| Escopo do mobile | Recorte mínimo de dois casos de uso: estudar um baralho e criar um cartão rápido |
+| Escopo do mobile | Login, dashboard, baralhos/cartões, estudo, estatísticas e configurações estão presentes; a integração ponta a ponta com o backend real não foi comprovada |
 | Escopo geral | Itens da seção 1.2 (fora do escopo) não serão implementados |
 
 ---
@@ -212,3 +213,4 @@ O Memora tem dois contextos de uso diferentes, e cada cliente atende ao seu.
 | 1.0 | 30/08/2026 | Breno | Versão inicial: tema e repositório definidos (Etapa 0) |
 | 1.1 | 01/11/2026 | Breno | Preenchimento completo do documento, alinhado ao estado conhecido do projeto |
 | 1.2 | 02/11/2026 | Breno | Versões do backend, web e mobile e estado real da implementação atualizados |
+| 1.3 | 15/11/2026 | Breno | Área administrativa atualizada para detalhe, estatísticas, totais e exclusão; autenticação mobile e estado das telas alinhados ao código |

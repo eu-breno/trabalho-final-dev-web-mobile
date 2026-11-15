@@ -12,9 +12,9 @@
 |---|---|
 | **Nome do projeto** | Memora |
 | **Grupo** | Breno Olliari e Matheus Savegnagi |
-| **Versão do documento** | 1.1 |
+| **Versão do documento** | 1.2 |
 | **Data de criação** | 21/09/2026 |
-| **Última atualização** | 02/11/2026 |
+| **Última atualização** | 15/11/2026 |
 | **Documento de Visão (ref.)** | `docs/visao.md` |
 | **Contrato da API (ref.)** | `docs/contrato-api.md` |
 
@@ -70,7 +70,7 @@ O Memora permite que estudantes criem baralhos de flashcards e os revisem com re
 |---|---|---|---|---|
 | RF-001 | O usuário entra no sistema informando e-mail e senha e recebe acesso às funcionalidades do seu perfil | Alta | todas | web / mobile |
 | RF-002 | O usuário encerra a sessão e deixa de ter acesso às rotas protegidas | Alta | todas | web / mobile |
-| RF-003 | O visitante cria uma conta informando nome, e-mail e senha e já entra logado. A conta criada é sempre de estudante; o administrador é criado por seed | Alta | Rafael | web |
+| RF-003 | O visitante cria uma conta informando nome, e-mail e senha. A conta criada é sempre de estudante; após a confirmação de cadastro, entra pela tela de login. O administrador é criado por seed | Alta | Rafael | web |
 
 ### 3.2 Baralhos
 
@@ -104,9 +104,9 @@ O Memora permite que estudantes criem baralhos de flashcards e os revisem com re
 | ID | Descrição | Prioridade | Persona | Cliente |
 |---|---|---|---|---|
 | RF-040 | O estudante vê o resumo do seu progresso: revisões de hoje, cartões pendentes, taxa de acerto da semana e sequência de dias | Média | Rafael | web |
-| RF-050 | O administrador lista os usuários cadastrados | Baixa | administrador | web |
-
-> Adicione quantos módulos forem necessários. Renumere conforme o projeto. Mínimo de 8 requisitos funcionais.
+| RF-050 | O administrador lista os usuários cadastrados em páginas no servidor, com nome, e-mail e perfil | Alta | administrador | web |
+| RF-051 | O administrador abre o detalhe de um usuário e consulta os totais de baralhos, cartões e cartões pendentes, além do resumo, atividade e métricas por baralho das estatísticas | Alta | administrador | web |
+| RF-052 | O administrador exclui outra conta após confirmar sua própria senha; o sistema bloqueia autoexclusão e remove baralhos, cartões e revisões em cascata | Alta | administrador | web |
 
 ---
 
@@ -118,12 +118,12 @@ O Memora permite que estudantes criem baralhos de flashcards e os revisem com re
 |---|---|---|---|
 | RNF-001 | Segurança — credenciais | Senhas são armazenadas com hash e nunca em texto puro | Nenhuma senha legível no banco; a coluna guarda o hash |
 | RNF-002 | Segurança — sessão | O acesso é feito por token JWT, com validade definida (1 hora) | Token expirado é recusado com `401` |
-| RNF-003 | Segurança — rotas | Toda rota que não seja pública exige token válido | Requisição sem token recebe `401`; requisição com perfil insuficiente recebe `403` |
+| RNF-003 | Segurança — rotas | Toda rota que não seja pública exige token válido; rotas administrativas exigem o perfil `administrador` | Requisição sem token ou com token inválido recebe `401`; perfil insuficiente recebe `403`; recurso de outro usuário nas rotas pessoais responde `404` |
 | RNF-004 | Segurança — segredos | Chaves e credenciais ficam em variável de ambiente | Nenhum segredo versionado no repositório |
 | RNF-005 | Desempenho | A fila de estudo e a listagem de baralhos respondem rápido com volume realista | `GET /baralhos/:id/estudo` responde em menos de 500 ms com 5.000 cartões no baralho (índice em `baralhoId` + `proximaRevisao`) |
 | RNF-006 | Usabilidade | Avaliar um cartão exige poucas interações | No máximo 2 toques por cartão: revelar o verso e escolher a nota |
 | RNF-007 | Manutenibilidade | Backend organizado em um módulo NestJS por recurso, com DTOs validados; tipos dos clientes derivados do contrato | Cada recurso do contrato tem um módulo correspondente; DTOs rejeitam campos desconhecidos |
-| RNF-008 | Comportamento em rede instável _(mobile)_ | O app trata falha de rede sem travar nem perder a avaliação em andamento | Timeout de 10 s; em falha, mostra mensagem clara com botão "tentar de novo" e mantém o cartão na tela |
+| RNF-008 | Comportamento em rede instável _(mobile)_ | O app trata falha de rede sem travar nem perder a avaliação em andamento | Timeout de 15 s; em falha, mostra mensagem clara e permite tentar novamente, mantendo o cartão na tela |
 | RNF-009 | Integridade | Avaliar um cartão grava a revisão e atualiza o cartão de forma atômica | Ambas as operações ocorrem na mesma transação do Prisma; nunca existe revisão sem o cartão atualizado, nem o contrário |
 
 > **Por que autenticação aparece em três lugares.** É a dúvida mais comum ao preencher este documento, e a resposta é que ela tem três faces distintas:
@@ -153,7 +153,7 @@ O Memora permite que estudantes criem baralhos de flashcards e os revisem com re
 | RN-005 | Editar frente ou verso de um cartão não reinicia seu progresso | não |
 | RN-006 | Não pode haver dois baralhos com o mesmo nome para o mesmo usuário (sem diferenciar maiúsculas) | não |
 | RN-007 | Remover um baralho remove seus cartões e revisões; remover um cartão remove suas revisões | sim — o cliente pede confirmação antes |
-| RN-008 | A fila de estudo vem ordenada do cartão mais atrasado para o menos atrasado e é limitada (padrão 20, máximo 50 cartões) | não |
+| RN-008 | A fila de estudo vem ordenada por `proximaRevisao` crescente e depois por `id`; a rota não aplica limite de quantidade | não |
 | RN-009 | O histórico de revisões é imutável: cada avaliação gera um registro que não é editado nem removido isoladamente | não |
 | RN-010 | A sequência de dias conta dias consecutivos com ao menos uma revisão, no fuso `America/Sao_Paulo` | não |
 | RN-011 | O cadastro público sempre cria um usuário de perfil `estudante`; e-mail é único no sistema | sim — o formulário valida formato de e-mail e tamanho da senha (8 a 72) |
@@ -163,7 +163,8 @@ O Memora permite que estudantes criem baralhos de flashcards e os revisem com re
 | ID | Regra de autorização | Perfil |
 |---|---|---|
 | RN-A01 | Um usuário só acessa os próprios baralhos, cartões e revisões; o acesso a recurso de outro usuário responde `404` | todos, inclusive administrador |
-| RN-A02 | Somente o administrador lista usuários (`GET /usuarios`); o estudante recebe `403` | administrador |
+| RN-A02 | Somente o administrador pode usar as rotas administrativas `/usuarios` para listar, consultar detalhes, estatísticas e baralhos de um usuário, ou excluir outra conta; estudante recebe `403` | administrador |
+| RN-A03 | A exclusão administrativa valida no backend a senha do administrador autenticado; senha incorreta retorna `403`, autoexclusão retorna `409` | administrador |
 
 ---
 
@@ -239,21 +240,19 @@ Restrições do banco: `USUARIO.email` único; `BARALHO` único em (`usuarioId`,
 
 | Funcionalidade | Web | Mobile | Justificativa |
 |---|---|---|---|
-| Cadastro de conta (RF-003) | ✅ | — | Feito uma única vez; o app só faz login |
+| Cadastro de conta (RF-003) | ✅ | ✅ | Ambos criam contas de estudante; o cadastro não autentica automaticamente |
 | Login e logout (RF-001, RF-002) | ✅ | ✅ | Necessário nos dois clientes |
-| CRUD de baralhos (RF-010, 012, 013) | ✅ | — | Organização do material é trabalho concentrado, melhor com teclado e tela grande |
+| CRUD de baralhos (RF-010, 012, 013) | ✅ | ✅ | Os fluxos de baralho também existem no app; a tela grande facilita a organização |
 | Listar baralhos com pendentes (RF-011) | ✅ | ✅ | Ponto de partida para estudar nos dois clientes |
 | Criar cartão (RF-020) | ✅ | ✅ | No celular, para registrar uma dúvida na hora em que ela aparece |
-| Listar, buscar, editar e remover cartões (RF-021 a 023) | ✅ | — | Manutenção do conteúdo é tarefa de mesa |
+| Listar, buscar, editar e remover cartões (RF-021 a 023) | ✅ | ✅ | A manutenção está disponível nos dois clientes; o web é mais adequado para edição extensa |
 | Sessão de estudo e avaliação (RF-030 a 033) | ✅ | ✅ | É o núcleo do produto; no celular é onde acontece a maior parte do estudo |
-| Resumo de progresso (RF-040) | ✅ | — | Consulta analítica, não faz parte do uso em pequenos intervalos |
-| Administração de usuários (RF-050) | ✅ | — | Tarefa administrativa, feita em computador |
+| Resumo de progresso (RF-040) | ✅ | ✅ | Há telas de estatísticas nos dois clientes; a validação ponta a ponta mobile continua pendente |
+| Administração de usuários (RF-050 a RF-052) | ✅ | — | Lista paginada, detalhe com estatísticas e exclusão protegida por senha, restritos ao administrador |
 
-**O que ficou de fora do mobile e por quê:** gestão de baralhos, edição e remoção de cartões, cadastro de conta, estatísticas e administração. O contexto de uso do app é estudar em pequenos intervalos de tempo; o trabalho de organizar o conteúdo fica melhor no computador.
+**O que ficou de fora do mobile:** administração de usuários. O aplicativo inclui cadastro, baralhos/cartões, estudo, estatísticas e configurações; não há comprovação de integração ponta a ponta com o backend real.
 
-**O que ficou de fora do web e por quê:** nada relevante — o web cobre todas as funcionalidades. O que o mobile faz de específico é a experiência de estudo otimizada para tela pequena e toque.
-
-> Declare aqui o **recorte mobile mínimo**: de 1 a 3 casos de uso que o app precisa cobrir. Pelo menos um deles precisa envolver o app **lendo e escrevendo** dados contra a API — só consultar informação não é suficiente para caracterizar o app como cliente funcional.
+**O que ficou de fora do web:** recursos colaborativos e compartilhados permanecem fora do escopo atual.
 
 **Recorte mobile mínimo (1 a 3 casos de uso, com leitura e escrita na API):**
 - **Estudar um baralho:** o usuário faz login, escolhe um baralho (lê `GET /baralhos`), recebe a fila (`GET /baralhos/:id/estudo`) e avalia cada cartão (`POST /cartoes/:id/revisoes`) — leitura e escrita.
@@ -295,7 +294,7 @@ flowchart TD
 | Módulo | Recurso do domínio | Endpoints previstos |
 |---|---|---|
 | `auth` | Autenticação (JWT, guards) | `POST /auth/registro`, `POST /auth/login`, `GET /auth/perfil`, `PATCH /auth/perfil`, `PATCH /auth/senha` |
-| `usuarios` | `Usuario` | `GET /usuarios` |
+| `usuarios` | `Usuario` | `GET /usuarios`, `GET /usuarios/:id`, `GET /usuarios/:id/estatisticas`, `GET /usuarios/:id/estatisticas/atividade`, `GET /usuarios/:id/baralhos`, `DELETE /usuarios/:id` |
 | `baralhos` | `Baralho` | `GET/POST /baralhos`, `GET/PATCH/DELETE /baralhos/:id`, `GET /baralhos/:id/estudo` |
 | `cartoes` | `Cartao` | `GET/POST /baralhos/:baralhoId/cartoes`, `GET/PATCH/DELETE /cartoes/:id` |
 | `revisoes` | `Revisao` e algoritmo de repetição espaçada | `POST /cartoes/:id/revisoes` |
@@ -308,10 +307,10 @@ flowchart TD
 | Backend | Estratégia de autenticação (JWT simples, com refresh) | JWT simples, 1 hora, sem refresh | Menor complexidade; o produto não exige sessões longas e o refresh fica fora do escopo |
 | Backend | Formato de identificador (uuid, cuid, inteiro) | uuid | Não expõe quantidade de registros nem permite adivinhar ids sequenciais |
 | Backend | Onde fica o algoritmo de repetição espaçada | Dentro do módulo `revisoes`, em uma função pura separada do acesso ao banco | Regra central do produto; função pura é fácil de testar com casos da tabela do contrato |
-| Web | Fronteira Server / Client Components | Listas e telas de gestão como Server Components; sessão de estudo (revelar/avaliar) e formulários como Client Components | Só a sessão de estudo e os formulários precisam de interatividade no navegador |
-| Web | Estratégia de revalidação e cache | Dados autenticados sem cache (`no-store`); após criar, editar, remover ou avaliar, revalidar as rotas afetadas | Os dados mudam a cada avaliação e dependem do usuário logado |
+| Web | Fronteira Server / Client Components | Páginas e componentes interativos usam o App Router; telas que controlam sessão, tabelas e diálogos são Client Components | A interface depende de estado de autenticação, eventos e chamadas autenticadas |
+| Web | Estratégia de cache | Chamadas autenticadas usam `no-store` | Os dados dependem da conta logada e mudam após operações |
 | Mobile | Gerência de estado (`setState`, Provider, Riverpod, Bloc) | `setState` | Suficiente para o escopo do app |
-| Mobile | Nível de autenticação e armazenamento do token | Simplificada: login real, token em memória | Reduz trabalho no app sem afrouxar a API; o token continua exigido em toda requisição |
+| Mobile | Nível de autenticação e armazenamento do token | Login real e token persistido em `SharedPreferences` | A sessão é restaurada ao iniciar; o token continua exigido em toda requisição autenticada |
 
 > **Gerência de estado:** `setState` é suficiente para o escopo esperado do app. Provider, Riverpod, Bloc ou similares são diferencial, não requisito.
 >
@@ -331,7 +330,7 @@ flowchart TD
 | PostgreSQL | 18 | Banco de dados |
 | React | 19 | Biblioteca de interface |
 | Next.js | 16.3.5 (App Router) | Framework do cliente web |
-| Flutter / Dart | versão ainda não registrada pela equipe | Framework do app mobile |
+| Flutter / Dart | Flutter 3.47.8 / Dart 3.13.7 no ambiente registrado; o manifesto exige `^3.13.7` | Framework do app mobile |
 | Docker | — | Banco de dados local |
 
 ---
@@ -348,8 +347,8 @@ flowchart TD
 | 2 | Etapa 2 | Backend: núcleo | RF-010 a RF-013, RF-020 a RF-023, RF-030, RF-031 | Breno e Matheus | Baralhos, cartões, fila de estudo e revisões implementados |
 | 3 | Etapa 2 / 3 | Backend: acesso + início do web | RF-001 a RF-003, RF-040, RF-050; web: login e baralhos | Matheus (auth); Breno (stats/web) | JWT, guards, estatísticas e integração inicial do backend |
 | 4 | Etapa 3 | Web | RF-011, RF-021 a RF-023, RF-030 a RF-033, RF-040 | Breno | Telas de cartões, estudo e progresso implementadas |
-| 5 | Etapa 4 | Mobile | RF-001, RF-002, RF-011, RF-020, RF-030 a RF-033 | Matheus | Projeto iniciado e tela estática de login; integração ainda pendente |
-| 6 | Etapa 5 | Integração e fechamento | RF-001 a RF-050 | Breno e Matheus | Entrega final dos três componentes; não concluída até 02/11/2026 |
+| 5 | Etapa 4 | Mobile | RF-001 a RF-040, exceto administração | Matheus | Telas e testes automatizados presentes; integração ponta a ponta com backend real pendente |
+| 6 | Etapa 5 | Integração e fechamento | RF-001 a RF-052 | Breno e Matheus | Fechamento integrado continua pendente; o status mobile ainda requer validação com backend real |
 
 > Os três checkpoints caem ao final das etapas 2, 3 e 4 — um por componente. Distribua as sprints de forma que cada etapa chegue ao seu checkpoint com o componente correspondente funcionando.
 
@@ -365,7 +364,8 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 - [x] Um estudante cria um baralho e cadastra cartões nele
 - [x] A sessão de estudo mostra os cartões pendentes; após avaliar, o cartão sai da fila e reaparece na data calculada pelo servidor
 - [ ] A avaliação fixa os intervalos implementados: errei 0, difícil 1, bom 3 e fácil 7 dias
-- [ ] Acessar o baralho de outro usuário resulta em `404`; estudante acessando `GET /usuarios` recebe `403`; requisição sem token recebe `401`
+- [ ] Acessar o baralho de outro usuário resulta em `404`; estudante acessando rotas administrativas recebe `403`; requisição sem token recebe `401`
+- [ ] Administrador lista usuários com paginação de servidor, consulta detalhe/estatísticas e exclui outra conta após validar a senha; senha incorreta recebe `403`, autoexclusão recebe `409`
 - [ ] Remover um baralho remove os cartões dele
 - [ ] Um registro criado pelo cliente web aparece corretamente no app mobile, e vice-versa
 - [ ] O app apresenta um token válido à API e vê os mesmos dados do cliente web, qualquer que seja o nível de autenticação declarado
@@ -393,3 +393,4 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 |---|---|---|
 | 1.0 | 21/09/2026 | Versão inicial |
 | 1.1 | 02/11/2026 | Versões, endpoints, plano de sprints, algoritmo e status de implementação alinhados ao código |
+| 1.2 | 15/11/2026 | Requisitos administrativos e sessão mobile alinhados à implementação atual; critérios de integração mantidos como pendentes |

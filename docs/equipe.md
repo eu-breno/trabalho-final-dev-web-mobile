@@ -11,7 +11,7 @@
 | **Tema escolhido** | Flashcards com repetição espaçada |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
 | **Data de formação** | 20/08/2026 |
-| **Última atualização** | 09/11/2026 |
+| **Última atualização** | 15/11/2026 |
 
 ---
 
@@ -109,11 +109,11 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
 | Breno | Integrou o cliente web à API: login e cadastro com validação, sessão com token em cookie `httpOnly` via rotas do Next.js, listagem, busca e criação de baralhos, gerenciamento de cartões e sessão de estudo com avaliação (errei, difícil, bom, fácil). Conectou o dashboard e as estatísticas aos dados da API. **18/10:** página própria de revisão, com progresso, confirmação ao sair e resumo. **23/10:** baralhos em tabela (ordenação, paginação e menu de ações) e diálogo de configurações (nome, e-mail, senha e tema). **24/10:** fluxo de revisão de erros e navegação entre baralhos. **25/10:** página `/admin/usuarios`, visível só ao administrador. Removeu os arquivos gerados do Next.js do controle de versão. | Web | `da9c8cd`, `9a41bea`, `f197cf3`, `78cc80a`, `f9901dc`, `3d1cd16` |
-| Matheus | **10/10:** telas de login e cadastro integradas à API (`POST /auth/login` e `POST /auth/registro`, com salvamento do token e redirecionamento) e inclusão no repositório do layout do dashboard e da barra lateral (shadcn/ui), com o menu do Memora (Baralhos, Estatísticas e Turmas). **25/10:** versão básica de turmas (backend, banco e página web), em branch separada e não integrada à `main`. | Web, backend | `6c6ed78` (10/10), `bd10155` (25/10, apenas em `origin/backend`) |
+| Matheus | **10/10:** telas de login e cadastro integradas à API (`POST /auth/login` e `POST /auth/registro`, com salvamento do token e redirecionamento) e inclusão no repositório do layout do dashboard e da barra lateral (shadcn/ui), com o menu do Memora (Baralhos e Estatísticas). **25/10:** protótipo de colaboração em branch separada, descartado do escopo atual. | Web, backend | `6c6ed78` (10/10) |
 
 **Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O fluxo adotado foi criar a branch, testar e fazer o merge.
 
-**Dificuldades de coordenação:** o cliente web foi construído antes de a autenticação existir, com dados de demonstração, e depois reconectado à API real. O trabalho de turmas tomou direção própria e, por ter sido feito em paralelo, exigiria mudanças no contrato, na API e nos documentos. Em conversa entre os integrantes, decidiu-se manter as turmas fora do escopo atual (registrado em "Fora do escopo" no PRD) e a branch fica guardada para uma evolução futura. O mesmo critério levou o perfil administrador a ficar restrito à listagem de usuários, para não alterar o contrato e o restante do projeto.
+**Dificuldades de coordenação:** o cliente web foi construído antes de a autenticação existir, com dados de demonstração, e depois reconectado à API real. A tentativa de colaboração em um módulo paralelo exigiria mudanças no contrato, na API e nos documentos. Em conversa entre os integrantes, decidiu-se manter esse escopo fora do projeto atual e preservar a implementação como evolução futura. O mesmo critério levou o perfil administrador a ficar restrito à listagem de usuários, para não alterar o contrato e o restante do projeto.
 
 **Ajustes combinados para a próxima etapa:** iniciar o app mobile e voltar a usar Pull Requests com revisão do outro integrante.
 
@@ -125,11 +125,11 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
-| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas, turmas e configurações. As alterações recentes são trabalho de Matheus, ainda não commitado na data desta atualização. | Mobile | `113cd46` (26/10, branch `back_admin`); commit das demais alterações previsto para 09/11/2026 |
+| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. As alterações recentes são trabalho de Matheus, ainda não commitado na data desta atualização. | Mobile | `113cd46` (26/10, branch `back_admin`); commit das demais alterações previsto para 09/11/2026 |
 
 **Ambiente observado nesta atualização:** Flutter 3.47.8, Dart 3.13.7 (`pubspec.yaml` exige `^3.13.7`), Windows 10 Pro 10.0.19045.7807 e VS Code. `flutter devices` encontrou Windows, Chrome e Edge, sem dispositivo Android/iOS. Esses dados descrevem a máquina usada nesta atualização, não comprovam separadamente o ambiente de Matheus. Endereços configurados: `http://10.0.2.2:3000` como padrão Android e `http://localhost:3000` nos demais destinos; para aparelho físico, configurar `API_BASE_URL` com o IP local do computador, obtido por exemplo via `ipconfig`. Nenhum IP, emulador ou modelo de telefone foi registrado como efetivamente usado.
 
-**Testes e funcionalidades observadas:** `flutter test` passou com 11 testes de widget/HTTP simulado (login/token, cadastro, dashboard, configurações, criação de baralho/cartão e avaliação de cartões); não é teste contra backend real. `dart analyze` passou sem problemas. O comando `flutter analyze` foi tentado, mas o servidor de análise Dart encerrou com erro interno. O app contém telas de login, cadastro, dashboard, baralhos/cartões, estudo, estatísticas, turmas e configurações; token guardado em `SharedPreferences`, restaurado ao abrir o app e removido no logout. Existem carregamentos, mensagens de erro, timeout de 15 segundos e retentativa em telas de dados.
+**Testes e funcionalidades observadas:** `flutter test` passou com 11 testes de widget/HTTP simulado (login/token, cadastro, dashboard, configurações, criação de baralho/cartão e avaliação de cartões); não é teste contra backend real. `dart analyze` passou sem problemas. O comando `flutter analyze` foi tentado, mas o servidor de análise Dart encerrou com erro interno. O app contém telas de login, cadastro, dashboard, baralhos/cartões, estudo, estatísticas e configurações; token guardado em `SharedPreferences`, restaurado ao abrir o app e removido no logout. Existem carregamentos, mensagens de erro, timeout de 15 segundos e retentativa em telas de dados.
 
 **Pendência de integração:** o código envia o token no cabeçalho Authorization com esquema Bearer, e os testes simulados verificam esse cabeçalho; porém, não há teste contra o backend real. A validação ponta a ponta ainda é necessária antes de declarar login, leitura/escrita ou revisão integrados.
 
@@ -159,7 +159,7 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 | Breno | 7 | 6 | 0 | Sim (backend e web) |
 | Matheus | 4 | 2 | 0 (1 commit de inicialização do projeto Flutter, ainda sem funcionalidade) | Sim (backend e web); o mobile reforça a cobertura na Etapa 4 |
 
-Posição em 02/11/2026. Contagem aproximada de commits relevantes (que implementam ou corrigem comportamento) em todas as branches do projeto. Não entram merges, commits só de documentação, limpeza de arquivos gerados e inicialização de projeto. As três identidades de Breno estão somadas. Do total, `bd10155` (turmas, de Matheus) está só em `origin/feat-turmas`; o estado das branches de Breno deve ser conferido antes da integração final.
+Posição em 02/11/2026. Contagem aproximada de commits relevantes (que implementam ou corrigem comportamento) em todas as branches do projeto. Não entram merges, commits só de documentação, limpeza de arquivos gerados e inicialização de projeto. As três identidades de Breno estão somadas. O estado das branches de Breno deve ser conferido antes da integração final.
 
 ---
 

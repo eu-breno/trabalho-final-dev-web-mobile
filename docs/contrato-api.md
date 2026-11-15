@@ -1,6 +1,6 @@
 # Contrato da API
 
-> **Instruções:** Este documento especifica a interface REST que o backend expõe e que os dois clientes consomem. Deve ser entregue ao final da **Etapa 1** e mantido atualizado a cada mudança de endpoint. Remova os blocos `> instrução` após preenchê-los.
+> Este documento descreve manualmente a interface REST implementada pelo backend e consumida pelos clientes. Não há geração automática de OpenAPI ou de clientes.
 
 ---
 
@@ -24,8 +24,8 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 | Campo | Valor |
 |---|---|
 | **Projeto** | Memora — flashcards com repetição espaçada |
-| **Versão do contrato** | 1.3 |
-| **Última atualização** | 02/11/2026 |
+| **Versão do contrato** | 1.4 |
+| **Última atualização** | 15/11/2026 |
 | **URL base do backend** | `http://localhost:3000` |
 | **Formato** | JSON (`Content-Type: application/json`) |
 
@@ -53,8 +53,6 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 | Atualizar | `PATCH /recursos/:id` | `200` | `400`, `401`, `404`, `409` |
 | Remover | `DELETE /recursos/:id` | `204` | `401`, `404` |
 
-> Ajuste conforme o domínio. Operações de transição de estado costumam ficar melhor como sub-recurso (`POST /chamados/:id/resolucao`) do que como campo em um `PATCH` genérico — decida e registre a escolha.
-
 **Decisão:** ações do domínio não são `PATCH` genéricos. Avaliar um cartão é `POST /cartoes/:id/revisoes` (cria uma revisão) e a fila de estudo é `GET /baralhos/:id/estudo`. O cliente **nunca** envia `proximaRevisao`, `intervaloDias`, `repeticoes` ou `facilidade` — quem calcula é o servidor.
 
 **Decisão:** o servidor rejeita campos desconhecidos no corpo (`400`). Enviar um campo que o contrato marca como somente leitura também resulta em `400`.
@@ -73,7 +71,7 @@ Toda resposta de erro segue o mesmo formato, em qualquer endpoint:
 }
 ```
 
-> Este é o formato padrão do NestJS. Se o grupo adotar um formato próprio, descreva-o aqui — e implemente-o com um filtro de exceção, não repetindo a estrutura em cada controller.
+Este é o formato padrão de erro do NestJS utilizado pelo backend.
 
 `message` é sempre um array quando a causa é validação de campos (`400`) e uma string nos demais casos:
 
@@ -87,9 +85,7 @@ Toda resposta de erro segue o mesmo formato, em qualquer endpoint:
 
 ### 1.4 Paginação
 
-> Descreva a estratégia adotada nas listagens. Exemplo:
-
-O modelo de paginação abaixo vale somente para listagens que o implementam. No estado atual, `GET /usuarios` implementa `page`/`limit`; `GET /baralhos` e `GET /baralhos/:baralhoId/cartoes` retornam listas completas, sem objeto paginado.
+O modelo abaixo vale somente para listagens que o implementam. `GET /usuarios` aceita `page` e `limit` (padrão: `1` e `20`, máximo: `100`) e retorna este objeto. `GET /baralhos` e `GET /baralhos/:baralhoId/cartoes` retornam listas completas, sem objeto paginado.
 
 Exemplo de objeto paginado:
 
@@ -114,17 +110,16 @@ Todas as datas trafegam em ISO 8601, em UTC: `2026-09-21T14:30:00.000Z`. A conve
 
 ### 2.1 Estratégia
 
-> Descreva o fluxo: como o token é obtido, quanto tempo dura, se existe refresh, como é enviado.
-
 - O token é um **JWT** assinado com segredo do servidor (variável de ambiente `JWT_SECRET`).
 - Duração: **1 hora**. Não há refresh token. Token expirado resulta em `401`, e o cliente leva o usuário de volta ao login.
 - O token contém `sub` (id do usuário) e `perfil`.
-- Não existe endpoint de logout: o cliente descarta o token.
+- A cada requisição autenticada, `JwtStrategy.validate` consulta o usuário pelo `sub` no banco e usa o `perfil` atual do registro. Token de usuário removido é recusado com `401`; alterações de perfil passam a valer sem esperar o token expirar.
+- O backend não expõe endpoint de logout. No cliente web, `POST /api/auth/logout` é tratado pela rota intermediária do Next.js, que apaga o cookie `accessToken`; nos demais clientes, a sessão é descartada localmente.
 
 Requisições autenticadas enviam o token no cabeçalho:
 
 ```
-Authorization: Bearer <token>
+Authorization: Bearer <accessToken>
 ```
 
 Todas as rotas exigem token, exceto `POST /auth/registro` e `POST /auth/login`.
@@ -160,8 +155,6 @@ Autentica o usuário e devolve o token de acesso.
 | `401` | E-mail ou senha incorretos (mesma mensagem nos dois casos, para não revelar qual falhou) |
 
 #### `POST /auth/registro`
-
-> Descreva, se houver auto-cadastro. Caso contrário, remova e explique como os usuários são criados.
 
 Auto-cadastro. Sempre cria um usuário de perfil `estudante`; o perfil não pode ser escolhido pelo cliente. O `administrador` é criado por seed.
 
@@ -251,21 +244,17 @@ Ambos os campos são obrigatórios; a nova senha deve ter ao menos 8 caracteres 
 
 ### 2.3 Perfis e permissões
 
-> Liste os perfis do sistema e o que cada um pode fazer. Esta tabela é o que o guard de autorização implementa.
-
 | Perfil | Pode | Não pode |
 |---|---|---|
 | `estudante` | Criar, ver, editar e remover os **próprios** baralhos e cartões; estudar e avaliar cartões próprios; ver as próprias estatísticas | Acessar dados de outros usuários (recebe `404`); listar usuários (recebe `403`) |
-| `administrador` | Tudo o que o estudante pode nos próprios dados; listar usuários (`GET /usuarios`) | Ver ou alterar baralhos e cartões de outros usuários |
-
-Cada linha da coluna "Não pode" vira um teste (`403` ou `404`) e um caso no guard de autorização.
+| `administrador` | Operações de estudante nos próprios dados; listar usuários; consultar o detalhe, estatísticas, atividade e baralhos de um usuário pelas rotas administrativas; excluir outra conta depois de confirmar a própria senha | Acessar ou alterar baralhos e cartões alheios pelas rotas pessoais; excluir a própria conta |
 
 ### 2.4 Armazenamento do token em cada cliente
 
 | Cliente | Onde o token fica | Nível de autenticação | Observação |
 |---|---|---|---|
 | Web (Next.js) | Cookie `httpOnly`, gravado pelo próprio Next.js após o login | completa | Expiração tratada: `401` leva ao login |
-| Mobile (Flutter) | Em memória (variável no serviço de autenticação) | simplificada | Login real contra a API; o token se perde ao fechar o app e o usuário entra de novo |
+| Mobile (Flutter) | `SharedPreferences` (`memora.accessToken`) | persistida | Login real; a sessão é restaurada ao abrir o app e o logout remove a chave local |
 
 > **Regra inegociável:** sessão simplificada ou simulada no app mobile nunca significa afrouxar a API. Os endpoints continuam protegidos pelo mesmo guard, e o app continua apresentando um token válido em toda requisição autenticada — o que muda é apenas **como** esse token é obtido, não se ele é exigido. Criar uma rota desprotegida só para o app funcionar sem login é falha de segurança, não simplificação aceitável.
 
@@ -273,9 +262,7 @@ Cada linha da coluna "Não pode" vira um teste (`403` ou `404`) e um caso no gua
 
 ## 3. Recursos
 
-> Repita o bloco abaixo para cada recurso do domínio. Documente **todos** os endpoints do MVP; endpoints de prioridade Média ou Baixa podem ficar como esboço, desde que marcados como tal.
->
-> **Antes de preencher, leia o [Anexo A](#anexo-a--exemplo-preenchido-domínio-de-biblioteca)**, no final deste documento: ele traz o mesmo bloco preenchido de ponta a ponta, com um recurso simples e um endpoint de regra de negócio.
+As subseções a seguir descrevem os recursos e endpoints implementados.
 
 ---
 
@@ -514,7 +501,7 @@ Campos somente leitura não são aceitos. O baralho deve pertencer ao usuário a
 
 ---
 
-### 3.4 `Usuario` _(esboço — prioridade Baixa)_
+### 3.4 `Usuario`
 
 **Descrição:** conta de acesso. Criada por `POST /auth/registro` (estudante) ou por seed (administrador).
 
@@ -529,6 +516,101 @@ Somente perfil `administrador`. Lista os usuários, paginado (seção 1.4), com 
 | `200` | Sucesso |
 | `401` | Token ausente ou inválido |
 | `403` | Perfil `estudante` |
+
+#### `GET /usuarios/:id`
+
+Somente perfil `administrador`. Retorna o perfil público do usuário-alvo e as contagens dos seus dados. `:id` deve ser um UUID v4.
+
+**Resposta `200`**
+
+```json
+{
+  "id": "5b0e1c7a-2f44-4d0b-9f3e-6a1d8c2b9e10",
+  "nome": "Marina Souza",
+  "email": "marina@exemplo.com",
+  "perfil": "estudante",
+  "createdAt": "2026-09-21T14:30:00.000Z",
+  "totalBaralhos": 3,
+  "totalCartoes": 42,
+  "cartoesPendentes": 7
+}
+```
+
+`totalBaralhos` conta os baralhos do usuário; `totalCartoes` conta seus cartões; `cartoesPendentes` conta cartões de todos os seus baralhos cuja `proximaRevisao` seja menor ou igual ao momento da consulta. A resposta nunca inclui senha ou hash.
+
+| Status | Quando |
+|---|---|
+| `400` | `:id` não é um UUID v4 válido |
+| `401` | Token ausente ou inválido |
+| `403` | Perfil diferente de `administrador` |
+| `404` | Usuário inexistente |
+
+#### `GET /usuarios/:id/estatisticas`
+
+Somente perfil `administrador`. Devolve as mesmas estatísticas de `GET /estatisticas`, mas para o usuário identificado por `:id`. Aceita `periodo=hoje|semana|mes|geral` (padrão: `geral`). `:id` deve ser um UUID v4. A resposta tem o mesmo formato e as mesmas definições de campos documentadas em `GET /estatisticas`.
+
+| Status | Quando |
+|---|---|
+| `400` | `:id` não é um UUID v4 válido ou `periodo` é inválido |
+| `401` | Token ausente ou inválido |
+| `403` | Perfil diferente de `administrador` |
+| `404` | Usuário inexistente |
+
+#### `GET /usuarios/:id/estatisticas/atividade`
+
+Somente perfil `administrador`. Devolve a mesma série diária de `GET /estatisticas/atividade`, mas para o usuário identificado por `:id`. Aceita `dias=7|30|90` (padrão: `7`). `:id` deve ser um UUID v4.
+
+| Status | Quando |
+|---|---|
+| `400` | `:id` não é um UUID v4 válido ou `dias` não é 7, 30 ou 90 |
+| `401` | Token ausente ou inválido |
+| `403` | Perfil diferente de `administrador` |
+| `404` | Usuário inexistente |
+
+#### `GET /usuarios/:id/baralhos`
+
+Somente perfil `administrador`. Retorna a lista completa dos baralhos do usuário identificado por `:id`, ordenada por nome, sem envelope de paginação. Cada item inclui os campos de `GET /baralhos` (`id`, `nome`, `descricao`, `totalCartoes`, `cartoesPendentes`, `createdAt`, `updatedAt`) e as métricas por baralho consumidas pela tela de Estatísticas: `cartoesRevisados` e `retencaoPorcentagem`, conforme `GET /estatisticas/baralhos/:baralhoId`. `:id` deve ser um UUID v4.
+
+| Status | Quando |
+|---|---|
+| `400` | `:id` não é um UUID v4 válido |
+| `401` | Token ausente ou inválido |
+| `403` | Perfil diferente de `administrador` |
+| `404` | Usuário inexistente |
+
+#### `DELETE /usuarios/:id`
+
+Somente perfil `administrador`. Exclui o usuário identificado por `:id` após validar a senha do administrador autenticado. `:id` deve ser um UUID v4.
+
+**Requisição**
+
+```json
+{
+  "senha": "senhaAtual123"
+}
+```
+
+`senha` é obrigatória, deve ser uma string não vazia e pode ter no máximo 72 bytes em UTF-8. A senha é verificada no servidor; nunca é devolvida nem armazenada em texto puro.
+
+**Resposta `204`** — sem corpo. A exclusão do usuário remove em cascata seus baralhos, cartões e revisões.
+
+| Status | Quando |
+|---|---|
+| `400` | Corpo inválido, senha ausente/vazia, senha maior que 72 bytes em UTF-8 ou `:id` não é um UUID v4 válido |
+| `401` | Token ausente ou inválido |
+| `403` | Perfil diferente de `administrador` ou senha de confirmação incorreta |
+| `404` | Usuário-alvo inexistente |
+| `409` | O administrador tentou excluir a própria conta |
+
+Senha incorreta retorna `403`, e não `401`, para não acionar no cliente o fluxo de sessão expirada. Autoexclusão retorna `409 Conflict`: a requisição está autenticada e autorizada por perfil, mas conflita com a regra de integridade da operação.
+
+A senha do administrador é comparada antes de verificar a existência do usuário-alvo, para que uma senha inválida não permita usar a rota para enumerar contas. Não há uma regra que impeça a exclusão concorrente do último administrador remanescente.
+
+**Inconsistências e pontos a alinhar com a implementação atual**
+
+- Os controllers preexistentes de baralhos e cartões não usam `ParseUUIDPipe`; as novas rotas administrativas aplicam `ParseUUIDPipe` para UUID v4, conforme documentado.
+- O contrato atual descreve limites de tamanho para nomes/descrições de baralhos e frente/verso de cartões que os DTOs existentes não validam integralmente.
+- O contrato é mantido manualmente; Swagger/OpenAPI ainda não está configurado na inicialização do backend, como já indicado na seção 6.
 
 ---
 
@@ -718,27 +800,23 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 | `GET /baralhos/:id/estudo` | Mobile e web usam apenas `escopo`; não há limite fixo implementado nesta rota | mobile | Estudo em pequenos intervalos, com a tela pequena |
 | `GET /baralhos` | Nenhum dos dois clientes implementa paginação nesta rota; o backend retorna lista completa | ambos | Poucos baralhos por usuário; a lista cabe em uma tela rolável |
 | `GET /estatisticas` | Consumido só pelo web no MVP | web | Recorte do mobile (PRD, seção 7) |
-| `GET /usuarios` | Consumido só pelo web | web | Tela administrativa |
+| `GET /usuarios` e demais rotas `/usuarios/:id...` | Consumidas só pelo web | web | Lista administrativa, detalhe e estatísticas |
 
 ---
 
 ## 6. Como verificar o contrato
 
-> Registre como o grupo confere que a API implementada corresponde a este documento.
-
 - [ ] Coleção de requisições versionada no repositório _(arquivo `.http`, Insomnia, Postman)_
 - [ ] Swagger habilitado no backend _(`@nestjs/swagger`)_ — ainda não configurado na inicialização atual
 - [x] Tipos usados pelo cliente web derivados da implementação e conferidos com o contrato atual
-- [ ] Modelos do mobile derivados do contrato, em `mobile/lib/models/`; o mobile ainda não possui modelos HTTP
+- [x] O mobile contém modelos e repositórios HTTP em `mobile/lib/app_mobile/`; testes usam respostas simuladas e a integração com backend real ainda precisa ser validada
 - [ ] Um cenário de ponta a ponta executado na coleção: registro → login → criar baralho → criar cartão → `GET /estudo` → `POST /revisoes` → conferir `proximaRevisao`
 
-> Se o grupo habilitar o Swagger, este documento continua sendo necessário: o Swagger descreve a API que **existe**, e o contrato descreve a que foi **acordada**. Os dois convergem na entrega final, mas cumprem papéis diferentes durante o projeto.
+O contrato é mantido manualmente. Swagger/OpenAPI e geração automática de clientes não estão configurados.
 
 ---
 
 ## 7. Histórico de revisões
-
-> Toda mudança de endpoint entra aqui, com a data e quem foi avisado. É este histórico que explica, depois, por que um cliente parou de funcionar.
 
 | Versão | Data | Alteração | Impacto nos clientes |
 |---|---|---|---|
@@ -746,3 +824,4 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 | 1.1 | 18/10/2026 | `GET /baralhos/:id/estudo` aceita `escopo` e `cartaoId`, retornando a fila sem limite fixo | Web pode revisar todos, somente pendentes ou um cartão |
 | 1.2 | 24/10/2026 | `PATCH /auth/senha` valida senha atual e recebe `senhaAtual`/`novaSenha`; adicionado `GET /estatisticas/atividade` com períodos de 7, 30 ou 90 dias | Web pode alterar a senha com segurança e exibir atividade diária no gráfico |
 | 1.3 | 02/11/2026 | Login, registro, rotas de criação/listagem e estado real do mobile alinhados ao código | Remove divergências documentais; nenhum endpoint novo foi criado nesta revisão |
+| 1.4 | 14/11/2026 | Incluídas e implementadas exclusão, detalhe, estatísticas, atividade e baralhos de usuários para administração | Backend e web implementam as operações administrativas; o comportamento e as validações estão descritos nas seções 2 e 3 |

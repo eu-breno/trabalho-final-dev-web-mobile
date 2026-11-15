@@ -237,7 +237,6 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
             const SizedBox(height: 20),
             _buildDeckProgressCard(),
             const SizedBox(height: 16),
-            const _EncouragementCard(),
           ],
         ),
       ),
@@ -771,52 +770,6 @@ class _ChartLegend extends StatelessWidget {
   }
 }
 
-class _EncouragementCard extends StatelessWidget {
-  const _EncouragementCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF18181B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF27272A)),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Uma dica para continuar evoluindo',
-            style: TextStyle(
-              color: Color(0xFFF4F4F5),
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 5),
-          Text(
-            'Revisar um pouco todos os dias ajuda mais do que tentar estudar tudo de uma vez.',
-            style: TextStyle(
-              color: Color(0xFFA1A1AA),
-              fontSize: 12,
-              height: 1.4,
-            ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Você está no caminho certo ✨',
-            style: TextStyle(
-              color: Color(0xFFF4F4F5),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message, required this.onRetry});

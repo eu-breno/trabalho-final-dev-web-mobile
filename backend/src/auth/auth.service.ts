@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { JwtService } from '@nestjs/jwt';
 import { Perfil } from '../../generated/prisma/enums.js';
+import { senhaDentroDoLimiteBcrypt } from './validators/senha-tamanho.validator.js';
 
 const CUSTO_HASH = 10; // Defina o custo do salt aqui ou via variáveis de ambiente
 
@@ -22,7 +23,7 @@ export class AuthService {
   ) {}
 
   async registrar(dto: RegistrarDto) {
-    if (Buffer.from(dto.senha).length > 72) {
+    if (!senhaDentroDoLimiteBcrypt(dto.senha)) {
       throw new BadRequestException(
         'A senha deve ter no máximo 72 bytes em UTF-8',
       );
@@ -60,7 +61,7 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<{ accessToken: string }> {
     // Proteção contra o limite de 72 bytes do bcrypt
-    if (Buffer.from(dto.senha).length > 72) {
+    if (!senhaDentroDoLimiteBcrypt(dto.senha)) {
       throw new UnauthorizedException('email ou senha inválidos');
     }
 
@@ -153,7 +154,7 @@ export class AuthService {
       throw new UnauthorizedException('A senha atual está incorreta');
     }
 
-    if (Buffer.from(dto.novaSenha).length > 72) {
+    if (!senhaDentroDoLimiteBcrypt(dto.novaSenha)) {
       throw new BadRequestException('A senha deve ter no máximo 72 bytes em UTF-8');
     }
 

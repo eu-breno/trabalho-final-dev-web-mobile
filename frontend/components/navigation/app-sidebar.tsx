@@ -3,7 +3,8 @@
 import * as React from "react"
 import Link from "next/link"
 
-import { BookCopy } from "lucide-react"
+import { BookCopy, UserRoundCog } from "lucide-react"
+import { useAuth } from "@/components/auth/auth-provider"
 import { NavMain } from "@/components/navigation/nav-main"
 import { NavUser } from "@/components/navigation/nav-user"
 import {
@@ -15,7 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { House, ChartBarIcon, UsersIcon, Brain } from "lucide-react"
+import { House, ChartBarIcon, Brain } from "lucide-react"
 
 const data = {
   navMain: [
@@ -34,15 +35,22 @@ const data = {
       url: "/estatisticas",
       icon: <ChartBarIcon />,
     },
-    {
-      title: "Turmas",
-      url: "/turmas",
-      icon: <UsersIcon />,
-    },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+  const navMain = user?.perfil === "administrador"
+    ? [
+        ...data.navMain,
+        {
+          title: "Usuários",
+          url: "/admin/usuarios",
+          icon: <UserRoundCog />,
+        },
+      ]
+    : data.navMain
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -59,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

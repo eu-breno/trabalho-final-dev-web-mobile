@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { apiRequest, type ApiDailyActivity } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -19,24 +20,29 @@ function formatDate(value: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("pt-BR", options).format(new Date(`${value}T12:00:00`))
 }
 
-export function ChartAreaInteractive() {
+export function ChartAreaInteractive({ userId }: { userId?: string }) {
   const [period, setPeriod] = useState<Period>("30")
+  const [retryKey, setRetryKey] = useState(0)
   const [result, setResult] = useState<{
-    period: Period
+    key: string
     activity: ApiDailyActivity[]
     error: string | null
   } | null>(null)
+  const requestKey = `${userId ?? "self"}:${period}:${retryKey}`
 
   useEffect(() => {
     let cancelled = false
-    apiRequest<ApiDailyActivity[]>(`estatisticas/atividade?dias=${period}`)
+    const endpoint = userId
+      ? `usuarios/${encodeURIComponent(userId)}/estatisticas/atividade?dias=${period}`
+      : `estatisticas/atividade?dias=${period}`
+    apiRequest<ApiDailyActivity[]>(endpoint)
       .then((result) => {
-        if (!cancelled) setResult({ period, activity: result, error: null })
+        if (!cancelled) setResult({ key: requestKey, activity: result, error: null })
       })
       .catch((reason: unknown) => {
         if (cancelled) return
         setResult({
-          period,
+          key: requestKey,
           activity: [],
           error: reason instanceof Error ? reason.message : "Não foi possível carregar a atividade.",
         })
@@ -44,9 +50,9 @@ export function ChartAreaInteractive() {
     return () => {
       cancelled = true
     }
-  }, [period])
+  }, [period, requestKey, userId])
 
-  const loading = result?.period !== period
+  const loading = result?.key !== requestKey
   const error = loading ? null : result.error
   const activity = loading ? [] : result.activity
   const totalReviews = activity.reduce((total, day) => total + day.total, 0)
@@ -78,9 +84,12 @@ export function ChartAreaInteractive() {
         {loading ? (
           <Skeleton aria-label="Carregando atividade de revisão" className="h-[250px] w-full" />
         ) : error ? (
-          <p aria-live="polite" className="flex h-[250px] items-center justify-center text-center text-sm text-destructive">
-            {error}
-          </p>
+          <div className="flex h-[250px] flex-col items-center justify-center gap-3 text-center">
+            <p aria-live="polite" className="text-sm text-destructive">{error}</p>
+            <Button onClick={() => setRetryKey((value) => value + 1)} type="button" variant="outline">
+              Tentar novamente
+            </Button>
+          </div>
         ) : totalReviews === 0 ? (
           <p className="flex h-[250px] items-center justify-center text-center text-sm text-muted-foreground">
             Nenhuma revisão registrada nos últimos {periodLabel}.

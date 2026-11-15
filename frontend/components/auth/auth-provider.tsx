@@ -6,11 +6,13 @@ import Link from "next/link"
 import { ApiError, requestJson } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
+export type PerfilUsuario = "estudante" | "administrador"
+
 export type AuthUser = {
   id: string
   nome: string
   email: string
-  perfil: string
+  perfil: PerfilUsuario
 }
 
 type AuthContextValue = {

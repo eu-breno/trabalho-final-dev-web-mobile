@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -33,7 +43,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { EllipsisVertical, Eye, EyeOff, LogOutIcon, Mail, Pencil, Settings, ShieldLock, SunMoon, User } from "lucide-react"
+import { EllipsisVertical, Eye, EyeOff, Loader2, LogOutIcon, Mail, Pencil, Settings, ShieldLock, SunMoon, User } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-provider"
 import { requestJson } from "@/lib/api"
 import { toast } from "sonner"
@@ -45,6 +55,7 @@ export function NavUser() {
   const { theme, setTheme } = useTheme()
   const [logoutError, setLogoutError] = useState<string | null>(null)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [nameDialogOpen, setNameDialogOpen] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
@@ -78,6 +89,7 @@ export function NavUser() {
     setIsLoggingOut(true)
     try {
       await requestJson("/api/auth/logout", { method: "POST" })
+      setLogoutDialogOpen(false)
       router.replace("/login")
     } catch (reason) {
       setLogoutError(reason instanceof Error ? reason.message : "Não foi possível encerrar a sessão.")
@@ -177,15 +189,60 @@ export function NavUser() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setLogoutError(null)
+                  setLogoutDialogOpen(true)
+                }}
+                disabled={isLoggingOut}
+              >
                 <LogOutIcon />
-                {isLoggingOut ? "Saindo..." : "Sair"}
+                Sair
               </DropdownMenuItem>
-              {logoutError && <p aria-live="polite" className="px-2 py-1 text-xs text-destructive">{logoutError}</p>}
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
       </SidebarMenu>
+
+      <AlertDialog
+        open={logoutDialogOpen}
+        onOpenChange={(open) => {
+          if (!isLoggingOut) {
+            setLogoutDialogOpen(open)
+            if (!open) setLogoutError(null)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará entrar novamente para acessar seus baralhos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {logoutError && (
+            <p aria-live="polite" className="text-sm text-destructive">{logoutError}</p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isLoggingOut}
+              onClick={() => setLogoutError(null)}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isLoggingOut}
+              onClick={(event) => {
+                event.preventDefault()
+                void handleLogout()
+              }}
+            >
+              {isLoggingOut ? <><Loader2 className="animate-spin" /> Saindo...</> : "Sair"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-w-lg">

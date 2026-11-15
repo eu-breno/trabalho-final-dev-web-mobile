@@ -5,20 +5,16 @@ import { usePathname } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { apiRequest } from "@/lib/api"
-import { useAuth } from "@/components/auth/auth-provider"
-import Link from "next/link"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Início",
   "/baralhos": "Baralhos",
   "/estatisticas": "Estatísticas",
-  "/turmas": "Turmas",
   "/admin/usuarios": "Usuários",
 }
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const { user } = useAuth()
   const [deckName, setDeckName] = useState<string | null>(null)
   const [isDeckLoading, setIsDeckLoading] = useState(false)
 
@@ -56,7 +52,8 @@ export function SiteHeader() {
 
   const title =
     pageTitles[pathname] ??
-    (pathname.startsWith("/baralhos/") ? (isDeckLoading ? "Baralho" : (deckName ?? "Baralho")) :
+    (pathname.startsWith("/admin/usuarios/") ? "Usuários" :
+      pathname.startsWith("/baralhos/") ? (isDeckLoading ? "Baralho" : (deckName ?? "Baralho")) :
       pathname
         .split("/")
         .filter(Boolean)
@@ -74,11 +71,6 @@ export function SiteHeader() {
           className="mx-2 h-4 data-vertical:self-auto"
         />
         <h1 className="text-base font-medium">{title}</h1>
-        {user?.perfil === "administrador" && (
-          <Link className="ml-auto text-sm font-medium hover:underline" href="/admin/usuarios">
-            Usuários
-          </Link>
-        )}
       </div>
     </header>
   )

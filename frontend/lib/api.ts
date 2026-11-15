@@ -52,6 +52,32 @@ export type ApiDeck = {
   updatedAt: string
 }
 
+export type ApiAdminDeck = ApiDeck & {
+  cartoesRevisados: number
+  retencaoPorcentagem: number
+}
+
+export type ApiAdminUser = {
+  id: string
+  nome: string
+  email: string
+  perfil: "estudante" | "administrador"
+  createdAt: string
+}
+
+export type ApiAdminUserPage = {
+  dados: ApiAdminUser[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type ApiAdminUserDetail = ApiAdminUser & {
+  totalBaralhos: number
+  totalCartoes: number
+  cartoesPendentes: number
+}
+
 export type ApiCard = {
   id: string
   baralhoId: string

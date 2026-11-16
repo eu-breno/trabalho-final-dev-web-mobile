@@ -14,11 +14,12 @@ class DashboardDrawer extends StatefulWidget {
     this.client,
     this.userName,
     this.userEmail,
+    this.userRole,
     this.selectedSection = 'Início',
     this.onTapHome,
     this.onTapStudy,
     this.onTapDecks,
-    this.onTapTurmas,
+    this.onTapUsers,
     this.onTapStatistics,
   });
 
@@ -26,11 +27,12 @@ class DashboardDrawer extends StatefulWidget {
   final http.Client? client;
   final String? userName;
   final String? userEmail;
+  final String? userRole;
   final String selectedSection;
   final VoidCallback? onTapHome;
   final VoidCallback? onTapStudy;
   final VoidCallback? onTapDecks;
-  final VoidCallback? onTapTurmas;
+  final VoidCallback? onTapUsers;
   final VoidCallback? onTapStatistics;
 
   @override
@@ -149,13 +151,14 @@ class _DashboardDrawerState extends State<DashboardDrawer> {
                     muted: widget.selectedSection != 'Estatísticas',
                     highlighted: widget.selectedSection == 'Estatísticas',
                   ),
-                  _DrawerItem(
-                    icon: LucideIcons.users,
-                    label: 'Turmas',
-                    onTap: widget.onTapTurmas ?? () => Navigator.pop(context),
-                    muted: widget.selectedSection != 'Turmas',
-                    highlighted: widget.selectedSection == 'Turmas',
-                  ),
+                  if (widget.userRole == 'administrador')
+                    _DrawerItem(
+                      icon: LucideIcons.users,
+                      label: 'Usuários',
+                      onTap: widget.onTapUsers ?? () => Navigator.pop(context),
+                      muted: widget.selectedSection != 'Usuários',
+                      highlighted: widget.selectedSection == 'Usuários',
+                    ),
                 ],
               ),
             ),

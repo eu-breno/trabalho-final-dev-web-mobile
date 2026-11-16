@@ -36,7 +36,7 @@
 
 **Como o banco foi provisionado:** (x) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado
 
-**Comandos do mobile:** executar a partir de `mobile/`: `flutter pub get`, `flutter run` (emulador Android padrão) ou `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` (dispositivo físico), `flutter test` e `dart analyze`. Nesta atualização, `flutter test` passou (11 testes) e `dart analyze` não encontrou problemas; `flutter analyze` foi tentado, mas o servidor de análise Dart encerrou com erro interno. Nenhum desses testes foi executado em aparelho nem contra uma API real.
+**Comandos do mobile:** executar a partir de `mobile/`: `flutter pub get`, `flutter run` (emulador Android padrão) ou `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` (dispositivo físico), `flutter test` e `dart analyze lib test`. Em 15/11, `flutter test` passou (13 testes) e `dart analyze lib test` não encontrou problemas. Os testes usam HTTP simulado. O usuário confirmou o login administrativo e a abertura da lista de usuários no app conectado; não há registro de execução dos testes automatizados contra o backend real.
 
 ### 1.2 Divergências em relação ao README
 
@@ -161,7 +161,7 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 
 #### Etapa 4 — App mobile
 
-- Matheus confirmou a autoria das funcionalidades mobile presentes no worktree; o estado, os testes e o histórico estão descritos na seção Etapa 4 deste relatório. O commit das funcionalidades estava previsto para 09/11/2026 e ainda não constava no histórico quando esta revisão foi feita.
+- Em 09/11, Matheus confirmou a autoria das funcionalidades mobile então presentes no worktree; o commit estava previsto para aquela data e ainda não constava no histórico. A atualização administrativa registrada em 15/11 e o estado atual do mobile estão descritos na seção Etapa 4 deste relatório.
 ---
 
 #### Diagnóstico do projeto e da documentação (prompts de leitura)
@@ -291,13 +291,17 @@ Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetu
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** iniciada em 26/10/2026; estado conferido em 09/11/2026 · **Responsável:** Matheus
+**Período:** iniciada em 26/10/2026; estado conferido em 15/11/2026 · **Responsável principal:** Matheus
 
-**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. O commit dessas funcionalidades estava previsto para 09/11/2026; o histórico ainda não continha esse commit no momento da conferência.
+**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. Em 15/11, a tela placeholder de Turmas foi substituída pela tela administrativa de Usuários, com listagem da API, paginação, detalhe, estatísticas e exclusão autenticada por senha. A tela mantém o padrão visual escuro do app e aproxima a lista da tabela do frontend. A autoria humana dessa atualização não foi identificada neste registro e as mudanças permanecem sem commit ou PR identificado.
 
-**Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Os comandos são `flutter pub get`, `flutter run`, `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` para dispositivo físico, `flutter test` e `dart analyze`. Os 11 testes widget/HTTP mock passaram; eles não validam conectividade com o backend real. `dart analyze` não encontrou problemas; `flutter analyze` encerrou com erro interno do servidor de análise.
+**Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Em 15/11, `dart analyze lib test` não encontrou problemas e `flutter test` passou com 13 testes. Os testes HTTP são simulados e não validam conectividade real; separadamente, o usuário confirmou que conseguiu entrar como administrador e abrir a lista de usuários no app conectado.
 
 **Telas e navegação:** login, cadastro, dashboard, lista/gestão de baralhos, detalhe/lista de cartões, estudo, estatísticas e diálogo de configurações. A navegação usa rotas Flutter, menu lateral e páginas de detalhe. O cadastro volta ao login após o sucesso; o login abre o dashboard. Há atualização/reload e botão "Tentar novamente" em telas de dados.
+
+**Administração de usuários (15/11/2026):** a opção **Usuários** aparece no menu lateral somente quando o perfil recebido de `GET /auth/perfil` é `administrador`. A lista usa `GET /usuarios` com paginação de servidor (10, 20 ou 50 por página), mostra nome, e-mail, perfil e ações; os detalhes consultam `GET /usuarios/:id`, `GET /usuarios/:id/estatisticas`, `GET /usuarios/:id/estatisticas/atividade` e `GET /usuarios/:id/baralhos`. A exclusão envia a senha do administrador para `DELETE /usuarios/:id` e desabilita a autoexclusão. As rotas já existiam no backend; não houve alteração do contrato. O acesso é validado no backend, não apenas pelo item de menu.
+
+**Correção de autenticação mobile (15/11/2026):** a primeira implementação do repositório administrativo não usava o token de sessão no cabeçalho HTTP, causando resposta `Unauthorized`. O repositório passou a enviar `Authorization: Bearer <accessToken>`. A tela também diferencia erro da API de uma lista vazia. O usuário confirmou o funcionamento do login administrativo e da abertura da lista no app; não se presume que todos os fluxos administrativos tenham sido testados contra o backend real.
 
 **Sessão e autenticação:** o app envia `POST /auth/login`, lê `accessToken` e persiste-o em `SharedPreferences` (`memora.accessToken`). Ao iniciar, tenta restaurar a sessão e abre login ou dashboard; portanto, fechar e reabrir mantém a sessão salva. O logout remove a chave e limpa a pilha de navegação. As chamadas protegidas enviam o token da sessão no cabeçalho `Authorization` com esquema Bearer. Não há renovação/refresh nem tratamento dedicado de token expirado; a autenticação no backend real ainda precisa ser validada.
 
@@ -311,22 +315,23 @@ Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetu
 | `PATCH /auth/perfil` e `PATCH /auth/senha` | Testes de configurações com HTTP simulado passaram |
 | `POST /baralhos` e `POST /baralhos/:id/cartoes` | Teste de criação com HTTP simulado passou |
 | Fila de estudo e `POST /cartoes/:id/revisoes` | Teste de carregamento de fila e envio de avaliações com HTTP simulado passou; resposta não comprova persistência real ou próxima revisão no backend |
+| Administração: `GET /usuarios`, detalhes e exclusão | Teste automatizado com HTTP simulado cobre paginação, perfil do usuário, detalhe, estatísticas, atividade, baralhos, exclusão e erro 401; o usuário confirmou login como administrador e carregamento da lista no app conectado |
 | `GET/PATCH/DELETE /baralhos/:id`; `GET /baralhos/:id/cartoes`; `PATCH/DELETE /cartoes/:id` | Implementados no código; teste individual e chamada contra backend real não comprovados |
 | Estatísticas semanais, por baralho e atividade | Implementadas no código; teste individual e chamada contra backend real não comprovados |
 | Sem conexão, token expirado, usuário ou recurso inexistente | Não há resultado de teste registrado; a UI apresenta erros recebidos, mas sem validação real |
 
-**Resultados e tratamento de erros:** os testes com HTTP simulado cobrem login/token, cadastro, dados do dashboard, criação de baralho/cartão e envio de avaliações; também cobrem configurações/sessão. Não cobrem chamadas reais. As chamadas HTTP aplicam timeout de 15 segundos; a UI mostra mensagens para timeout, falha de conexão e erros HTTP devolvidos pela API, e telas de carregamento/retentativa. Token expirado, usuário/recurso inexistente e modo sem conexão não foram validados contra backend; erros retornados são exibidos, mas não há logout automático em 401/403. CORS não se aplica ao cliente nativo e não foi testado.
+**Resultados e tratamento de erros:** os testes com HTTP simulado cobrem login/token, cadastro, dados do dashboard, criação de baralho/cartão, envio de avaliações, configurações/sessão e os fluxos administrativos descritos acima. Não cobrem chamadas reais. As chamadas HTTP aplicam timeout de 15 segundos; a UI mostra mensagens para timeout, falha de conexão e erros HTTP devolvidos pela API, e telas de carregamento/retentativa. A tela de Usuários não trata um erro HTTP como uma lista vazia. Token expirado, usuário/recurso inexistente e modo sem conexão não foram validados contra backend; não há logout automático em 401/403. CORS não se aplica ao cliente nativo e não foi testado.
 
 **Decisões técnicas:**
 
 | Decisão | Alternativas consideradas | Justificativa | Risco ou consequência |
 |---|---|---|---|
 | Persistir o token localmente e oferecer logout | Manter token só em memória | Implementação em `SessionStore` com `SharedPreferences` | A sessão continua ao fechar o app; não há refresh nem tratamento dedicado de expiração |
-| Organizar o app em telas de autenticação, dashboard, baralhos, estudo e estatísticas | Manter apenas a tela inicial estática | Implementação de Matheus para cobrir os fluxos principais do cliente mobile | Navegação funcional, sem integração adicional fora do escopo atual |
+| Organizar o app em telas de autenticação, dashboard, baralhos, estudo, estatísticas e administração de usuários | Manter apenas a tela inicial estática | Cobrir os fluxos mobile e consumir endpoints existentes; a tela administrativa reaproveita o papel atual e as rotas existentes | A listagem depende do perfil do backend; operações administrativas ainda precisam de validação ponta a ponta |
 
 **Mudanças no contrato da API:** nenhuma alteração de contrato foi registrada para viabilizar o mobile; o app consome rotas já existentes no backend.
 
-**Dificuldades e pendências:** não há evidência de emulador/dispositivo Android ou iOS configurado nem de teste contra o servidor real. Também não foram comprovados tratamento de token expirado, uso offline, CORS ou resultados para usuário/recurso inexistente. É necessário executar os casos contra backend e registrar dispositivo, URL e resultados.
+**Dificuldades e pendências:** não há evidência de emulador/dispositivo Android ou iOS configurado. O usuário confirmou login administrativo e carregamento da lista conectado ao backend, mas exclusão, detalhes e estatísticas administrativas não foram confirmados manualmente contra o servidor. Também não foram comprovados tratamento de token expirado, uso offline, CORS ou resultados para usuário/recurso inexistente. É necessário executar esses casos e registrar dispositivo, URL e resultados.
 
 **Casos de uso validados:** os testes automatizados com respostas HTTP simuladas cobrem envio de credenciais e leitura do token, cadastro, dashboard, criação de baralho/cartão e avaliação de cartão. Não comprovam login, baralho, revisão ou persistência em backend real. Sem conexão, token expirado e usuário/recurso inexistente não têm teste de integração registrado. O POST de revisão é seguido pelo avanço da fila no estado local; atualização da próxima revisão no backend e reconsulta da fila precisam de validação real.
 
@@ -334,13 +339,13 @@ Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetu
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** não concluído em 09/11/2026 · **Redigido por:** pendente
+**Período:** não concluído em 09/11/2026; atualização parcial em 15/11/2026 · **Redigido por:** pendente
 
-**Integração web, mobile e backend:** não preencher como integração concluída. Há código mobile apontando para a API e código web integrado ao backend, mas não há comprovação de fluxo real compartilhado entre os três. Não há evidência dos testes de criação web→mobile, mobile→web, login nos dois clientes, conta/dados compartilhados, logout ou testes simultâneos dos três componentes.
+**Integração web, mobile e backend:** não preencher como integração concluída. Em 15/11, o usuário confirmou o login administrativo e o carregamento da lista de usuários no mobile conectado à API. Isso não comprova os demais fluxos nem o compartilhamento real entre os três componentes. Não há evidência de testes cruzados de criação web→mobile, mobile→web, logout ou execução simultânea dos três componentes.
 
 **Condição para concluir:** validar o envio do token, rodar o backend, web e mobile juntos, validar os casos de uso cruzados solicitados e registrar os resultados, conflitos e resolução. Até lá, a Etapa 5 permanece pendente; não há resultado final de integração a declarar.
 
-**Histórico e revisão do mobile:** o commit mobile de Matheus identificado no histórico é `113cd46`; a branch de trabalho é `back_admin`. Não foi identificado PR mobile, revisão de Breno ou merge das funcionalidades recentes. O commit das alterações de Matheus estava previsto para 09/11/2026, mas ainda não aparecia no histórico no momento desta conferência.
+**Histórico e revisão do mobile:** o commit mobile de inicialização identificado no histórico é `113cd46`; a branch de trabalho observada é `back_admin`. Não foi identificado PR mobile, revisão formal ou merge das funcionalidades recentes. Em 09/11, o commit das funcionalidades estava previsto para aquela data e ainda não aparecia no histórico; as alterações administrativas registradas em 15/11 também permanecem sem commit ou PR identificado.
 
 ---
 
@@ -365,12 +370,12 @@ A regra de negócio fica no backend: o cliente envia apenas a nota (errei, difí
 | Nível adotado | Persistida |
 | Como o app obtém e armazena o token | `POST /auth/login` lê `accessToken`; `SessionStore` persiste em `SharedPreferences` (`memora.accessToken`) |
 | Restauração e logout | Sessão lida ao iniciar; logout remove o token e redireciona ao login |
-| Limitações | Sem refresh ou detecção/logout automático em expiração. O código envia o token no cabeçalho Authorization; autenticação ainda sem validação contra backend real |
+| Limitações | Sem refresh ou detecção/logout automático em expiração. O login administrativo e o carregamento da lista foram confirmados pelo usuário no app conectado; os demais fluxos ainda não foram validados de ponta a ponta |
 | Rotas da API afetadas pela escolha | Login e rotas autenticadas de perfil, baralhos, cartões, estudo e estatísticas |
 
 ### 4.4 O que os dois clientes compartilham e o que não
 
-Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `httpOnly` e encaminha chamadas por rotas do Next.js; o mobile persiste o token em `SharedPreferences` e envia o token no cabeçalho Authorization com esquema Bearer. O código contém chamadas às rotas existentes, mas não há teste contra o backend real. A equivalência dos clientes e o compartilhamento real de dados continuam sem validação integrada.
+Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `httpOnly` e encaminha chamadas por rotas do Next.js; o mobile persiste o token em `SharedPreferences` e envia o token no cabeçalho Authorization com esquema Bearer. O usuário confirmou o login como administrador e o carregamento da lista mobile; não há registro de validação real dos demais fluxos nem testes cruzados entre clientes. A equivalência dos clientes e o compartilhamento real de dados continuam sem validação integrada.
 
 ---
 
@@ -382,7 +387,7 @@ Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `ht
 
 ## 6. Reflexão final
 
-Fechamento parcial atualizado em 09/11/2026; a Etapa 5 continua pendente.
+Fechamento parcial atualizado em 15/11/2026; a Etapa 5 continua pendente.
 
 ### 6.1 O que funcionou bem
 
@@ -427,3 +432,4 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 | 1.1 | 01/11/2026 | Diário das etapas 0 a 3, arquitetura, ambiente e uso de IA até a data | Breno |
 | 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus |
 | 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |
+| 1.4 | 15/11/2026 | Atualização mobile de administração de usuários, token Bearer, cobertura de testes e confirmação de carregamento da lista no app | Breno |

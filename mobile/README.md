@@ -33,3 +33,26 @@ fila de cartões pendentes. Em cada baralho, as ações permitem estudar somente
 os cartões pendentes ou todos os cartões. Durante o estudo, é possível virar o
 cartão, registrar uma avaliação (errei, difícil, bom ou fácil) e revisar os
 cartões marcados como errados.
+
+## Administração de usuários
+
+Após entrar com uma conta cujo perfil seja `administrador`, o menu lateral
+mostra **Usuários**. A tela consulta as contas cadastradas na API, permite
+paginar (10, 20 ou 50 por página) e abrir os detalhes de cada usuário, com
+resumo, estatísticas de estudo, atividade de revisão e baralhos. No menu de
+ações de uma conta é possível excluí-la após confirmar a senha do administrador;
+não é permitido excluir a própria conta.
+
+Essas operações usam as rotas administrativas autenticadas `GET /usuarios`,
+`GET /usuarios/:id`, `GET /usuarios/:id/estatisticas`,
+`GET /usuarios/:id/estatisticas/atividade`,
+`GET /usuarios/:id/baralhos` e `DELETE /usuarios/:id`. O app envia o token da
+sessão no cabeçalho `Authorization: Bearer <accessToken>`. O backend valida o
+token e exige o perfil de administrador; esconder o item no menu é apenas uma
+medida de interface, não substitui essa validação.
+
+A lista, os detalhes, a paginação, a exclusão e a apresentação de erros de
+autorização têm cobertura com respostas HTTP simuladas em `flutter test`.
+Também foi confirmada manualmente a abertura da lista com uma conta
+administradora no app. Essa confirmação não substitui a validação de cada
+operação administrativa contra o backend real.

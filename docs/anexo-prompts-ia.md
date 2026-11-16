@@ -7,6 +7,7 @@ Este anexo reúne o texto dos prompts citados na seção 2.3 de `docs/relatorio.
 | 10/10/2026 | Frontend: telas de revisão, baralhos e detalhe do baralho | A1, B |
 | 25/10/2026 | Administrador/professor: análise, implementação e diagnóstico do projeto | A2, C1, C2, D, E, F |
 | 09/11/2026 | Atualização documental do mobile, equipe e integração | G |
+| 15/11/2026 | Área administrativa de usuários no app mobile | H |
 
 ---
 
@@ -459,7 +460,7 @@ Formato: use títulos e listas curtas, em português.
 
 ### G. Apoio do Copilot à criação das telas e dos fluxos
 
-- **Quem conduziu:** Matheus · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Período:** Etapa 4, iniciada em 26/10/2026 e em desenvolvimento até 09/11/2026
+- **Quem conduziu:** Matheus · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 09/11/2026
 - **Resultado:** o Copilot apoiou a criação e o refinamento da interface mobile. Matheus integrou as telas aos fluxos do aplicativo e à API existente.
 
 **Prompt utilizado:**
@@ -472,6 +473,22 @@ Com base na estrutura e na identidade visual do Memora, ajude a criar e revisar 
 - **Código gerado e efetivamente aproveitado:** estruturas e componentes de interface para login e cadastro; dashboard com menu lateral, resumo e ações; telas de baralhos e cartões com criação, edição e exclusão; sessão de estudo com frente/verso, notas de revisão, progresso e revisão de erros; estatísticas; e configurações de conta. A assistência foi usada como ponto de partida para as telas e seus estados visuais.
 - **Código adaptado por Matheus:** integração das telas com os endpoints REST existentes; configuração de URL da API para emulador ou via `API_BASE_URL`; envio das credenciais; persistência/restauração do token com `SharedPreferences`; navegação entre login, cadastro, dashboard, baralhos e estudo; estados de carregamento, timeout, erro e nova tentativa; e ajuste dos fluxos de revisão para enviar a nota à API.
 - **Commit relacionado:** `113cd46`; commit do projeto mobile com as telas e funcionalidades descritas acima, previsto para 09/11/2026 por Matheus 
+
+
+### H. Atualização da área administrativa de usuários no app mobile (15/11/2026)
+
+- **Quem conduziu:** Breno · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 15/11/2026
+- **Resultado:** substituição da tela placeholder de Turmas por uma área administrativa de Usuários no app mobile, com acesso restrito no menu aos administradores e dados carregados das rotas já existentes na API.
+
+**Prompt utilizado:**
+
+````text
+Substitua a tela placeholder de Turmas no app mobile por uma tela de Usuários acessível apenas a administradores. A lista deve mostrar as contas cadastradas, seguir as funcionalidades da área de usuários do frontend e manter o padrão visual das demais telas mobile. Inclua paginação, detalhes do usuário e ações administrativas. Depois, aproxime a aparência da lista à tabela do frontend. Corrija também o erro Unauthorized observado ao abrir a lista como administrador.
+````
+
+- **O que foi solicitado à IA:** remover Turmas da navegação mobile e criar a área administrativa de Usuários com listagem das contas, paginação, detalhes, estatísticas e ações semelhantes às do frontend, mantendo o padrão visual do app e corrigindo o erro de autorização.
+- **Código gerado e efetivamente aproveitado:** tela de usuários com paginação de 10, 20 ou 50 registros, detalhe com resumo, estatísticas, atividade e baralhos, e menu de ações com exclusão confirmada por senha; integração da navegação com o perfil de administrador; e apresentação em painel com cabeçalho, nome/e-mail, badge de tipo, menu e paginação.
+- **Commit relacionado:** Commit de Matheus do dia 15/11/2026.
 
 (ajustar formatacao dos textos abaixo):
 

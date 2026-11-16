@@ -11,7 +11,7 @@ import 'dashboard/dashboard_sections.dart';
 import 'baralhos/baralhos_page.dart';
 import 'estudo/estudo_page.dart';
 import 'estatisticas/estatisticas_page.dart';
-import 'turmas/turmas_page.dart';
+import 'usuarios/usuarios_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key, required this.accessToken, this.client});
@@ -105,6 +105,7 @@ class _DashboardPageState extends State<DashboardPage>
         client: widget.client,
         userName: data?.fullName,
         userEmail: data?.email,
+        userRole: data?.userRole,
         onTapStudy: () {
           Navigator.pop(context);
           _startStudy();
@@ -118,23 +119,29 @@ class _DashboardPageState extends State<DashboardPage>
                 client: widget.client,
                 userName: data?.fullName,
                 userEmail: data?.email,
+                userRole: data?.userRole,
+                currentUserId: data?.userId,
               ),
             ),
           );
         },
-        onTapTurmas: () {
-          Navigator.pop(context);
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => TurmasPage(
-                accessToken: widget.accessToken,
-                client: widget.client,
-                userName: data?.fullName,
-                userEmail: data?.email,
-              ),
-            ),
-          );
-        },
+        onTapUsers: data?.userRole == 'administrador'
+            ? () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => UsuariosPage(
+                      accessToken: widget.accessToken,
+                      userRole: data?.userRole,
+                      currentUserId: data?.userId,
+                      client: widget.client,
+                      userName: data?.fullName,
+                      userEmail: data?.email,
+                    ),
+                  ),
+                );
+              }
+            : null,
         onTapStatistics: () {
           Navigator.pop(context);
           Navigator.of(context).push(
@@ -144,6 +151,8 @@ class _DashboardPageState extends State<DashboardPage>
                 client: widget.client,
                 userName: data?.fullName,
                 userEmail: data?.email,
+                userRole: data?.userRole,
+                currentUserId: data?.userId,
               ),
             ),
           );

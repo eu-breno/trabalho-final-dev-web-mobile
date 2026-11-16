@@ -8,7 +8,7 @@ import '../../api_config.dart';
 import '../baralhos/baralhos_page.dart';
 import '../dashboard/dashboard_drawer.dart';
 import '../estudo/estudo_page.dart';
-import '../turmas/turmas_page.dart';
+import '../usuarios/usuarios_page.dart';
 import 'estatisticas_repository.dart';
 
 class EstatisticasPage extends StatefulWidget {
@@ -18,12 +18,16 @@ class EstatisticasPage extends StatefulWidget {
     this.client,
     this.userName,
     this.userEmail,
+    this.userRole,
+    this.currentUserId,
   });
 
   final String accessToken;
   final http.Client? client;
   final String? userName;
   final String? userEmail;
+  final String? userRole;
+  final String? currentUserId;
 
   @override
   State<EstatisticasPage> createState() => _EstatisticasPageState();
@@ -130,6 +134,7 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
         client: widget.client,
         userName: widget.userName,
         userEmail: widget.userEmail,
+        userRole: widget.userRole,
         selectedSection: 'Estatísticas',
         onTapStudy: () {
           Navigator.pop(context);
@@ -153,23 +158,29 @@ class _EstatisticasPageState extends State<EstatisticasPage> {
                 client: widget.client,
                 userName: widget.userName,
                 userEmail: widget.userEmail,
+                userRole: widget.userRole,
+                currentUserId: widget.currentUserId,
               ),
             ),
           );
         },
-        onTapTurmas: () {
-          Navigator.pop(context);
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => TurmasPage(
-                accessToken: widget.accessToken,
-                client: widget.client,
-                userName: widget.userName,
-                userEmail: widget.userEmail,
-              ),
-            ),
-          );
-        },
+        onTapUsers: widget.userRole == 'administrador'
+            ? () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => UsuariosPage(
+                      accessToken: widget.accessToken,
+                      userRole: widget.userRole,
+                      currentUserId: widget.currentUserId,
+                      client: widget.client,
+                      userName: widget.userName,
+                      userEmail: widget.userEmail,
+                    ),
+                  ),
+                );
+              }
+            : null,
       ),
       appBar: AppBar(
         backgroundColor: const Color(0xFF09090B),
@@ -769,7 +780,6 @@ class _ChartLegend extends StatelessWidget {
     );
   }
 }
-
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message, required this.onRetry});

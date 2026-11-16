@@ -121,19 +121,17 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** iniciada em 26/10/2026; estado conferido em 09/11/2026 (em andamento; integração real não concluída)
+**Período:** iniciada em 26/10/2026; estado conferido em 15/11/2026 (em andamento; integração mobile parcialmente validada)
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
-| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. As alterações recentes são trabalho de Matheus, ainda não commitado na data desta atualização. | Mobile | `113cd46` (26/10, branch `back_admin`); commit das demais alterações previsto para 09/11/2026 |
+| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. | Mobile | `113cd46` (26/10, branch `back_admin`) |
 
-**Ambiente observado nesta atualização:** Flutter 3.47.8, Dart 3.13.7 (`pubspec.yaml` exige `^3.13.7`), Windows 10 Pro 10.0.19045.7807 e VS Code. `flutter devices` encontrou Windows, Chrome e Edge, sem dispositivo Android/iOS. Esses dados descrevem a máquina usada nesta atualização, não comprovam separadamente o ambiente de Matheus. Endereços configurados: `http://10.0.2.2:3000` como padrão Android e `http://localhost:3000` nos demais destinos; para aparelho físico, configurar `API_BASE_URL` com o IP local do computador, obtido por exemplo via `ipconfig`. Nenhum IP, emulador ou modelo de telefone foi registrado como efetivamente usado.
+**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; as alterações recentes da área administrativa ainda não foram commitadas nem integradas por merge.
 
-**Testes e funcionalidades observadas:** `flutter test` passou com 11 testes de widget/HTTP simulado (login/token, cadastro, dashboard, configurações, criação de baralho/cartão e avaliação de cartões); não é teste contra backend real. `dart analyze` passou sem problemas. O comando `flutter analyze` foi tentado, mas o servidor de análise Dart encerrou com erro interno. O app contém telas de login, cadastro, dashboard, baralhos/cartões, estudo, estatísticas e configurações; token guardado em `SharedPreferences`, restaurado ao abrir o app e removido no logout. Existem carregamentos, mensagens de erro, timeout de 15 segundos e retentativa em telas de dados.
+**Dificuldades de coordenação:** a primeira tentativa de abrir a lista de usuários no mobile retornou `Unauthorized`, pois a requisição não enviava o token no esquema esperado pela API. O cabeçalho Bearer foi corrigido e o usuário confirmou que conseguiu acessar a lista. As demais operações administrativas ainda não foram validadas com o backend real.
 
-**Pendência de integração:** o código envia o token no cabeçalho Authorization com esquema Bearer, e os testes simulados verificam esse cabeçalho; porém, não há teste contra o backend real. A validação ponta a ponta ainda é necessária antes de declarar login, leitura/escrita ou revisão integrados.
-
-**Revisão, branch e histórico:** branch de trabalho observada: `back_admin`. Não foi identificado PR mobile, revisão formal de Breno ou merge das alterações locais recentes. O commit `113cd46` é o único commit mobile de Matheus encontrado até esta atualização; as demais alterações de Matheus ainda aguardam o commit informado para 09/11/2026.
+**Ajustes combinados para a próxima etapa:** validar as operações administrativas e os fluxos principais do mobile contra o backend real, testar o compartilhamento de dados entre web e mobile e usar Pull Requests com revisão do outro integrante.
 
 ---
 

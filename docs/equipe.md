@@ -21,7 +21,7 @@
 
 | Integrante | Usuário GitHub | Identidades no Git | Responsabilidade principal | Parte do backend que conduz |
 |---|---|---|---|---|
-| Breno Olliari | eu-breno | `eu-breno <breno.olliari@gmail.com>`, `eu-breno <208485@upf.br>`, `Breno Olliari <breno.olliari@gmail.com>` | Cliente web | Baralhos, cartões, revisões, fila de estudo, estatísticas e perfil administrador |
+| Breno Olliari | eu-breno | `eu-breno <breno.olliari@gmail.com>`, `eu-breno <208485@upf.br>`, `Breno Olliari <breno.olliari@gmail.com>` | Cliente web | Baralhos, cartões, revisões, fila de estudo, estatísticas, perfil administrador e documentação da administração de usuários |
 | Matheus dos Santos Savegnagi | MATh3us46 | `MATh3us46 <matheussavegnago735@gmail.com>` | App mobile | Autenticação (registro, login e guards) e DTOs |
 
 **Mudança em relação ao combinado inicial.** Na Etapa 0, os papéis foram definidos ao contrário: Matheus no cliente web e Breno no app mobile. Na prática, e conforme a disponibilidade de cada um, Breno conduziu o cliente web e Matheus iniciou o app mobile. A tabela acima reflete a situação atual; o registro da mudança está na seção 6.
@@ -125,9 +125,9 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
-| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. | Mobile | `113cd46` (26/10, branch `back_admin`) |
+| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. Em 15/11, atualizou a área administrativa mobile. | Mobile | `113cd46` (26/10) e `bf88e7e` (15/11, autor `MATh3us46`, branch `back_admin`) |
 
-**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; as alterações recentes da área administrativa ainda não foram commitadas nem integradas por merge.
+**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; a atualização administrativa mobile foi commitada em `bf88e7e`. <!-- CONFIRMAR: verificar se o commit bf88e7e foi integrado por merge ou associado a um PR. -->
 
 **Dificuldades de coordenação:** a primeira tentativa de abrir a lista de usuários no mobile retornou `Unauthorized`, pois a requisição não enviava o token no esquema esperado pela API. O cabeçalho Bearer foi corrigido e o usuário confirmou que conseguiu acessar a lista. As demais operações administrativas ainda não foram validadas com o backend real.
 

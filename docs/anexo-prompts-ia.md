@@ -7,7 +7,8 @@ Este anexo reúne o texto dos prompts citados na seção 2.3 de `docs/relatorio.
 | 10/10/2026 | Frontend: telas de revisão, baralhos e detalhe do baralho | A1, B |
 | 25/10/2026 | Administrador/professor: análise, implementação e diagnóstico do projeto | A2, C1, C2, D, E, F |
 | 09/11/2026 | Atualização documental do mobile, equipe e integração | G |
-| 15/11/2026 | Área administrativa de usuários no app mobile | H |
+| 15/11/2026 | Administração de usuários: web, backend e documentação | H |
+| 15/11/2026 | Área administrativa de usuários no app mobile | I |
 
 ---
 
@@ -474,25 +475,20 @@ Com base na estrutura e na identidade visual do Memora, ajude a criar e revisar 
 - **Código adaptado por Matheus:** integração das telas com os endpoints REST existentes; configuração de URL da API para emulador ou via `API_BASE_URL`; envio das credenciais; persistência/restauração do token com `SharedPreferences`; navegação entre login, cadastro, dashboard, baralhos e estudo; estados de carregamento, timeout, erro e nova tentativa; e ajuste dos fluxos de revisão para enviar a nota à API.
 - **Commit relacionado:** `113cd46`; commit do projeto mobile com as telas e funcionalidades descritas acima, previsto para 09/11/2026 por Matheus 
 
+---
 
-### H. Atualização da área administrativa de usuários no app mobile (15/11/2026)
+## Dia 15/11/2026 — Administração de usuários
 
-- **Quem conduziu:** Breno · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 15/11/2026
-- **Resultado:** substituição da tela placeholder de Turmas por uma área administrativa de Usuários no app mobile, com acesso restrito no menu aos administradores e dados carregados das rotas já existentes na API.
+### H. Administração web, backend e documentação — Breno
 
-**Prompt utilizado:**
+- **Quem conduziu:** Breno · **Ferramentas:** Claude e GitHub Copilot Agent · **Data:** 15/11/2026
+- **Natureza dos trechos:** transcrição da mensagem do autor, resposta do Claude e relatório do Copilot.
 
-````text
-Substitua a tela placeholder de Turmas no app mobile por uma tela de Usuários acessível apenas a administradores. A lista deve mostrar as contas cadastradas, seguir as funcionalidades da área de usuários do frontend e manter o padrão visual das demais telas mobile. Inclua paginação, detalhes do usuário e ações administrativas. Depois, aproxime a aparência da lista à tabela do frontend. Corrija também o erro Unauthorized observado ao abrir a lista como administrador.
-````
+#### Mensagem do autor ao Claude (transcrição)
 
-- **O que foi solicitado à IA:** remover Turmas da navegação mobile e criar a área administrativa de Usuários com listagem das contas, paginação, detalhes, estatísticas e ações semelhantes às do frontend, mantendo o padrão visual do app e corrigindo o erro de autorização.
-- **Código gerado e efetivamente aproveitado:** tela de usuários com paginação de 10, 20 ou 50 registros, detalhe com resumo, estatísticas, atividade e baralhos, e menu de ações com exclusão confirmada por senha; integração da navegação com o perfil de administrador; e apresentação em painel com cabeçalho, nome/e-mail, badge de tipo, menu e paginação.
-- **Commit relacionado:** Commit de Matheus do dia 15/11/2026.
-
-(ajustar formatacao dos textos abaixo):
-
+```text
 de breno para claude:
+
 Quero implementar um módulo completo de administração de usuários no nosso projeto NestJS + Next.js (sistema de flashcards com Prisma, JWT e Tailwind/Shadcn).
 
 Preciso que você refine e estruture as minhas anotações abaixo em um prompt mestre passo a passo rigoroso para eu passar para o Copilot/Agente executar sem quebrar padrões ou inventar arquitetura. O plano deve ser dividido em 6 etapas:
@@ -510,12 +506,15 @@ Frontend - Página de Detalhe: Rota /admin/usuarios/[id] refatorando os componen
 Revisão Final: Checklist de segurança, guards, tipos e testes.
 
 Formate a saída de forma extremamente técnica, clara e com todas as restrições de código necessárias para que a IA executora siga à risca.
+```
 
-resposta do claude: 
-Etapa 1: Contrato da API (primeiro, só documentação)
+#### Resposta do Claude (transcrição)
 
+resposta do claude:
 
+##### Etapa 1: Contrato da API (primeiro, só documentação)
 
+```text
 Atualize SOMENTE o contrato da API (contrato-api.md). Não altere código.
 
 
@@ -561,11 +560,11 @@ Em todas as rotas :id é UUID; documente o 400 para UUID inválido se o projeto 
 
 
 Ao final, liste qualquer dúvida ou inconsistência que encontrou no contrato atual (sem corrigir o que não for relacionado).
+```
 
-Etapa 2: Backend, exclusão de usuário
+##### Etapa 2: Backend, exclusão de usuário
 
-
-
+```text
 Implemente no backend (NestJS) a rota DELETE /usuarios/:id conforme o contrato-api.md v1.4 que acabamos de atualizar. Leia o contrato antes.
 
 
@@ -581,11 +580,11 @@ Testes Vitest em usuarios.service.spec.ts: senha incorreta (403), autoexclusão 
 
 
 Rode lint, build e testes do backend e relate o resultado. Não mexa no frontend.
+```
 
-Etapa 3: Backend, detalhe e estatísticas por usuário
+##### Etapa 3: Backend, detalhe e estatísticas por usuário
 
-
-
+```text
 Implemente no backend as rotas administrativas de leitura definidas no contrato-api.md v1.4:
 
 GET /usuarios/:id, GET /usuarios/:id/estatisticas, GET /usuarios/:id/estatisticas/atividade e GET /usuarios/:id/baralhos. Leia o contrato antes.
@@ -604,11 +603,11 @@ Testes Vitest: totais corretos (incluindo pendentes), 404, e que as rotas atuais
 
 
 Rode lint, build e testes do backend e relate o resultado. Não mexa no frontend.
+```
 
-Etapa 4: Frontend, menu, tabela e exclusão
+##### Etapa 4: Frontend, menu, tabela e exclusão
 
-
-
+```text
 No frontend (Next.js), evolua a tela de administração de usuários existente (frontend/app/(authenticated)/admin/usuarios/page.tsx). Leia o contrato-api.md v1.4 antes.
 
 
@@ -633,11 +632,11 @@ Menu: adicione em app-sidebar.tsx o item "Usuários" (rota /admin/usuarios, íco
 
 
 6. Atualize os tipos em lib/api.ts. Rode lint e build do frontend e relate. Não implemente a página de detalhe ainda.
+```
 
-Etapa 5: Frontend, página de detalhe
+##### Etapa 5: Frontend, página de detalhe
 
-
-
+```text
 Crie a página de detalhe do usuário em /admin/usuarios/[id] (frontend/app/(authenticated)/admin/usuarios/[id]/page.tsx). Leia o contrato-api.md v1.4 antes.
 
 
@@ -662,11 +661,11 @@ Opcional, se for simples: botão "Excluir usuário" no cabeçalho reutilizando o
 
 
 Atualize os tipos em lib/api.ts, rode lint e build e relate o que foi alterado, incluindo os arquivos de estatísticas refatorados.
+```
 
-Etapa 6: Revisão final
+##### Etapa 6: Revisão final
 
-
-
+```text
 Faça uma revisão (sem alterar arquivos, só relatório) de toda a funcionalidade de administração de usuários, comparando implementação com contrato-api.md v1.4:
 
 Todas as rotas novas estão protegidas com JwtAuthGuard + PapeisGuard e @Roles(administrador)?
@@ -676,21 +675,44 @@ O contrato bate com DTOs, controllers e tipos do frontend (campos, nomes, status
 As rotas antigas (/estatisticas, /baralhos) mudaram de comportamento?
 Há casos de borda sem tratamento: página vazia após exclusão, id inválido, usuário excluído com token ainda ativo, duplo clique em Confirmar?
 Liste testes que faltam e o que rodar manualmente para validar (passo a passo curto). 
+```
 
-a resposta do claude foi passada ao copilot agente. Resposta do copilot:
-Concluído — etapas 1 a 6
-Contrato: atualizado para v1.4 em contrato-api.md, com as rotas administrativas, respostas, erros e a regra de autoexclusão (409).
+#### Relatório do Copilot (transcrição)
 
-Backend: usuarios.controller.ts e usuarios.service.ts agora atendem exclusão, detalhe, estatísticas, atividade e baralhos do usuário-alvo. As rotas exigem JWT e papel administrador; os IDs são validados como UUID v4. A exclusão compara a senha do admin no servidor, retorna 403 para senha incorreta e impede autoexclusão. A estratégia JWT consulta o usuário e o perfil atuais no banco. Não foi necessária migration: o schema já define as cascatas.
+> a resposta do claude foi passada ao copilot agente. Resposta do copilot:
 
-Frontend: o menu condicional e a tabela administrativa com paginação de servidor, navegação para detalhe e diálogo de exclusão estão em app-sidebar.tsx e page.tsx. O detalhe está em page.tsx. A tela original e o detalhe compartilham statistics-dashboard.tsx e chart-area-interactive.tsx; os tipos novos estão em api.ts.
+**Concluído — etapas 1 a 6**
 
-Validação
-Backend: 19 testes em 7 arquivos passaram; build e lint passaram. Foram incluídos testes de senha/ordem de validação, autoexclusão, contagens, usuário inexistente, perfil atual no JWT e preservação do escopo das rotas existentes.
-Frontend: build passou e ESLint nos arquivos alterados passou.
-O lint global do frontend ainda falha em três pontos de arquivos não alterados: site-header.tsx, carousel.tsx e use-mobile.ts.
-git diff --check passou. Não rodei testes e2e nem há suíte de testes frontend configurada.
-Pontos restantes
-GET /usuarios/:id/baralhos calcula métricas reutilizando o serviço existente por baralho; isso gera consultas paralelas por baralho e pode ser otimizado se houver usuários com muitos baralhos.
-A regra impede autoexclusão, mas não protege contra duas exclusões concorrentes de administradores que eliminem todas as contas admin.
-Validação manual recomendada: confirmar que o item de menu não aparece para estudante; tentar excluir um usuário com senha errada e correta; verificar a proteção de autoexclusão; abrir o detalhe de um usuário sem atividade/baralhos; e conferir que /estatisticas e /baralhos continuam mostrando dados do usuário autenticado.
+- **Contrato:** atualizado para v1.4 em contrato-api.md, com as rotas administrativas, respostas, erros e a regra de autoexclusão (409).
+
+- **Backend:** usuarios.controller.ts e usuarios.service.ts agora atendem exclusão, detalhe, estatísticas, atividade e baralhos do usuário-alvo. As rotas exigem JWT e papel administrador; os IDs são validados como UUID v4. A exclusão compara a senha do admin no servidor, retorna 403 para senha incorreta e impede autoexclusão. A estratégia JWT consulta o usuário e o perfil atuais no banco. Não foi necessária migration: o schema já define as cascatas.
+
+- **Frontend:** o menu condicional e a tabela administrativa com paginação de servidor, navegação para detalhe e diálogo de exclusão estão em app-sidebar.tsx e page.tsx. O detalhe está em page.tsx. A tela original e o detalhe compartilham statistics-dashboard.tsx e chart-area-interactive.tsx; os tipos novos estão em api.ts.
+
+##### Validação
+
+- **Backend:** 19 testes em 7 arquivos passaram; build e lint passaram. Foram incluídos testes de senha/ordem de validação, autoexclusão, contagens, usuário inexistente, perfil atual no JWT e preservação do escopo das rotas existentes.
+- **Frontend:** build passou e ESLint nos arquivos alterados passou.
+- O lint global do frontend ainda falha em três pontos de arquivos não alterados: site-header.tsx, carousel.tsx e use-mobile.ts.
+- git diff --check passou. Não rodei testes e2e nem há suíte de testes frontend configurada.
+
+##### Pontos restantes
+
+- GET /usuarios/:id/baralhos calcula métricas reutilizando o serviço existente por baralho; isso gera consultas paralelas por baralho e pode ser otimizado se houver usuários com muitos baralhos.
+- A regra impede autoexclusão, mas não protege contra duas exclusões concorrentes de administradores que eliminem todas as contas admin.
+- Validação manual recomendada: confirmar que o item de menu não aparece para estudante; tentar excluir um usuário com senha errada e correta; verificar a proteção de autoexclusão; abrir o detalhe de um usuário sem atividade/baralhos; e conferir que /estatisticas e /baralhos continuam mostrando dados do usuário autenticado.
+
+### I. Atualização da área administrativa de usuários no app mobile (15/11/2026)
+
+- **Quem conduziu:** Matheus · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 15/11/2026
+- **Resultado:** substituição da tela placeholder de Turmas por uma área administrativa de Usuários no app mobile, com acesso restrito no menu aos administradores e dados carregados das rotas já existentes na API.
+
+**Prompt utilizado:**
+
+````text
+Substitua a tela placeholder de Turmas no app mobile por uma tela de Usuários acessível apenas a administradores. A lista deve mostrar as contas cadastradas, seguir as funcionalidades da área de usuários do frontend e manter o padrão visual das demais telas mobile. Inclua paginação, detalhes do usuário e ações administrativas. Depois, aproxime a aparência da lista à tabela do frontend. Corrija também o erro Unauthorized observado ao abrir a lista como administrador.
+````
+
+- **O que foi solicitado à IA:** remover Turmas da navegação mobile e criar a área administrativa de Usuários com listagem das contas, paginação, detalhes, estatísticas e ações semelhantes às do frontend, mantendo o padrão visual do app e corrigindo o erro de autorização.
+- **Código gerado e efetivamente aproveitado:** tela de usuários com paginação de 10, 20 ou 50 registros, detalhe com resumo, estatísticas, atividade e baralhos, e menu de ações com exclusão confirmada por senha; integração da navegação com o perfil de administrador; e apresentação em painel com cabeçalho, nome/e-mail, badge de tipo, menu e paginação.
+- **Commit relacionado:** `bf88e7e` (autor MATh3us46, 15/11/2026).

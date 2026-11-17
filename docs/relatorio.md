@@ -85,7 +85,7 @@ O app também aceita uma URL completa com `--dart-define=API_BASE_URL=...`; a UR
 
 ### 2.3 Evidências de uso
 
-Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados. Alguns prompts foram recuperados de anotações; o uso mobile permanece como resumo, pois o texto exato não foi registrado. Os registros encontrados estão em [docs/anexo-prompts-ia.md](anexo-prompts-ia.md), com um [índice cronológico](prompts/README.md). Os arquivos separados de cada etapa que deveriam compor `docs/prompts/` não estavam disponíveis neste checkout.
+Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados. Alguns prompts foram recuperados de anotações; o uso mobile permanece como resumo, pois o texto exato não foi registrado. Os registros encontrados estão em [docs/anexo-prompts-ia.md](anexo-prompts-ia.md), que também funciona como índice cronológico. Os arquivos separados de cada etapa que deveriam compor `docs/prompts/`, inclusive um `README.md` de índice, não estavam disponíveis neste checkout.
 
 ---
 
@@ -289,11 +289,17 @@ Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetu
 
 ---
 
+### Administração de usuários — web, backend e documentação (15/11/2026)
+
+Breno conduziu a implementação da administração de usuários no backend e no cliente web e a documentação correspondente. O log registra `a69570d` (backend, 14:44:38), `0753044` (web, 14:44:48) e `e188ea3` (documentação, 14:47:47), todos de `eu-breno`. Esses trabalhos precederam a atualização administrativa mobile de Matheus, commit `bf88e7e` (23:18:57, autor `MATh3us46`).
+
+---
+
 ### Etapa 4 — App mobile · Checkpoint 3
 
 **Período:** iniciada em 26/10/2026; estado conferido em 15/11/2026 · **Responsável principal:** Matheus
 
-**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. Em 15/11, a tela placeholder de Turmas foi substituída pela tela administrativa de Usuários, com listagem da API, paginação, detalhe, estatísticas e exclusão autenticada por senha. A tela mantém o padrão visual escuro do app e aproxima a lista da tabela do frontend. A autoria humana dessa atualização não foi identificada neste registro e as mudanças permanecem sem commit ou PR identificado.
+**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. Em 15/11, Matheus (autor `MATh3us46`) substituiu a tela placeholder de Turmas pela tela administrativa de Usuários, com listagem da API, paginação, detalhe, estatísticas e exclusão autenticada por senha; essa atualização está no commit `bf88e7e`. A tela mantém o padrão visual escuro do app e aproxima a lista da tabela do frontend.
 
 **Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Em 15/11, `dart analyze lib test` não encontrou problemas e `flutter test` passou com 13 testes. Os testes HTTP são simulados e não validam conectividade real; separadamente, o usuário confirmou que conseguiu entrar como administrador e abrir a lista de usuários no app conectado.
 
@@ -345,7 +351,7 @@ Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetu
 
 **Condição para concluir:** validar o envio do token, rodar o backend, web e mobile juntos, validar os casos de uso cruzados solicitados e registrar os resultados, conflitos e resolução. Até lá, a Etapa 5 permanece pendente; não há resultado final de integração a declarar.
 
-**Histórico e revisão do mobile:** o commit mobile de inicialização identificado no histórico é `113cd46`; a branch de trabalho observada é `back_admin`. Não foi identificado PR mobile, revisão formal ou merge das funcionalidades recentes. Em 09/11, o commit das funcionalidades estava previsto para aquela data e ainda não aparecia no histórico; as alterações administrativas registradas em 15/11 também permanecem sem commit ou PR identificado.
+**Histórico e revisão do mobile:** os commits mobile identificados no histórico são `113cd46` (inicialização) e `bf88e7e` (área administrativa, autor `MATh3us46`, 15/11); a branch de trabalho observada é `back_admin`. Não foi identificada revisão formal. <!-- CONFIRMAR: verificar se o commit bf88e7e foi integrado por merge ou associado a um PR. -->
 
 ---
 
@@ -432,4 +438,4 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 | 1.1 | 01/11/2026 | Diário das etapas 0 a 3, arquitetura, ambiente e uso de IA até a data | Breno |
 | 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus |
 | 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |
-| 1.4 | 15/11/2026 | Atualização mobile de administração de usuários, token Bearer, cobertura de testes e confirmação de carregamento da lista no app | Breno |
+| 1.4 | 15/11/2026 | Documentação da administração de usuários no web e backend e registro da cronologia dos trabalhos de 15/11 | Breno |

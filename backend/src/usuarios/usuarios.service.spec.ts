@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as bcrypt from 'bcryptjs';
+import { Prisma } from '../../generated/prisma/client.js';
 import { BaralhosService } from '../baralhos/baralhos.service.js';
 import { EstatisticasService } from '../estatisticas/estatisticas.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -80,6 +81,20 @@ describe('UsuariosService', () => {
     expect(prisma.usuario.delete).not.toHaveBeenCalled();
   });
 
+  it('rejeita a exclusão se a conta do administrador autenticado não existir', async () => {
+    const findUnique = vi.fn().mockResolvedValue(null);
+    const deleteUser = vi.fn();
+    const prisma = {
+      usuario: { findUnique, delete: deleteUser },
+    } as unknown as PrismaService;
+
+    await expect(
+      criarService(prisma).excluir('alvo-id', 'admin-id', 'senha'),
+    ).rejects.toMatchObject({ status: 401 });
+    expect(findUnique).toHaveBeenCalledOnce();
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
   it('bloqueia a autoexclusão somente depois de validar a senha', async () => {
     const senhaHash = await bcrypt.hash('senha-correta', 4);
     const prisma = {
@@ -139,6 +154,27 @@ describe('UsuariosService', () => {
     expect(prisma.usuario.delete).toHaveBeenCalledWith({
       where: { id: 'alvo-id' },
     });
+  });
+
+  it('converte exclusão concorrente em 404 se o usuário sumir antes do delete', async () => {
+    const senhaHash = await bcrypt.hash('senha-correta', 4);
+    const deleteError = new Prisma.PrismaClientKnownRequestError(
+      'Record not found',
+      { code: 'P2025', clientVersion: '7.10.0' },
+    );
+    const prisma = {
+      usuario: {
+        findUnique: vi
+          .fn()
+          .mockResolvedValueOnce({ senhaHash })
+          .mockResolvedValueOnce({ id: 'alvo-id' }),
+        delete: vi.fn().mockRejectedValue(deleteError),
+      },
+    } as unknown as PrismaService;
+
+    await expect(
+      criarService(prisma).excluir('alvo-id', 'admin-id', 'senha-correta'),
+    ).rejects.toMatchObject({ status: 404 });
   });
 
   it('retorna contagens agregadas para o detalhe sem selecionar senhaHash', async () => {

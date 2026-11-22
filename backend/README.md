@@ -57,6 +57,36 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+E2E contra PostgreSQL real:
+
+```bash
+docker compose up -d
+npm run prisma:migrate:deploy
+npm run prisma:seed
+npm run test:e2e
+```
+
+O teste atual está configurado com um `PrismaService` mockado. A execução acima contra banco real e migrations/seed está pendente até o ambiente estar disponível e o e2e real ser parametrizado para ele.
+
+### Cobertura medida
+
+Medição realizada em 22/11/2026 com:
+
+```bash
+npm run test:cov
+```
+
+Resultado:
+
+| Métrica | Cobertura |
+|---|---:|
+| Statements | 64,81% |
+| Branches | 59,54% |
+| Functions | 52,77% |
+| Lines | 65,04% |
+
+O comando gera os relatórios em `backend/coverage/`. Nenhum threshold mínimo foi configurado.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

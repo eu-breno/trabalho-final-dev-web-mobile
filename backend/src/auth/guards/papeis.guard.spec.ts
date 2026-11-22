@@ -9,6 +9,10 @@ class EndpointAdministrativo {
   executar() {}
 }
 
+class EndpointPublico {
+  executar() {}
+}
+
 function contexto(perfil?: Perfil): ExecutionContext {
   return {
     getHandler: () => EndpointAdministrativo.prototype.executar,
@@ -21,6 +25,14 @@ function contexto(perfil?: Perfil): ExecutionContext {
   } as ExecutionContext;
 }
 
+function contextoPublico(): ExecutionContext {
+  return {
+    getHandler: () => EndpointPublico.prototype.executar,
+    getClass: () => EndpointPublico,
+    switchToHttp: () => ({ getRequest: () => ({}) }),
+  } as ExecutionContext;
+}
+
 describe('PapeisGuard', () => {
   const guard = new PapeisGuard(new Reflector());
 
@@ -30,5 +42,13 @@ describe('PapeisGuard', () => {
 
   it('nega o acesso de um estudante', () => {
     expect(guard.canActivate(contexto(Perfil.estudante))).toBe(false);
+  });
+
+  it('nega o acesso administrativo sem usuário autenticado', () => {
+    expect(guard.canActivate(contexto())).toBe(false);
+  });
+
+  it('permite rota sem papéis obrigatórios', () => {
+    expect(guard.canActivate(contextoPublico())).toBe(true);
   });
 });

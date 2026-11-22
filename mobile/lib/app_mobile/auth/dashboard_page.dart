@@ -4,20 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../api_config.dart';
+import '../notifications/study_reminder.dart';
+import 'baralhos/baralhos_page.dart';
 import 'dashboard/dashboard_drawer.dart';
 import 'dashboard/dashboard_models.dart';
 import 'dashboard/dashboard_repository.dart';
 import 'dashboard/dashboard_sections.dart';
-import 'baralhos/baralhos_page.dart';
-import 'estudo/estudo_page.dart';
 import 'estatisticas/estatisticas_page.dart';
+import 'estudo/estudo_page.dart';
 import 'usuarios/usuarios_page.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key, required this.accessToken, this.client});
+  const DashboardPage({
+    super.key,
+    required this.accessToken,
+    this.client,
+    this.reminderController,
+  });
 
   final String accessToken;
   final http.Client? client;
+  final StudyReminderController? reminderController;
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -28,6 +35,8 @@ class _DashboardPageState extends State<DashboardPage>
   late final DashboardRepository _repository = DashboardRepository(
     client: widget.client,
   );
+  late final StudyReminderController _reminderController =
+      widget.reminderController ?? StudyReminderController();
   DashboardData? _data;
   String? _errorMessage;
   bool _isLoading = false;
@@ -69,6 +78,19 @@ class _DashboardPageState extends State<DashboardPage>
       final data = await _repository.load(widget.accessToken);
       if (!mounted) return;
       setState(() => _data = data);
+      try {
+        await _reminderController.refreshIfEnabled(
+          pendingCards: data.pendingCards,
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Não foi possível atualizar o lembrete: $error'),
+            ),
+          );
+        }
+      }
     } on TimeoutException {
       _setLoadError(
         'A API demorou para responder. Verifique sua conexão e tente novamente.',
@@ -103,6 +125,8 @@ class _DashboardPageState extends State<DashboardPage>
       drawer: DashboardDrawer(
         accessToken: widget.accessToken,
         client: widget.client,
+        reminderController: _reminderController,
+        pendingCards: data?.pendingCards,
         userName: data?.fullName,
         userEmail: data?.email,
         userRole: data?.userRole,

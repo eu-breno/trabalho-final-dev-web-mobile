@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../notifications/study_reminder.dart';
 import 'account_api.dart';
 
 class AccountSettingsDialog extends StatefulWidget {
@@ -11,12 +12,16 @@ class AccountSettingsDialog extends StatefulWidget {
     required this.name,
     required this.email,
     this.client,
+    this.reminderController,
+    this.pendingCards,
   });
 
   final String accessToken;
   final String name;
   final String email;
   final http.Client? client;
+  final StudyReminderController? reminderController;
+  final int? pendingCards;
 
   @override
   State<AccountSettingsDialog> createState() => _AccountSettingsDialogState();
@@ -24,6 +29,8 @@ class AccountSettingsDialog extends StatefulWidget {
 
 class _AccountSettingsDialogState extends State<AccountSettingsDialog> {
   late final AccountApi _accountApi = AccountApi(client: widget.client);
+  late final StudyReminderController _reminderController =
+      widget.reminderController ?? StudyReminderController();
   late final TextEditingController _nameController = TextEditingController(
     text: widget.name,
   );
@@ -35,8 +42,17 @@ class _AccountSettingsDialogState extends State<AccountSettingsDialog> {
   final _confirmPasswordController = TextEditingController();
   bool _isSavingProfile = false;
   bool _isSavingPassword = false;
+  bool _isUpdatingReminder = false;
+  bool _reminderEnabled = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   String? _errorMessage;
   String? _successMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderSettings();
+  }
 
   @override
   void dispose() {
@@ -120,6 +136,101 @@ class _AccountSettingsDialogState extends State<AccountSettingsDialog> {
       if (mounted) setState(() => _errorMessage = _errorText(error));
     } finally {
       if (mounted) setState(() => _isSavingPassword = false);
+    }
+  }
+
+  Future<void> _loadReminderSettings() async {
+    try {
+      final settings = await _reminderController.load();
+      if (!mounted) return;
+      setState(() {
+        _reminderEnabled = settings.enabled;
+        _reminderTime = settings.time;
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _errorMessage = 'Não foi possível carregar o lembrete: $error',
+        );
+      }
+    }
+  }
+
+  Future<void> _setReminderEnabled(bool enabled) async {
+    setState(() {
+      _isUpdatingReminder = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+    try {
+      if (enabled) {
+        final granted = await _reminderController.enable(
+          time: _reminderTime,
+          pendingCards: widget.pendingCards,
+        );
+        if (!mounted) return;
+        setState(() {
+          _reminderEnabled = granted;
+          if (!granted) {
+            _errorMessage =
+                'Permissão de notificações negada. O lembrete continua desativado; permita notificações nas configurações do aparelho para ativá-lo.';
+          } else {
+            _successMessage = 'Lembrete diário ativado.';
+          }
+        });
+      } else {
+        await _reminderController.disable(time: _reminderTime);
+        if (!mounted) return;
+        setState(() {
+          _reminderEnabled = false;
+          _successMessage = 'Lembrete diário desativado.';
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _reminderEnabled = false;
+          _errorMessage = 'Não foi possível atualizar o lembrete: $error';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingReminder = false);
+    }
+  }
+
+  Future<void> _selectReminderTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+    );
+    if (time == null || !mounted) return;
+    setState(() {
+      _isUpdatingReminder = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+    try {
+      await _reminderController.updateTime(
+        time: time,
+        enabled: _reminderEnabled,
+        pendingCards: widget.pendingCards,
+      );
+      if (!mounted) return;
+      setState(() {
+        _reminderTime = time;
+        _successMessage = _reminderEnabled
+            ? 'Horário do lembrete atualizado.'
+            : 'Horário salvo. Ative o lembrete quando quiser.';
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _reminderEnabled = false;
+          _errorMessage = 'Não foi possível atualizar o lembrete: $error';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingReminder = false);
     }
   }
 
@@ -211,6 +322,39 @@ class _AccountSettingsDialogState extends State<AccountSettingsDialog> {
                     _isSavingPassword ? 'Salvando...' : 'Alterar senha',
                   ),
                 ),
+              ),
+              const SizedBox(height: 20),
+              _sectionTitle(LucideIcons.bell, 'Lembrete de estudo'),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                key: const ValueKey('daily-reminder-switch'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'Lembrete diário',
+                  style: TextStyle(color: Color(0xFFF4F4F5)),
+                ),
+                subtitle: const Text(
+                  'Receba uma notificação para revisar seus cartões.',
+                  style: TextStyle(color: Color(0xFFA1A1AA)),
+                ),
+                value: _reminderEnabled,
+                onChanged: _isUpdatingReminder ? null : _setReminderEnabled,
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'Horário',
+                  style: TextStyle(color: Color(0xFFF4F4F5)),
+                ),
+                subtitle: Text(
+                  _reminderTime.format(context),
+                  style: const TextStyle(color: Color(0xFFA1A1AA)),
+                ),
+                trailing: const Icon(
+                  LucideIcons.clock,
+                  color: Color(0xFFA1A1AA),
+                ),
+                onTap: _isUpdatingReminder ? null : _selectReminderTime,
               ),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 12),

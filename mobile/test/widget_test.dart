@@ -16,7 +16,9 @@ import 'package:mobile/app_mobile/auth/dashboard/dashboard_drawer.dart';
 import 'package:mobile/app_mobile/auth/estudo/estudo_page.dart';
 import 'package:mobile/app_mobile/auth/usuarios/usuarios_page.dart';
 import 'package:mobile/app_mobile/app_login/login_form.dart';
+import 'package:mobile/app_mobile/notifications/study_reminder.dart';
 import 'package:mobile/main.dart';
+import 'support/fake_daily_reminder_notifications.dart';
 
 void main() {
   testWidgets('menu da conta configura perfil, senha e encerra a sessão', (
@@ -53,6 +55,10 @@ void main() {
     });
     addTearDown(client.close);
     final scaffoldKey = GlobalKey<ScaffoldState>();
+    final notifications = FakeDailyReminderNotifications();
+    final reminderController = StudyReminderController(
+      notifications: notifications,
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -63,6 +69,7 @@ void main() {
             client: client,
             userName: 'Ana Souza',
             userEmail: 'ana@example.com',
+            reminderController: reminderController,
           ),
           body: const SizedBox(),
         ),
@@ -106,6 +113,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await SessionStore().readAccessToken(), isNull);
+    expect(notifications.cancellations, 1);
     expect(find.byType(LoginForm), findsOneWidget);
   });
 
@@ -126,7 +134,11 @@ void main() {
 
   test('persiste e remove o token da sessão', () async {
     SharedPreferences.setMockInitialValues({});
-    final sessionStore = SessionStore();
+    final sessionStore = SessionStore(
+      reminderController: StudyReminderController(
+        notifications: FakeDailyReminderNotifications(),
+      ),
+    );
 
     await sessionStore.saveAccessToken('token-da-api');
     expect(await sessionStore.readAccessToken(), 'token-da-api');

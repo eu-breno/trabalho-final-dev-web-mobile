@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app_login/login.dart';
 import '../../app_login/session_store.dart';
+import '../../notifications/study_reminder.dart';
 import 'account_api.dart';
 import 'account_settings_dialog.dart';
 
@@ -15,6 +16,8 @@ class DashboardDrawer extends StatefulWidget {
     this.userName,
     this.userEmail,
     this.userRole,
+    this.pendingCards,
+    this.reminderController,
     this.selectedSection = 'Início',
     this.onTapHome,
     this.onTapStudy,
@@ -28,6 +31,8 @@ class DashboardDrawer extends StatefulWidget {
   final String? userName;
   final String? userEmail;
   final String? userRole;
+  final int? pendingCards;
+  final StudyReminderController? reminderController;
   final String selectedSection;
   final VoidCallback? onTapHome;
   final VoidCallback? onTapStudy;
@@ -42,6 +47,8 @@ class DashboardDrawer extends StatefulWidget {
 class _DashboardDrawerState extends State<DashboardDrawer> {
   late String? _userName = widget.userName;
   late String? _userEmail = widget.userEmail;
+  late final StudyReminderController _reminderController =
+      widget.reminderController ?? StudyReminderController();
   bool _isLoggingOut = false;
 
   @override
@@ -62,6 +69,8 @@ class _DashboardDrawerState extends State<DashboardDrawer> {
         name: _userName ?? '',
         email: _userEmail ?? '',
         client: widget.client,
+        reminderController: _reminderController,
+        pendingCards: widget.pendingCards,
       ),
     );
     if (!mounted || profile == null) return;
@@ -74,7 +83,9 @@ class _DashboardDrawerState extends State<DashboardDrawer> {
   Future<void> _logout() async {
     setState(() => _isLoggingOut = true);
     try {
-      await SessionStore().clearAccessToken();
+      await SessionStore(
+        reminderController: _reminderController,
+      ).clearAccessToken();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil<void>(
         MaterialPageRoute<void>(builder: (_) => const LoginPage()),

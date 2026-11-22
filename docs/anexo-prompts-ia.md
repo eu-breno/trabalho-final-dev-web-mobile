@@ -716,3 +716,186 @@ Substitua a tela placeholder de Turmas no app mobile por uma tela de Usuários a
 - **O que foi solicitado à IA:** remover Turmas da navegação mobile e criar a área administrativa de Usuários com listagem das contas, paginação, detalhes, estatísticas e ações semelhantes às do frontend, mantendo o padrão visual do app e corrigindo o erro de autorização.
 - **Código gerado e efetivamente aproveitado:** tela de usuários com paginação de 10, 20 ou 50 registros, detalhe com resumo, estatísticas, atividade e baralhos, e menu de ações com exclusão confirmada por senha; integração da navegação com o perfil de administrador; e apresentação em painel com cabeçalho, nome/e-mail, badge de tipo, menu e paginação.
 - **Commit relacionado:** `bf88e7e` (autor MATh3us46, 15/11/2026).
+
+
+
+### J. Testes, cobertura e notificações locais
+
+- **Quem conduziu:** Breno · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 22/11/2026
+- **Natureza dos trechos:** transcrição do pedido do autor e da resposta do Copilot.
+
+#### Prompt utilizado
+
+```text
+Pedido de Breno ao Copilot em 22/11/2026:
+
+Quero que você foque direto no meu código em três frentes: testes e cobertura no backend, notificação local no mobile e a validação final com relatório.
+
+1. Backend
+
+Configure a cobertura com o script test:cov, relatórios text, html e lcov, e garanta que coverage/ esteja ignorado.
+
+Meça a cobertura inicial antes de mexer nos testes.
+
+Escreva testes consistentes com PrismaService mockado cobrindo: autenticação (incluindo o limite de 72 bytes), revisão de cartões nas quatro notas, baralhos (com contagens e bloqueio entre usuários), estatísticas, usuários, guarda, estratégia JWT e validador por bytes.
+
+Reescreva os testes E2E sem depender de banco real.
+
+Rode a cobertura final para registrar os números reais depois das mudanças.
+
+2. Mobile
+
+Integre notificação local com agendamento inexato e permissões configuradas para Android e iOS.
+
+Adicione nas configurações da conta o controle de lembrete diário e horário, pedindo permissão apenas quando o usuário ligar.
+
+Atualize a contagem de cartões pendentes quando esse dado estiver disponível e use uma mensagem genérica quando não souber.
+
+Salve as preferências no SharedPreferences.
+
+Cancele a notificação no logout (e também em 401 se houver limpeza de sessão).
+
+Isole o serviço atrás de uma interface para testar preferência, permissão negada e cancelamento no logout.
+
+Documente o porquê dessas escolhas no contexto de revisão espaçada e como testar no emulador, sem fingir que rodou Flutter por aqui.
+
+3. Validação e relatório final
+
+Execute em sequência o que for possível rodar no ambiente atual e deixe claro o que ficou de fora por falta de Docker ou emulador.
+
+No final, entregue um relatório com: arquivos alterados, cobertura antes e depois, resumo dos testes, bugs encontrados, comandos executados, roteiro de teste no emulador e git status com git diff --stat.
+```
+
+#### Resposta do Copilot
+
+##### 1. Levantamento inicial
+
+Já existiam docker-compose.yml, os exemplos de ambiente do backend e do frontend, e regras no .gitignore para .env e coverage/. O Compose já previa PostgreSQL 18, volume persistente e healthcheck; não precisou ser alterado.
+
+O backend lê DATABASE_URL, JWT_SECRET e PORT (padrão 3000). O seed também lê ADMIN_EMAIL, ADMIN_SENHA e ADMIN_NOME. O frontend lê NEXT_PUBLIC_API_URL (padrão localhost:3000), não a porta do backend.
+
+O banco é provisionado por migration do Prisma; há uma migration versionada e seed de administrador. A senha do administrador vem de ADMIN_SENHA, não de uma senha fixa documentada.
+
+Não havia versões mínimas de Node/npm declaradas nos manifests. A documentação agora indica Node ≥22 e npm ≥10; neste ambiente havia Node 24.18.0/npm 11.16.0. O mobile declara Dart ^3.13.7; a dependência de notificações exige Flutter ≥3.44.0. Flutter não está disponível aqui.
+
+O README raiz anterior continha instruções desatualizadas, incluindo flutter create, diretório web, flutter_dotenv e uma estrutura sugerida que não correspondia ao projeto.
+
+Antes das alterações, os testes backend tinham 7 arquivos e 19 testes passando. A cobertura inicial era: Statements 58,49%, Branches 36,26%, Functions 44,57%, Lines 59,86%.
+
+O mobile busca cartões pendentes em /baralhos/estudo?escopo=pendentes; o backend usa proximaRevisao <= agora. Configurações da conta ficam no menu do usuário; logout removia o token do SharedPreferences. Não encontrei fluxo de limpeza de sessão em resposta a 401. O manifesto Android principal declarava INTERNET; os manifests de debug/profile já permitiam HTTP. O plist iOS não tinha configuração de notificação.
+
+##### 2. Arquivos alterados
+
+**Ambiente e backend/testes**
+
+Ajustei exemplos fictícios e comentários em backend/.env.example e frontend/.env.example. Acrescentei scripts Prisma em backend/package.json.
+Configurei relatórios de cobertura em backend/vitest.config.ts.
+Criei testes para autenticação, validador de senha por bytes e baralhos em auth.service.spec.ts, senha-tamanho.validator.spec.ts e baralhos.service.spec.ts.
+Ampliei testes de cartões, estatísticas, usuários e PapeisGuard em cartoes.service.spec.ts, estatisticas.service.spec.ts, usuarios.service.spec.ts e papeis.guard.spec.ts. A suíte de JwtStrategy existente também foi incluída na medição.
+Reescrevi app.e2e-spec.ts para testar o app real com Prisma mockado.
+
+**Mobile**
+
+Implementei interface e serviço local de notificação em daily_reminder_notifications.dart, local_daily_reminder_notifications.dart e study_reminder.dart.
+Integrei preferências e controles nas configurações da conta e o cancelamento no logout; a contagem é atualizada ao abrir o dashboard e ao retornar do estudo. Arquivos: account_settings_dialog.dart, dashboard_page.dart, dashboard_drawer.dart e session_store.dart.
+Atualizei dependências e configuração nativa Android/iOS em pubspec.yaml, build.gradle.kts, settings.gradle.kts, AndroidManifest.xml e AppDelegate.swift.
+Adicionei testes em study_reminder_test.dart e um fake em fake_daily_reminder_notifications.dart; ampliei widget_test.dart.
+
+**Documentação**
+
+Reescrevi README.md e mobile/README.md, e registrei cobertura e o recurso mobile em docs/relatorio.md. Mantive a seção de uso de IA e os links existentes; não alterei docs/prompts/.
+
+##### 3. Testes e cobertura
+
+Medição de 22/11/2026; a cobertura inclui todos os arquivos TypeScript de produção em backend/src/, inclusive bootstrap, controllers, módulos e DTOs. Só *.spec.ts é excluído; não defini threshold.
+
+| Métrica | Inicial | Final |
+|---|---:|---:|
+| Statements | 58,49% | 64,81% (234/361) |
+| Branches | 36,26% | 59,54% (78/131) |
+| Functions | 44,57% | 52,77% (57/108) |
+| Lines | 59,86% | 65,04% (227/349) |
+
+Cobertura por arquivo, na ordem Statements / Branches / Functions / Lines:
+
+| Arquivo | Inicial | Final |
+|---|---|---|
+| auth.service.ts | não medido | 65,30 / 52,77 / 83,33 / 65,30% |
+| baralhos.service.ts | não medido | 32,43 / 25,00 / 46,15 / 28,57% |
+| cartoes.service.ts | 53,57 / 25,00 / 50,00 / 60,00% | 53,57 / 25,00 / 50,00 / 60,00% |
+| estatisticas.service.ts | 46,42 / 18,75 / 40,00 / 47,50% | 98,80 / 75,00 / 100 / 100% |
+| usuarios.service.ts | 90,00 / 68,75 / 100 / 89,74% | 97,50 / 93,75 / 100 / 97,43% |
+| jwt.strategy.ts | 100 / 75 / 100 / 100% | 100 / 75 / 100 / 100% |
+| papeis.guard.ts | 88,88 / 75 / 100 / 88,88% | 100 / 87,50 / 100 / 100% |
+| Validador de senha por bytes | 83,33 / 100 / 75 / 83,33% | 100 / 100 / 100 / 100% |
+
+**Testes acrescentados ou ampliados:**
+
+- **AuthService:** cadastro, e-mail duplicado, login inválido e válido, troca de senha e limite de bytes.
+- **Validador:** limites de senha medidos em bytes UTF-8.
+- **Cartões:** notas de revisão, facilidade, repetições, intervalo, próxima revisão e gravação.
+- **Baralhos:** listagem com contagens/pendentes e bloqueio de acesso a baralho alheio.
+- **Estatísticas:** períodos, acertos, sequência e atividade.
+- **Usuários:** casos que faltavam na suíte existente.
+- **PapeisGuard:** autorização por papel.
+- **JwtStrategy:** coberta pela suíte existente.
+- **E2E:** três testes — GET /usuarios sem token (401), login inválido (401) e fluxo autenticado de cadastro/login/perfil.
+- **Mobile:** persistência de preferência, cancelamento no logout e permissão negada; não executados por falta do Flutter.
+
+##### 4. Comportamentos estranhos ou bugs encontrados
+
+Os testes de cartões registram o comportamento existente de intervalos fixos (errei 0, difícil 1, bom 3, fácil 7 dias) e de não atualizar facilidade. Não alterei regras de negócio, conforme pedido.
+
+O e2e original esperava “Hello World!” e falhava ao iniciar Prisma sem banco disponível; foi substituído por testes HTTP com Prisma mockado. Isso não comprovou integração com PostgreSQL.
+
+O lint web falhou em três arquivos que não alterei: site-header.tsx, carousel.tsx e use-mobile.ts. Não modifiquei telas ou código web.
+
+##### 5. Validação executada
+
+- `npm ci` no backend e frontend: passou. Houve alertas de vulnerabilidades nas dependências; não apliquei atualizações automáticas.
+- `npm run prisma:generate`: passou.
+- `npm run prisma:migrate:deploy`: não concluiu, P1001 em localhost:5433; o PostgreSQL não estava disponível.
+- Seed: não concluiu, conexão recusada pelo mesmo motivo.
+- Lint e build do backend: passaram.
+- Testes unitários backend: passaram, 10 arquivos e 42 testes.
+- E2E backend: passou, 3 testes com Prisma mockado.
+- `npm run test:cov`: passou, números registrados acima.
+- Inicialização do backend: Nest carregou módulos/rotas, mas a inicialização falhou ao conectar ao banco.
+- Build de produção frontend: passou.
+- Lint frontend: falhou nos três arquivos listados acima.
+- `docker compose config --quiet`: passou. Docker está instalado, mas o daemon não estava acessível.
+- `git check-ignore`: confirmou que `.env` e `coverage/` são ignorados.
+- `git diff --check`: passou.
+
+Não executei Flutter pub get, testes, analyze, build Android/iOS ou validação em emulador/aparelho: Flutter e emulador não estão disponíveis. Assim, a funcionalidade mobile foi implementada, mas não está validada em runtime.
+
+##### 6. Validação manual do lembrete no emulador
+
+O roteiro está no README mobile. Em resumo: suba banco/backend, use uma conta com cartões pendentes e rode flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000. Nas configurações da conta, ative o lembrete e escolha um horário próximo; permita notificações no Android 13+ e confira o texto no horário. Depois, abra o dashboard e conclua uma sessão para verificar a atualização da contagem e o reagendamento. Teste também negar a permissão, desativar o lembrete, sair da conta e reiniciar o aparelho. A notificação agendada exibe uma fotografia da contagem: o sistema operacional não consulta a API sozinho.
+
+##### 7. Confirmações e estado final do Git
+
+Deixei estes comentários para confirmação:
+
+- Autoria do recurso novo de notificação local, em `mobile/README.md` e `docs/relatorio.md`.
+- Compatibilidade do toolchain Flutter/Android com Mateus, em `mobile/README.md`.
+- Confirmação histórica sobre integração/PR do commit `bf88e7e`, mantida em `docs/relatorio.md`.
+
+`git status --short`: 22 arquivos rastreados modificados e 6 entradas não rastreadas.
+
+As alterações estão nos READMEs/relatório; exemplos de ambiente, configuração e testes do backend; configuração, código e testes do mobile.
+
+As entradas não rastreadas são:
+
+- três novas suítes backend;
+- os três arquivos de notificações;
+- o teste mobile;
+- o fake de teste.
+
+`docker-compose.yml` e `.gitignore` não foram alterados.
+
+`git diff --stat` não inclui os arquivos ainda não rastreados:
+
+```text
+22 files changed, 852 insertions(+), 522 deletions(-)
+```

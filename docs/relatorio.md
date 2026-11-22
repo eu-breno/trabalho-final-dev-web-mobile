@@ -10,7 +10,7 @@
 | **Grupo** | Grupo H |
 | **Integrantes** | Breno Olliari e Matheus dos Santos Savegnagi |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
-| **Última atualização** | 15/11/2026 |
+| **Última atualização** | 22/11/2026 |
 | **Vídeo de apresentação** | Ainda não registrado neste relatório |
 
 ---
@@ -62,6 +62,25 @@
 O app também aceita uma URL completa com `--dart-define=API_BASE_URL=...`; a URL usada em execução real não foi comprovada. CORS não é configurado/tratado no cliente Flutter nativo e não foi testado; é uma política do navegador, relevante para Flutter Web.
 
 ---
+
+## Testes e cobertura
+
+No backend, execute `npm test`, `npm run test:e2e` e `npm run test:cov` a partir
+de `backend/`. A medição de **22/11/2026** foi: **Statements 64,81% (234/361),
+Branches 59,54% (78/131), Functions 52,77% (57/108) e Lines 65,04%
+(227/349)**. O comando gera relatórios `text`, HTML, LCOV e JSON em
+`backend/coverage/`. A métrica inclui todos os arquivos de produção em
+`backend/src/`, inclusive bootstrap, controllers, módulos e DTOs; apenas os
+arquivos de teste `*.spec.ts` são excluídos. Não há threshold configurado.
+
+Os testes unitários usam Prisma mockado: na execução registrada em 22/11/2026,
+10 arquivos e 43 testes passaram. O e2e executa o app Nest real com `PrismaService` mockado:
+4 testes cobrem `GET /usuarios` sem token (401), login inválido (401),
+cadastro/login/consulta autenticados e o fluxo completo com baralho, cartão e revisão.
+Esse e2e não acessa banco real, migration ou seed. No
+mobile foram adicionados testes de preferência, cancelamento no logout e
+permissão negada; eles não foram executados nesta máquina porque Flutter não
+está disponível.
 
 ## 2. Uso de Inteligência Artificial
 
@@ -297,7 +316,7 @@ Breno conduziu a implementação da administração de usuários no backend e no
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** iniciada em 26/10/2026; estado conferido em 15/11/2026 · **Responsável principal:** Matheus
+**Período:** iniciada em 26/10/2026; estado conferido em 22/11/2026 · **Responsável principal:** Matheus
 
 **O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. Em 15/11, Matheus (autor `MATh3us46`) substituiu a tela placeholder de Turmas pela tela administrativa de Usuários, com listagem da API, paginação, detalhe, estatísticas e exclusão autenticada por senha; essa atualização está no commit `bf88e7e`. A tela mantém o padrão visual escuro do app e aproxima a lista da tabela do frontend.
 
@@ -341,17 +360,21 @@ Breno conduziu a implementação da administração de usuários no backend e no
 
 **Casos de uso validados:** os testes automatizados com respostas HTTP simuladas cobrem envio de credenciais e leitura do token, cadastro, dashboard, criação de baralho/cartão e avaliação de cartão. Não comprovam login, baralho, revisão ou persistência em backend real. Sem conexão, token expirado e usuário/recurso inexistente não têm teste de integração registrado. O POST de revisão é seguido pelo avanço da fila no estado local; atualização da próxima revisão no backend e reconsulta da fila precisam de validação real.
 
+**Lembrete local de cartões pendentes (22/11/2026):** foi acrescentada uma preferência diária com horário em `SharedPreferences`, permissão solicitada somente ao ativar, agendamento inexato e cancelamento ao sair da conta. O app agenda com a contagem conhecida ao abrir o dashboard e ao voltar de uma sessão; a notificação não consulta a API em segundo plano. Foram escritos testes com a camada de notificações simulada para persistência da preferência, cancelamento e permissão negada. O Flutter não está instalado neste ambiente, então os testes, build e verificação em aparelho/emulador não foram executados. 
+
 ---
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** não concluído em 09/11/2026; atualização parcial em 15/11/2026 · **Redigido por:** pendente
+**Período:** início em 20/08/2026; término PENDENTE: data final será preenchida na entrega · **Redigido por:** Breno e Matheus
 
-**Integração web, mobile e backend:** não preencher como integração concluída. Em 15/11, o usuário confirmou o login administrativo e o carregamento da lista de usuários no mobile conectado à API. Isso não comprova os demais fluxos nem o compartilhamento real entre os três componentes. Não há evidência de testes cruzados de criação web→mobile, mobile→web, logout ou execução simultânea dos três componentes.
+**Integração web, mobile e backend:** o grupo afirma que os três componentes já rodam juntos em execução local. Porém, a validação ponta a ponta ainda não está registrada: os critérios cruzados de integração permanecem pendentes até a execução do roteiro em [docs/teste-integracao.md](teste-integracao.md). Em 15/11, o usuário confirmou o login administrativo e o carregamento da lista de usuários no mobile conectado à API, mas isso não comprova todos os fluxos nem o compartilhamento real entre os três componentes.
+
+**Dificuldades:** a divisão inicial de papéis e tarefas foi difícil de definir; os ajustes entre DTOs e banco exigiram iterações; a área administrativa não fazia parte do plano inicial para o usuário comum e, ao ser incluída, exigiu mudanças no contrato da API, nas DTOs e na estrutura do banco; além disso, deixar a documentação para complementar depois criou gargalos de informação, levando o grupo a atualizá-la a cada commit.
 
 **Condição para concluir:** validar o envio do token, rodar o backend, web e mobile juntos, validar os casos de uso cruzados solicitados e registrar os resultados, conflitos e resolução. Até lá, a Etapa 5 permanece pendente; não há resultado final de integração a declarar.
 
-**Histórico e revisão do mobile:** os commits mobile identificados no histórico são `113cd46` (inicialização) e `bf88e7e` (área administrativa, autor `MATh3us46`, 15/11); a branch de trabalho observada é `back_admin`. Não foi identificada revisão formal. <!-- CONFIRMAR: verificar se o commit bf88e7e foi integrado por merge ou associado a um PR. -->
+**Histórico e revisão do mobile:** os commits mobile identificados no histórico são `113cd46` (inicialização) e `bf88e7e` (área administrativa, autor `MATh3us46`, 15/11); a branch de trabalho observada é `back_admin`. Não foi identificada revisão formal. 
 
 ---
 
@@ -414,9 +437,13 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 
 ### 6.4 Autoavaliação
 
-**Nota:** ___/10
+**Nota da equipe:** 10/10
 
-**Justificativa:**
+**Nota individual de Breno:** 9/10
+
+**Justificativa da equipe:** "Os três componentes (API, web e mobile) foram implementados e integrados dentro do escopo do MVP, com testes automatizados e cobertura medida no backend. A mudança tardia de requisito (área administrativa) foi absorvida com ajuste de contrato, DTOs e banco. Funcionalidades extras foram adiadas conscientemente para priorizar o essencial."
+
+**Justificativa individual de Breno:** entregou o frontend completo e parte do backend e da integração; reconhece que não conseguiu se dedicar tanto quanto queria.
 
 ---
 
@@ -424,9 +451,9 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 
 | Campo | Valor |
 |---|---|
-| **Link** | |
-| **Duração** | |
-| **Quem fala em cada parte** | |
+| **Link** | PENDENTE: vídeo ainda não gravado |
+| **Duração** | PENDENTE: vídeo ainda não gravado |
+| **Quem fala em cada parte** | Introdução: Breno; demonstração web: Breno; demonstração mobile: Matheus; arquitetura: Matheus; reflexão: Breno |
 
 ---
 
@@ -439,3 +466,4 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 | 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus |
 | 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |
 | 1.4 | 15/11/2026 | Documentação da administração de usuários no web e backend e registro da cronologia dos trabalhos de 15/11 | Breno |
+| 1.5 | 22/11/2026 | Ambiente reproduzível, testes/cobertura do backend e documentação do lembrete mobile; autoria do recurso mobile a confirmar | Não registrado |

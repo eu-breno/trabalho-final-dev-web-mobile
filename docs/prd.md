@@ -363,10 +363,10 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 - [x] Um estudante se cadastra, faz login e vê a lista de baralhos vazia
 - [x] Um estudante cria um baralho e cadastra cartões nele
 - [x] A sessão de estudo mostra os cartões pendentes; após avaliar, o cartão sai da fila e reaparece na data calculada pelo servidor
-- [ ] A avaliação fixa os intervalos implementados: errei 0, difícil 1, bom 3 e fácil 7 dias
-- [ ] Acessar o baralho de outro usuário resulta em `404`; estudante acessando rotas administrativas recebe `403`; requisição sem token recebe `401`
-- [ ] Administrador lista usuários com paginação de servidor, consulta detalhe/estatísticas e exclui outra conta após validar a senha; senha incorreta recebe `403`, autoexclusão recebe `409`
-- [ ] Remover um baralho remove os cartões dele
+- [x] A avaliação fixa os intervalos implementados: errei 0, difícil 1, bom 3 e fácil 7 dias — implementado em `CartoesService.registrarRevisao`; coberto por teste em `cartoes.service.spec.ts`
+- [x] Acessar o baralho de outro usuário resulta em `404`; estudante acessando rotas administrativas recebe `403`; requisição sem token recebe `401` — coberto pelos testes de isolamento, guard de papéis e autenticação existentes
+- [x] Administrador lista usuários com paginação de servidor, consulta detalhe/estatísticas e exclui outra conta após validar a senha; senha incorreta recebe `403`, autoexclusão recebe `409` — implementado nos módulos de usuários e coberto por `usuarios.service.spec.ts` e `admin-routes.spec.ts`
+- [ ] Remover um baralho remove os cartões dele — PENDENTE: confirmar remoção em cascata com PostgreSQL real
 - [ ] Um registro criado pelo cliente web aparece corretamente no app mobile, e vice-versa
 - [ ] O app apresenta um token válido à API e vê os mesmos dados do cliente web, qualquer que seja o nível de autenticação declarado
 

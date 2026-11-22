@@ -11,7 +11,7 @@
 | **Tema escolhido** | Flashcards com repetição espaçada |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
 | **Data de formação** | 20/08/2026 |
-| **Última atualização** | 15/11/2026 |
+| **Última atualização** | 22/11/2026 |
 
 ---
 
@@ -21,8 +21,8 @@
 
 | Integrante | Usuário GitHub | Identidades no Git | Responsabilidade principal | Parte do backend que conduz |
 |---|---|---|---|---|
-| Breno Olliari | eu-breno | `eu-breno <breno.olliari@gmail.com>`, `eu-breno <208485@upf.br>`, `Breno Olliari <breno.olliari@gmail.com>` | Cliente web | Baralhos, cartões, revisões, fila de estudo, estatísticas, perfil administrador e documentação da administração de usuários |
-| Matheus dos Santos Savegnagi | MATh3us46 | `MATh3us46 <matheussavegnago735@gmail.com>` | App mobile | Autenticação (registro, login e guards) e DTOs |
+| Breno Olliari | eu-breno | `eu-breno <breno.olliari@gmail.com>`, `eu-breno <208485@upf.br>`, `Breno Olliari <breno.olliari@gmail.com>` | Todo o frontend web; metade do backend; metade da integração web-API | Backend e integração na parte acordada com Matheus |
+| Matheus dos Santos Savegnagi | MATh3us46 | `MATh3us46 <matheussavegnago735@gmail.com>` | Todo o app mobile Flutter; metade do backend; metade da integração web-API; lembrete de notificação no app mobile | Backend e integração na parte acordada com Breno |
 
 **Mudança em relação ao combinado inicial.** Na Etapa 0, os papéis foram definidos ao contrário: Matheus no cliente web e Breno no app mobile. Na prática, e conforme a disponibilidade de cada um, Breno conduziu o cliente web e Matheus iniciou o app mobile. A tabela acima reflete a situação atual; o registro da mudança está na seção 6.
 
@@ -127,7 +127,7 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 |---|---|---|---|
 | Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. Em 15/11, atualizou a área administrativa mobile. | Mobile | `113cd46` (26/10) e `bf88e7e` (15/11, autor `MATh3us46`, branch `back_admin`) |
 
-**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; a atualização administrativa mobile foi commitada em `bf88e7e`. <!-- CONFIRMAR: verificar se o commit bf88e7e foi integrado por merge ou associado a um PR. -->
+**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; a atualização administrativa mobile foi commitada em `bf88e7e`.
 
 **Dificuldades de coordenação:** a primeira tentativa de abrir a lista de usuários no mobile retornou `Unauthorized`, pois a requisição não enviava o token no esquema esperado pela API. O cabeçalho Bearer foi corrigido e o usuário confirmou que conseguiu acessar a lista. As demais operações administrativas ainda não foram validadas com o backend real.
 
@@ -137,16 +137,24 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** de ___ a ___
+**Período:** início em 20/08/2026; término PENDENTE: data final será preenchida na entrega
+**Responsáveis pela redação:** Breno e Matheus
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
-| | | | |
-| | | | |
+| Breno | Frontend web completo; metade do backend; metade da integração web-API; lembrete de notificação no app mobile | Web, backend e integração | Commits verificados no git log |
+| Matheus | App mobile completo; metade do backend; metade da integração web-API | Mobile, backend e integração | Commits verificados no git log |
 
 **Como a revisão de código aconteceu nesta etapa** _(opcional)_**:**
 
 **Dificuldades de coordenação:**
+
+1. Houve dificuldade para dividir papéis e tarefas claramente no início.
+2. Foi necessário ajustar DTOs em relação ao banco de dados.
+3. A área administrativa não havia sido prevista no escopo inicial, que considerava apenas o usuário comum. Quando ela passou a ser necessária, foi preciso alterar contrato da API, DTOs e estrutura do banco.
+4. A documentação foi deixada para complementar depois e acabou criando um gargalo de informações; o grupo passou a atualizá-la a cada commit.
+
+**Estado da integração:** os três componentes já são afirmados pelo grupo como funcionando juntos em execução local, mas a validação ponta a ponta ainda está pendente de registro no roteiro próprio. Não há resultado confirmado de todos os passos cruzados entre web, mobile e API.
 
 ---
 
@@ -154,10 +162,10 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 | Integrante | Backend | Web | Mobile | Cumpre a regra dos dois componentes? |
 |---|---|---|---|---|
-| Breno | 7 | 6 | 0 | Sim (backend e web) |
-| Matheus | 4 | 2 | 0 (1 commit de inicialização do projeto Flutter, ainda sem funcionalidade) | Sim (backend e web); o mobile reforça a cobertura na Etapa 4 |
+| Breno | 33 commits no histórico, incluindo todas as identidades | Backend e web | Mobile não tem commit direto registrado de Breno | Sim |
+| Matheus | 7 commits no histórico | Backend e mobile | Há 2 commits relacionados ao mobile, além de autenticação/DTOs | Sim |
 
-Posição em 02/11/2026. Contagem aproximada de commits relevantes (que implementam ou corrigem comportamento) em todas as branches do projeto. Não entram merges, commits só de documentação, limpeza de arquivos gerados e inicialização de projeto. As três identidades de Breno estão somadas. O estado das branches de Breno deve ser conferido antes da integração final.
+Nova contagem em 22/11/2026, obtida com `git log` nas três identidades de Breno e na identidade de Matheus. Ela inclui todos os commits no histórico até a data da contagem; não entra seleção por branch ou classificação funcional. A contagem não substitui a revisão dos arquivos alterados em cada commit.
 
 ---
 
@@ -172,8 +180,8 @@ Posição em 02/11/2026. Contagem aproximada de commits relevantes (que implemen
 
 ## 7. Autoavaliação do grupo
 
-**O que funcionou na divisão de trabalho:**
+**O que funcionou na divisão de trabalho:** os três componentes foram implementados e funcionam em conjunto; o grupo manteve verificação constante do que era entregue; e passou a atualizar a documentação a cada commit.
 
-**O que não funcionou:**
+**O que não funcionou:** o planejamento inicial foi insuficiente, pois a área administrativa obrigou a refazer contrato, API, DTOs e banco. Algumas funcionalidades previstas foram adiadas por falta de tempo para priorizar o MVP. O aprofundamento em alguns conteúdos também ficou limitado, compensado pela verificação constante do que foi produzido.
 
-**Se recomeçassem, o que dividiriam de outro jeito:**
+**Se recomeçassem, o que dividiriam de outro jeito:** planejariam desde o início o escopo completo, incluindo a área administrativa, e definiriam contrato e modelo de dados antes de implementar. As tarefas seriam divididas com critérios claros desde o começo.

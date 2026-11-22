@@ -610,7 +610,7 @@ A senha do administrador é comparada antes de verificar a existência do usuár
 
 - Os controllers preexistentes de baralhos e cartões não usam `ParseUUIDPipe`; as novas rotas administrativas aplicam `ParseUUIDPipe` para UUID v4, conforme documentado.
 - O contrato atual descreve limites de tamanho para nomes/descrições de baralhos e frente/verso de cartões que os DTOs existentes não validam integralmente.
-- O contrato é mantido manualmente; Swagger/OpenAPI ainda não está configurado na inicialização do backend, como já indicado na seção 6.
+- O contrato é mantido em documentação manual e também disponibilizado pelo Swagger/OpenAPI gerado pelo NestJS em `/docs` e `/api`; o JSON pode ser exportado em `/docs-json`.
 
 ---
 
@@ -806,13 +806,13 @@ Retorna uma série diária de revisões para o usuário autenticado. Aceita `dia
 
 ## 6. Como verificar o contrato
 
-- [ ] Coleção de requisições versionada no repositório _(arquivo `.http`, Insomnia, Postman)_
-- [ ] Swagger habilitado no backend _(`@nestjs/swagger`)_ — ainda não configurado na inicialização atual
+- [ ] Coleção de requisições versionada no repositório _(arquivo `.http`, Insomnia, Postman)_; não obrigatório pelo material fornecido
+- [x] Swagger habilitado no backend com `@nestjs/swagger`, disponível em `/docs` e `/api`, com JSON em `/docs-json`
 - [x] Tipos usados pelo cliente web derivados da implementação e conferidos com o contrato atual
 - [x] O mobile contém modelos e repositórios HTTP em `mobile/lib/app_mobile/`; testes usam respostas simuladas e a integração com backend real ainda precisa ser validada
-- [ ] Um cenário de ponta a ponta executado na coleção: registro → login → criar baralho → criar cartão → `GET /estudo` → `POST /revisoes` → conferir `proximaRevisao`
+- [ ] PENDENTE: cenário completo de ponta a ponta em PostgreSQL real: registro → login → baralho → cartão → revisão → próxima data. O teste automatizado em contrato foi acrescentado; a execução contra Docker/ambiente real depende do comando documentado no README.
 
-O contrato é mantido manualmente. Swagger/OpenAPI e geração automática de clientes não estão configurados.
+Swagger/OpenAPI é a referência gerada da implementação. A coleção externa continua opcional.
 
 ---
 

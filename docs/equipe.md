@@ -22,7 +22,7 @@
 | Integrante | Usuário GitHub | Identidades no Git | Responsabilidade principal | Parte do backend que conduz |
 |---|---|---|---|---|
 | Breno Olliari | eu-breno | `eu-breno <breno.olliari@gmail.com>`, `eu-breno <208485@upf.br>`, `Breno Olliari <breno.olliari@gmail.com>` | Todo o frontend web; metade do backend; metade da integração web-API | Backend e integração na parte acordada com Matheus |
-| Matheus dos Santos Savegnagi | MATh3us46 | `MATh3us46 <matheussavegnago735@gmail.com>` | Todo o app mobile Flutter; metade do backend; metade da integração web-API; lembrete de notificação no app mobile | Backend e integração na parte acordada com Breno |
+| Matheus dos Santos Savegnago | MATh3us46 | `MATh3us46 <matheussavegnago735@gmail.com>`, `Matheus dos Santos Savegnago<198879@upf.br>` | Todo o app mobile Flutter; metade do backend; metade da integração web-API; | Backend e integração na parte acordada com Breno |
 
 **Mudança em relação ao combinado inicial.** Na Etapa 0, os papéis foram definidos ao contrário: Matheus no cliente web e Breno no app mobile. Na prática, e conforme a disponibilidade de cada um, Breno conduziu o cliente web e Matheus iniciou o app mobile. A tabela acima reflete a situação atual; o registro da mudança está na seção 6.
 

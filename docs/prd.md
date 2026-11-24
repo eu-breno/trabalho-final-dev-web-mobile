@@ -11,7 +11,7 @@
 | Campo | Valor |
 |---|---|
 | **Nome do projeto** | Memora |
-| **Grupo** | Breno Olliari e Matheus Savegnagi |
+| **Grupo** | Breno Olliari e Matheus Savegnago |
 | **Versão do documento** | 1.2 |
 | **Data de criação** | 21/09/2026 |
 | **Última atualização** | 15/11/2026 |

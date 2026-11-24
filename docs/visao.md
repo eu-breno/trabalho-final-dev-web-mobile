@@ -8,7 +8,7 @@
 |---|---|
 | **Nome do projeto** | Memora |
 | **Grupo** | Grupo H |
-| **Integrantes** | Breno Olliari e Matheus dos Santos Savegnagi (detalhamento em `docs/equipe.md`) |
+| **Integrantes** | Breno Olliari e Matheus dos Santos Savegnago (detalhamento em `docs/equipe.md`) |
 | **Disciplina** | Programação Web e Mobile |
 | **Data de criação** | 30/08/2026 |
 | **Última atualização** | 15/11/2026 |

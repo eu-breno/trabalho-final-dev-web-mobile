@@ -8,9 +8,9 @@
 |---|---|
 | **Nome do projeto** | Memora |
 | **Grupo** | Grupo H |
-| **Integrantes** | Breno Olliari e Matheus dos Santos Savegnagi |
+| **Integrantes** | Breno Olliari e Matheus dos Santos Savegnago |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
-| **Última atualização** | 22/11/2026 |
+| **Última atualização** | 24/11/2026 |
 | **Vídeo de apresentação** | Ainda não registrado neste relatório |
 
 ---
@@ -21,18 +21,12 @@
 
 | Ferramenta | Versão | Quem |
 |---|---|---|
-| Node.js | 24.18.0 na máquina de Breno (o enunciado indica Node.js 22 LTS) | Breno; Matheus: não registrado |
-| npm | 11.16.0 | Breno |
-| Git | 2.51.0 (Windows) | Breno |
-| NestJS CLI | 12.0.0 | Breno |
-| NestJS, Next.js, React, Prisma | 12.0.1, 16.3.5, 19.2.8 e 7.10.0 (conforme `package-lock.json`) | Ambos |
-| Flutter SDK / Dart | Flutter 3.47.8 / Dart 3.13.7, verificados no ambiente mobile em 09/11/2026 | Matheus |
-| PostgreSQL | 18 (imagem Docker, usada por Breno) | Breno; Matheus: não registrado |
-| Docker | 29.8.0 na máquina de Breno | Breno; Matheus: não registrado |
-| SDK mínimo do app | Dart `^3.13.7` em `mobile/pubspec.yaml` (mínimo 3.13.7; não é a versão mínima do Android) | Mobile |
-| Emulador ou dispositivo usado no mobile | Nenhum Android/iOS detectado ou validado; `flutter devices` encontrou Windows, Chrome e Edge | Mobile |
-| Sistema operacional | Windows 10 Pro (10.0.19045.7807), observado no ambiente mobile em 09/11/2026 | Matheus |
-| Editor ou IDE | VS Code | Matheus |
+| Node.js | 24.18.0 na máquina de Breno; 24.21.0 na máquina de Matheus | Breno; Matheus |
+| Flutter SDK | Flutter 3.47.8 / Dart 3.13.7 | Matheus |
+| PostgreSQL | 18 (imagem Docker, usada por Breno); (18 imagem Docker, usada por Matheus) | Breno; Matheus |
+| Docker | 29.8.0 na máquina de Breno; Docker 29.8.0 na máquina de Matheus | Breno; Matheus |
+| Emulador ou dispositivo usado no mobile | Chrome e Edge | Mobile |
+| Sistema operacional | Windows 10 | Matheus |
 
 **Como o banco foi provisionado:** (x) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado
 
@@ -196,6 +190,8 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 ### 2.4 Reflexão sobre o uso de IA
 
 Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetura e decisões, leu os relatórios das etapas e validou os resultados com build, lint, testes automatizados do backend e validação manual das telas. Claude apoiou o planejamento, o refinamento dos prompts e a análise de segurança, contrato e casos de borda; GitHub Copilot apoiou a implementação do contrato, backend, frontend, ajustes e documentação. As ferramentas reduziram o esforço de digitação e implementação. A responsabilidade pelas decisões, pela revisão do trabalho e pelo resultado final permaneceu com o autor. Os testes mobile usam respostas HTTP simuladas e não substituem a validação contra backend real.
+
+Matheus usou o GitHub Copilot como apoio para criar e revisar as telas e os fluxos do aplicativo mobile. Adaptou as sugestões à estrutura do projeto e integrou o app à API, incluindo autenticação, persistência do token e envio das requisições. O Copilot acelerou a implementação, mas as decisões, a revisão e a responsabilidade pelo código permaneceram com Matheus. O login administrativo e o carregamento da lista de usuários foram confirmados manualmente.
 
 ---
 
@@ -441,9 +437,13 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 
 **Nota individual de Breno:** 9/10
 
+**Nota individual de Matheus:** 9/10
+
 **Justificativa da equipe:** "Os três componentes (API, web e mobile) foram implementados e integrados dentro do escopo do MVP, com testes automatizados e cobertura medida no backend. A mudança tardia de requisito (área administrativa) foi absorvida com ajuste de contrato, DTOs e banco. Funcionalidades extras foram adiadas conscientemente para priorizar o essencial."
 
 **Justificativa individual de Breno:** entregou o frontend completo e parte do backend e da integração; reconhece que não conseguiu se dedicar tanto quanto queria.
+
+**Justificativa individual de Matheus:** entregou o mobile completo e parte do backend; teve dificuldade inicial com o Next.js e com a integração do backend e precisou se adaptar à mudança para o desenvolvimento mobile. 
 
 ---
 
@@ -467,3 +467,4 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 | 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |
 | 1.4 | 15/11/2026 | Documentação da administração de usuários no web e backend e registro da cronologia dos trabalhos de 15/11 | Breno |
 | 1.5 | 22/11/2026 | Ambiente reproduzível, testes/cobertura do backend e documentação do lembrete mobile; autoria do recurso mobile a confirmar | Não registrado |
+| 1.6 | 24/11/2026 | Versões das ferramentas do ambiente de Matheus verificadas | Matheus |

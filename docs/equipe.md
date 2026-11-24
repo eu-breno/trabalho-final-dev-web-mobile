@@ -121,7 +121,7 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** iniciada em 26/10/2026; estado conferido em 15/11/2026 (em andamento; integração mobile parcialmente validada)
+**Período:** de 26/10/2026 a 22/11/2026 (Checkpoint 3 entregue em 26/11/2026; com atualizações e finalização em 22/11/2026); 
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
@@ -137,7 +137,7 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** início em 20/08/2026; término PENDENTE: data final será preenchida na entrega
+**Período:** início em 20/08/2026; término em 26/11/2026
 **Responsáveis pela redação:** Breno e Matheus
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |

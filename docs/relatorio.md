@@ -11,7 +11,7 @@
 | **Integrantes** | Breno Olliari e Matheus dos Santos Savegnago |
 | **Repositório** | `https://github.com/eu-breno/trabalho-final-dev-web-mobile` |
 | **Última atualização** | 24/11/2026 |
-| **Vídeo de apresentação** | Ainda não registrado neste relatório |
+| **Vídeo de apresentação** | https://drive.google.com/file/d/1MIMFkPEKb7XrBt9YTgsIRU5sQdfmRojf/view?usp=drive_link |
 
 ---
 
@@ -98,7 +98,7 @@ está disponível.
 
 ### 2.3 Evidências de uso
 
-Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados. Alguns prompts foram recuperados de anotações; o uso mobile permanece como resumo, pois o texto exato não foi registrado. Os registros encontrados estão em [docs/anexo-prompts-ia.md](anexo-prompts-ia.md), que também funciona como índice cronológico. Os arquivos separados de cada etapa que deveriam compor `docs/prompts/`, inclusive um `README.md` de índice, não estavam disponíveis neste checkout.
+Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos desse período estão reconstruídos de memória e aparecem assim identificados. Alguns prompts foram recuperados de anotações; 
 
 ---
 
@@ -174,7 +174,23 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 
 #### Etapa 4 — App mobile
 
-- Em 09/11, Matheus confirmou a autoria das funcionalidades mobile então presentes no worktree; o commit estava previsto para aquela data e ainda não constava no histórico. A atualização administrativa registrada em 15/11 e o estado atual do mobile estão descritos na seção Etapa 4 deste relatório.
+- **Quem conduziu:** Matheus
+- **Ferramenta e data:** GitHub Copilot, 09/11/2026
+- **Objetivo da tarefa:** criar e revisar as telas mobile, mantendo login, cadastro, dashboard, baralhos, cartões, sessão de estudo, estatísticas e configurações consistentes com o restante do projeto e conectados aos endpoints existentes da API.
+- **Prompt utilizado:** texto registrado no Anexo (`docs/anexo-prompts-ia.md`), seção G.
+- **Trecho aproveitado:** o suporte da IA foi aplicado como ponto de partida para as estruturas de login e cadastro, dashboard, navegação, baralhos e cartões, sessão de estudo, estatísticas e configurações. Matheus integrou as sugestões ao aplicativo Flutter e adaptou os fluxos ao projeto.
+- **Análise crítica:** o Copilot apoiou a criação e o refinamento da interface, mas a implementação passou por adaptação manual. Matheus integrou as telas aos endpoints REST existentes, configurou a URL da API, persistiu e restaurou o token com `SharedPreferences`, tratou estados de carregamento e erro e ajustou a sessão de estudo para enviar as avaliações à API.
+- **Evidência no repositório** (commit ou PR): `113cd46` (registro da inicialização e das telas mobile)
+
+#### Etapa 4 — Área administrativa no app mobile
+
+- **Quem conduziu:** Matheus
+- **Ferramenta e data:** GitHub Copilot integrado ao VS Code, 15/11/2026
+- **Objetivo da tarefa:** substituir a tela placeholder de Turmas por uma área de Usuários restrita a administradores, com lista paginada, detalhes, estatísticas, atividade, baralhos e exclusão confirmada por senha.
+- **Prompt utilizado:** texto registrado no Anexo (`docs/anexo-prompts-ia.md`), seção I.
+- **Trecho aproveitado:** o Copilot apoiou a criação da tela de usuários, da paginação de 10, 20 ou 50 registros, dos detalhes e métricas, do menu limitado ao perfil administrador e da aproximação visual com a tabela do frontend.
+- **Análise crítica:** a IA criou uma base para a interface administrativa, mas Matheus precisou corrigir uma falha real de integração: a primeira versão não enviava o token no formato esperado pela API e recebia `Unauthorized`. A aplicação passou a enviar `Authorization: Bearer <accessToken>`.
+- **Evidência no repositório** (commit ou PR): `bf88e7e` (15/11/2026, autor `MATh3us46`, branch `back_admin`)
 ---
 
 #### Diagnóstico do projeto e da documentação (prompts de leitura)
@@ -362,15 +378,19 @@ Breno conduziu a implementação da administração de usuários no backend e no
 
 ### Etapa 5 — Integração e fechamento
 
-**Período:** início em 20/08/2026; término PENDENTE: data final será preenchida na entrega · **Redigido por:** Breno e Matheus
+**Período:** início em 20/08/2026; término em 26/11/2026 · **Redigido por:** Breno e Matheus
 
-**Integração web, mobile e backend:** o grupo afirma que os três componentes já rodam juntos em execução local. Porém, a validação ponta a ponta ainda não está registrada: os critérios cruzados de integração permanecem pendentes até a execução do roteiro em [docs/teste-integracao.md](teste-integracao.md). Em 15/11, o usuário confirmou o login administrativo e o carregamento da lista de usuários no mobile conectado à API, mas isso não comprova todos os fluxos nem o compartilhamento real entre os três componentes.
+**O que foi ajustado para os três componentes conversarem:**
+
+Os clientes web e mobile passaram a consumir os endpoints da API REST centralizada no backend, mantendo os dados e as regras no servidor. No web, o token fica em cookie `httpOnly` e as chamadas são intermediadas pelo Next.js; no mobile, o `accessToken` é persistido em `SharedPreferences` e enviado no cabeçalho `Authorization: Bearer`. Os contratos existentes foram usados para autenticação, perfil, baralhos, cartões, estudo, estatísticas e administração de usuários.
+
+**Inconsistências encontradas entre os clientes, e como foram resolvidas:**
+
+- A primeira versão da área administrativa mobile não enviava o token no cabeçalho esperado pela API e recebia `Unauthorized`. O repositório mobile passou a enviar `Authorization: Bearer <accessToken>`, permitindo que o login administrativo e a listagem de usuários fossem confirmados.
+- O cliente web guarda a sessão em cookie `httpOnly`, enquanto o mobile persiste o token em `SharedPreferences`. Essa diferença foi mantida por ser compatível com as plataformas, desde que os dois apresentem um token válido às rotas protegidas.
+- O mobile não possui renovação ou refresh do token nem tratamento dedicado de expiração. Essa limitação não foi resolvida na implementação atual e continua pendente de validação.
 
 **Dificuldades:** a divisão inicial de papéis e tarefas foi difícil de definir; os ajustes entre DTOs e banco exigiram iterações; a área administrativa não fazia parte do plano inicial para o usuário comum e, ao ser incluída, exigiu mudanças no contrato da API, nas DTOs e na estrutura do banco; além disso, deixar a documentação para complementar depois criou gargalos de informação, levando o grupo a atualizá-la a cada commit.
-
-**Condição para concluir:** validar o envio do token, rodar o backend, web e mobile juntos, validar os casos de uso cruzados solicitados e registrar os resultados, conflitos e resolução. Até lá, a Etapa 5 permanece pendente; não há resultado final de integração a declarar.
-
-**Histórico e revisão do mobile:** os commits mobile identificados no histórico são `113cd46` (inicialização) e `bf88e7e` (área administrativa, autor `MATh3us46`, 15/11); a branch de trabalho observada é `back_admin`. Não foi identificada revisão formal. 
 
 ---
 
@@ -451,8 +471,8 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 
 | Campo | Valor |
 |---|---|
-| **Link** | PENDENTE: vídeo ainda não gravado |
-| **Duração** | PENDENTE: vídeo ainda não gravado |
+| **Link** | https://drive.google.com/file/d/1MIMFkPEKb7XrBt9YTgsIRU5sQdfmRojf/view?usp=drive_link |
+| **Duração** | 11 minutos |
 | **Quem fala em cada parte** | Introdução: Breno; demonstração web: Breno; demonstração mobile: Matheus; arquitetura: Matheus; reflexão: Breno |
 
 ---

@@ -8,7 +8,6 @@ Este anexo reúne o texto dos prompts citados na seção 2.3 de `docs/relatorio.
 | 25/10/2026 | Administrador/professor: análise, implementação e diagnóstico do projeto | A2, C1, C2, D, E, F |
 | 09/11/2026 | Atualização documental do mobile, equipe e integração | G |
 | 15/11/2026 | Administração de usuários: web, backend e documentação | H |
-| 15/11/2026 | Área administrativa de usuários no app mobile | I |
 
 ---
 
@@ -424,13 +423,13 @@ Responda nas seções abaixo:
 - Stack: linguagens, frameworks, banco de dados, bibliotecas principais.
 
 2. PLATAFORMAS E PERFIS DE USUÁRIO
-- Existe aplicação web? Existe mobile? Quem usa cada uma (usuário comum, administrador, outros)?
+- Existe aplicação web? Existe mobile? Quem usa cada uma?
 - Existe o conceito de "administrador" / papéis (role, isAdmin, perfil, etc.) no código, no banco, na API, no front? Onde exatamente?
 - Como funciona a autenticação e a autorização? Algum endpoint ou tela é restrito a admin?
 
 3. DOCUMENTOS
 - Leia o contrato da API (OpenAPI/Swagger/arquivo de contrato), o README e qualquer documento de requisitos/enunciado que esteja no repositório.
-- O que cada um diz sobre administrador, usuários e plataformas (web/mobile)?
+- O que cada documento diz sobre perfis, usuários e funcionalidades?
 - Liste as INCONSISTÊNCIAS entre contrato x README x código real.
 
 4. API
@@ -702,24 +701,7 @@ Liste testes que faltam e o que rodar manualmente para validar (passo a passo cu
 - A regra impede autoexclusão, mas não protege contra duas exclusões concorrentes de administradores que eliminem todas as contas admin.
 - Validação manual recomendada: confirmar que o item de menu não aparece para estudante; tentar excluir um usuário com senha errada e correta; verificar a proteção de autoexclusão; abrir o detalhe de um usuário sem atividade/baralhos; e conferir que /estatisticas e /baralhos continuam mostrando dados do usuário autenticado.
 
-### I. Atualização da área administrativa de usuários no app mobile (15/11/2026)
-
-- **Quem conduziu:** Matheus · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 15/11/2026
-- **Resultado:** substituição da tela placeholder de Turmas por uma área administrativa de Usuários no app mobile, com acesso restrito no menu aos administradores e dados carregados das rotas já existentes na API.
-
-**Prompt utilizado:**
-
-````text
-Substitua a tela placeholder de Turmas no app mobile por uma tela de Usuários acessível apenas a administradores. A lista deve mostrar as contas cadastradas, seguir as funcionalidades da área de usuários do frontend e manter o padrão visual das demais telas mobile. Inclua paginação, detalhes do usuário e ações administrativas. Depois, aproxime a aparência da lista à tabela do frontend. Corrija também o erro Unauthorized observado ao abrir a lista como administrador.
-````
-
-- **O que foi solicitado à IA:** remover Turmas da navegação mobile e criar a área administrativa de Usuários com listagem das contas, paginação, detalhes, estatísticas e ações semelhantes às do frontend, mantendo o padrão visual do app e corrigindo o erro de autorização.
-- **Código gerado e efetivamente aproveitado:** tela de usuários com paginação de 10, 20 ou 50 registros, detalhe com resumo, estatísticas, atividade e baralhos, e menu de ações com exclusão confirmada por senha; integração da navegação com o perfil de administrador; e apresentação em painel com cabeçalho, nome/e-mail, badge de tipo, menu e paginação.
-- **Commit relacionado:** `bf88e7e` (autor MATh3us46, 15/11/2026).
-
-
-
-### J. Testes, cobertura e notificações locais
+### I. Testes, cobertura e notificações locais
 
 - **Quem conduziu:** Breno · **Ferramenta:** GitHub Copilot integrado ao VS Code · **Data:** 22/11/2026
 - **Natureza dos trechos:** transcrição do pedido do autor e da resposta do Copilot.
@@ -879,7 +861,6 @@ Deixei estes comentários para confirmação:
 
 - Autoria do recurso novo de notificação local, em `mobile/README.md` e `docs/relatorio.md`.
 - Compatibilidade do toolchain Flutter/Android com Mateus, em `mobile/README.md`.
-- Confirmação histórica sobre integração/PR do commit `bf88e7e`, mantida em `docs/relatorio.md`.
 
 `git status --short`: 22 arquivos rastreados modificados e 6 entradas não rastreadas.
 

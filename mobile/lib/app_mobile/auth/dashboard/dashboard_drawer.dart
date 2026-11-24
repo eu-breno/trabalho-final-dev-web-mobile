@@ -15,14 +15,12 @@ class DashboardDrawer extends StatefulWidget {
     this.client,
     this.userName,
     this.userEmail,
-    this.userRole,
     this.pendingCards,
     this.reminderController,
     this.selectedSection = 'Início',
     this.onTapHome,
     this.onTapStudy,
     this.onTapDecks,
-    this.onTapUsers,
     this.onTapStatistics,
   });
 
@@ -30,14 +28,12 @@ class DashboardDrawer extends StatefulWidget {
   final http.Client? client;
   final String? userName;
   final String? userEmail;
-  final String? userRole;
   final int? pendingCards;
   final StudyReminderController? reminderController;
   final String selectedSection;
   final VoidCallback? onTapHome;
   final VoidCallback? onTapStudy;
   final VoidCallback? onTapDecks;
-  final VoidCallback? onTapUsers;
   final VoidCallback? onTapStatistics;
 
   @override
@@ -83,9 +79,8 @@ class _DashboardDrawerState extends State<DashboardDrawer> {
   Future<void> _logout() async {
     setState(() => _isLoggingOut = true);
     try {
-      await SessionStore(
-        reminderController: _reminderController,
-      ).clearAccessToken();
+      await SessionStore(reminderController: _reminderController)
+          .clearAccessToken();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil<void>(
         MaterialPageRoute<void>(builder: (_) => const LoginPage()),
@@ -162,14 +157,6 @@ class _DashboardDrawerState extends State<DashboardDrawer> {
                     muted: widget.selectedSection != 'Estatísticas',
                     highlighted: widget.selectedSection == 'Estatísticas',
                   ),
-                  if (widget.userRole == 'administrador')
-                    _DrawerItem(
-                      icon: LucideIcons.users,
-                      label: 'Usuários',
-                      onTap: widget.onTapUsers ?? () => Navigator.pop(context),
-                      muted: widget.selectedSection != 'Usuários',
-                      highlighted: widget.selectedSection == 'Usuários',
-                    ),
                 ],
               ),
             ),

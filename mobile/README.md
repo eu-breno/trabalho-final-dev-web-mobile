@@ -31,9 +31,7 @@ O Manifest `debug`/`profile` permite HTTP para desenvolvimento. Para builds de
 produção, use HTTPS. Não há dependência de `flutter_dotenv`.
 
 O app oferece login/cadastro, dashboard, baralhos e cartões, fila de estudo,
-avaliação espaçada, estatísticas e configurações da conta. Contas
-administradoras também podem listar e consultar usuários pelas rotas protegidas
-da API.
+avaliação espaçada, estatísticas e configurações da conta.
 
 ## Lembrete local de cartões pendentes
 

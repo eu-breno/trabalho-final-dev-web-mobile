@@ -213,4 +213,4 @@ O Memora tem dois contextos de uso diferentes, e cada cliente atende ao seu.
 | 1.0 | 30/08/2026 | Breno | Versão inicial: tema e repositório definidos (Etapa 0) |
 | 1.1 | 01/11/2026 | Breno | Preenchimento completo do documento, alinhado ao estado conhecido do projeto |
 | 1.2 | 02/11/2026 | Breno | Versões do backend, web e mobile e estado real da implementação atualizados |
-| 1.3 | 15/11/2026 | Breno | Área administrativa atualizada para detalhe, estatísticas, totais e exclusão; autenticação mobile e estado das telas alinhados ao código |
+| 1.3 | 15/11/2026 | Breno | Área administrativa web atualizada para detalhe, estatísticas, totais e exclusão |

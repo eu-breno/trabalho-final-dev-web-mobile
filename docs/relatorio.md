@@ -30,7 +30,7 @@
 
 **Como o banco foi provisionado:** (x) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado
 
-**Comandos do mobile:** executar a partir de `mobile/`: `flutter pub get`, `flutter run` (emulador Android padrão) ou `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` (dispositivo físico), `flutter test` e `dart analyze lib test`. Em 15/11, `flutter test` passou (13 testes) e `dart analyze lib test` não encontrou problemas. Os testes usam HTTP simulado. O usuário confirmou o login administrativo e a abertura da lista de usuários no app conectado; não há registro de execução dos testes automatizados contra o backend real.
+**Comandos do mobile:** executar a partir de `mobile/`: `flutter pub get`, `flutter run` (emulador Android padrão) ou `flutter run --dart-define=API_BASE_URL=http://<IP-DA-MAQUINA>:3000` (dispositivo físico), `flutter test` e `dart analyze lib test`. Em 15/11, `flutter test` passou (13 testes) e `dart analyze lib test` não encontrou problemas. Os testes usam HTTP simulado e não há registro de execução dos testes automatizados contra o backend real.
 
 ### 1.2 Divergências em relação ao README
 
@@ -182,15 +182,6 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 - **Análise crítica:** o Copilot apoiou a criação e o refinamento da interface, mas a implementação passou por adaptação manual. Matheus integrou as telas aos endpoints REST existentes, configurou a URL da API, persistiu e restaurou o token com `SharedPreferences`, tratou estados de carregamento e erro e ajustou a sessão de estudo para enviar as avaliações à API.
 - **Evidência no repositório** (commit ou PR): `113cd46` (registro da inicialização e das telas mobile)
 
-#### Etapa 4 — Área administrativa no app mobile
-
-- **Quem conduziu:** Matheus
-- **Ferramenta e data:** GitHub Copilot integrado ao VS Code, 15/11/2026
-- **Objetivo da tarefa:** substituir a tela placeholder de Turmas por uma área de Usuários restrita a administradores, com lista paginada, detalhes, estatísticas, atividade, baralhos e exclusão confirmada por senha.
-- **Prompt utilizado:** texto registrado no Anexo (`docs/anexo-prompts-ia.md`), seção I.
-- **Trecho aproveitado:** o Copilot apoiou a criação da tela de usuários, da paginação de 10, 20 ou 50 registros, dos detalhes e métricas, do menu limitado ao perfil administrador e da aproximação visual com a tabela do frontend.
-- **Análise crítica:** a IA criou uma base para a interface administrativa, mas Matheus precisou corrigir uma falha real de integração: a primeira versão não enviava o token no formato esperado pela API e recebia `Unauthorized`. A aplicação passou a enviar `Authorization: Bearer <accessToken>`.
-- **Evidência no repositório** (commit ou PR): `bf88e7e` (15/11/2026, autor `MATh3us46`, branch `back_admin`)
 ---
 
 #### Diagnóstico do projeto e da documentação (prompts de leitura)
@@ -207,7 +198,7 @@ Até 24/10/2026 os prompts não foram guardados de forma sistemática. Os usos d
 
 Breno conduziu o trabalho etapa por etapa: definiu escopo, requisitos, arquitetura e decisões, leu os relatórios das etapas e validou os resultados com build, lint, testes automatizados do backend e validação manual das telas. Claude apoiou o planejamento, o refinamento dos prompts e a análise de segurança, contrato e casos de borda; GitHub Copilot apoiou a implementação do contrato, backend, frontend, ajustes e documentação. As ferramentas reduziram o esforço de digitação e implementação. A responsabilidade pelas decisões, pela revisão do trabalho e pelo resultado final permaneceu com o autor. Os testes mobile usam respostas HTTP simuladas e não substituem a validação contra backend real.
 
-Matheus usou o GitHub Copilot como apoio para criar e revisar as telas e os fluxos do aplicativo mobile. Adaptou as sugestões à estrutura do projeto e integrou o app à API, incluindo autenticação, persistência do token e envio das requisições. O Copilot acelerou a implementação, mas as decisões, a revisão e a responsabilidade pelo código permaneceram com Matheus. O login administrativo e o carregamento da lista de usuários foram confirmados manualmente.
+Matheus usou o GitHub Copilot como apoio para criar e revisar as telas e os fluxos do aplicativo mobile. Adaptou as sugestões à estrutura do projeto e integrou o app à API, incluindo autenticação, persistência do token e envio das requisições. O Copilot acelerou a implementação, mas as decisões, a revisão e a responsabilidade pelo código permaneceram com Matheus.
 
 ---
 
@@ -316,13 +307,13 @@ Matheus usou o GitHub Copilot como apoio para criar e revisar as telas e os flux
 
 **Dificuldades:** o cliente foi construído antes de a autenticação existir, com dados de demonstração, e depois reconectado à API real; erros de hidratação e de propagação de eventos nos menus de ações das tabelas; erro de `GroupLabel` fora de um grupo no menu (23/10); arquivos de build do Next.js versionados por engano. Pendências conhecidas: três erros de lint no frontend e um teste e2e do backend que ainda espera a rota `GET /`.
 
-**O que ficou para a próxima etapa:** o app mobile, a integração da branch `back_admin` na `main`, e a atualização do PRD e do contrato.
+**O que ficou para a próxima etapa:** o app mobile e a atualização do PRD e do contrato.
 
 ---
 
 ### Administração de usuários — web, backend e documentação (15/11/2026)
 
-Breno conduziu a implementação da administração de usuários no backend e no cliente web e a documentação correspondente. O log registra `a69570d` (backend, 14:44:38), `0753044` (web, 14:44:48) e `e188ea3` (documentação, 14:47:47), todos de `eu-breno`. Esses trabalhos precederam a atualização administrativa mobile de Matheus, commit `bf88e7e` (23:18:57, autor `MATh3us46`).
+Breno conduziu a implementação da administração de usuários no backend e no cliente web e a documentação correspondente. O log registra `a69570d` (backend, 14:44:38), `0753044` (web, 14:44:48) e `e188ea3` (documentação, 14:47:47), todos de `eu-breno`.
 
 ---
 
@@ -330,15 +321,11 @@ Breno conduziu a implementação da administração de usuários no backend e no
 
 **Período:** iniciada em 26/10/2026; estado conferido em 22/11/2026 · **Responsável principal:** Matheus
 
-**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10, branch `back_admin`) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta. Em 15/11, Matheus (autor `MATh3us46`) substituiu a tela placeholder de Turmas pela tela administrativa de Usuários, com listagem da API, paginação, detalhe, estatísticas e exclusão autenticada por senha; essa atualização está no commit `bf88e7e`. A tela mantém o padrão visual escuro do app e aproxima a lista da tabela do frontend.
+**O que foi implementado:** Matheus inicializou o projeto Flutter em `113cd46` (26/10) e implementou login e cadastro, restauração de sessão, dashboard, baralhos e cartões, estudo, estatísticas e configurações de conta.
 
-**Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Em 15/11, `dart analyze lib test` não encontrou problemas e `flutter test` passou com 13 testes. Os testes HTTP são simulados e não validam conectividade real; separadamente, o usuário confirmou que conseguiu entrar como administrador e abrir a lista de usuários no app conectado.
+**Ambiente e execução:** Flutter 3.47.8, Dart 3.13.7 e Windows 10 Pro 10.0.19045.7807 foram verificados no ambiente de desenvolvimento mobile; o VS Code é o editor usado. O `pubspec.yaml` restringe o Dart a `^3.13.7`. `flutter devices` não encontrou Android/iOS, apenas Windows, Chrome e Edge; portanto, não há modelo de aparelho nem versão Android/iOS efetivamente usada a registrar. Em 15/11, `dart analyze lib test` não encontrou problemas e `flutter test` passou com 13 testes. Os testes HTTP são simulados e não validam conectividade real.
 
 **Telas e navegação:** login, cadastro, dashboard, lista/gestão de baralhos, detalhe/lista de cartões, estudo, estatísticas e diálogo de configurações. A navegação usa rotas Flutter, menu lateral e páginas de detalhe. O cadastro volta ao login após o sucesso; o login abre o dashboard. Há atualização/reload e botão "Tentar novamente" em telas de dados.
-
-**Administração de usuários (15/11/2026):** a opção **Usuários** aparece no menu lateral somente quando o perfil recebido de `GET /auth/perfil` é `administrador`. A lista usa `GET /usuarios` com paginação de servidor (10, 20 ou 50 por página), mostra nome, e-mail, perfil e ações; os detalhes consultam `GET /usuarios/:id`, `GET /usuarios/:id/estatisticas`, `GET /usuarios/:id/estatisticas/atividade` e `GET /usuarios/:id/baralhos`. A exclusão envia a senha do administrador para `DELETE /usuarios/:id` e desabilita a autoexclusão. As rotas já existiam no backend; não houve alteração do contrato. O acesso é validado no backend, não apenas pelo item de menu.
-
-**Correção de autenticação mobile (15/11/2026):** a primeira implementação do repositório administrativo não usava o token de sessão no cabeçalho HTTP, causando resposta `Unauthorized`. O repositório passou a enviar `Authorization: Bearer <accessToken>`. A tela também diferencia erro da API de uma lista vazia. O usuário confirmou o funcionamento do login administrativo e da abertura da lista no app; não se presume que todos os fluxos administrativos tenham sido testados contra o backend real.
 
 **Sessão e autenticação:** o app envia `POST /auth/login`, lê `accessToken` e persiste-o em `SharedPreferences` (`memora.accessToken`). Ao iniciar, tenta restaurar a sessão e abre login ou dashboard; portanto, fechar e reabrir mantém a sessão salva. O logout remove a chave e limpa a pilha de navegação. As chamadas protegidas enviam o token da sessão no cabeçalho `Authorization` com esquema Bearer. Não há renovação/refresh nem tratamento dedicado de token expirado; a autenticação no backend real ainda precisa ser validada.
 
@@ -352,23 +339,22 @@ Breno conduziu a implementação da administração de usuários no backend e no
 | `PATCH /auth/perfil` e `PATCH /auth/senha` | Testes de configurações com HTTP simulado passaram |
 | `POST /baralhos` e `POST /baralhos/:id/cartoes` | Teste de criação com HTTP simulado passou |
 | Fila de estudo e `POST /cartoes/:id/revisoes` | Teste de carregamento de fila e envio de avaliações com HTTP simulado passou; resposta não comprova persistência real ou próxima revisão no backend |
-| Administração: `GET /usuarios`, detalhes e exclusão | Teste automatizado com HTTP simulado cobre paginação, perfil do usuário, detalhe, estatísticas, atividade, baralhos, exclusão e erro 401; o usuário confirmou login como administrador e carregamento da lista no app conectado |
 | `GET/PATCH/DELETE /baralhos/:id`; `GET /baralhos/:id/cartoes`; `PATCH/DELETE /cartoes/:id` | Implementados no código; teste individual e chamada contra backend real não comprovados |
 | Estatísticas semanais, por baralho e atividade | Implementadas no código; teste individual e chamada contra backend real não comprovados |
 | Sem conexão, token expirado, usuário ou recurso inexistente | Não há resultado de teste registrado; a UI apresenta erros recebidos, mas sem validação real |
 
-**Resultados e tratamento de erros:** os testes com HTTP simulado cobrem login/token, cadastro, dados do dashboard, criação de baralho/cartão, envio de avaliações, configurações/sessão e os fluxos administrativos descritos acima. Não cobrem chamadas reais. As chamadas HTTP aplicam timeout de 15 segundos; a UI mostra mensagens para timeout, falha de conexão e erros HTTP devolvidos pela API, e telas de carregamento/retentativa. A tela de Usuários não trata um erro HTTP como uma lista vazia. Token expirado, usuário/recurso inexistente e modo sem conexão não foram validados contra backend; não há logout automático em 401/403. CORS não se aplica ao cliente nativo e não foi testado.
+**Resultados e tratamento de erros:** os testes com HTTP simulado cobrem login/token, cadastro, dados do dashboard, criação de baralho/cartão, envio de avaliações e configurações/sessão. Não cobrem chamadas reais. As chamadas HTTP aplicam timeout de 15 segundos; a UI mostra mensagens para timeout, falha de conexão e erros HTTP devolvidos pela API, e telas de carregamento/retentativa. Token expirado, usuário/recurso inexistente e modo sem conexão não foram validados contra backend; não há logout automático em 401/403. CORS não se aplica ao cliente nativo e não foi testado.
 
 **Decisões técnicas:**
 
 | Decisão | Alternativas consideradas | Justificativa | Risco ou consequência |
 |---|---|---|---|
 | Persistir o token localmente e oferecer logout | Manter token só em memória | Implementação em `SessionStore` com `SharedPreferences` | A sessão continua ao fechar o app; não há refresh nem tratamento dedicado de expiração |
-| Organizar o app em telas de autenticação, dashboard, baralhos, estudo, estatísticas e administração de usuários | Manter apenas a tela inicial estática | Cobrir os fluxos mobile e consumir endpoints existentes; a tela administrativa reaproveita o papel atual e as rotas existentes | A listagem depende do perfil do backend; operações administrativas ainda precisam de validação ponta a ponta |
+| Organizar o app em telas de autenticação, dashboard, baralhos, estudo e estatísticas | Manter apenas a tela inicial estática | Cobrir os principais fluxos de uso mobile e consumir endpoints existentes | A integração ponta a ponta ainda precisa de validação |
 
 **Mudanças no contrato da API:** nenhuma alteração de contrato foi registrada para viabilizar o mobile; o app consome rotas já existentes no backend.
 
-**Dificuldades e pendências:** não há evidência de emulador/dispositivo Android ou iOS configurado. O usuário confirmou login administrativo e carregamento da lista conectado ao backend, mas exclusão, detalhes e estatísticas administrativas não foram confirmados manualmente contra o servidor. Também não foram comprovados tratamento de token expirado, uso offline, CORS ou resultados para usuário/recurso inexistente. É necessário executar esses casos e registrar dispositivo, URL e resultados.
+**Dificuldades e pendências:** não há evidência de emulador/dispositivo Android ou iOS configurado. Também não foram comprovados tratamento de token expirado, uso offline, CORS ou resultados para usuário/recurso inexistente. É necessário executar esses casos e registrar dispositivo, URL e resultados.
 
 **Casos de uso validados:** os testes automatizados com respostas HTTP simuladas cobrem envio de credenciais e leitura do token, cadastro, dashboard, criação de baralho/cartão e avaliação de cartão. Não comprovam login, baralho, revisão ou persistência em backend real. Sem conexão, token expirado e usuário/recurso inexistente não têm teste de integração registrado. O POST de revisão é seguido pelo avanço da fila no estado local; atualização da próxima revisão no backend e reconsulta da fila precisam de validação real.
 
@@ -382,11 +368,10 @@ Breno conduziu a implementação da administração de usuários no backend e no
 
 **O que foi ajustado para os três componentes conversarem:**
 
-Os clientes web e mobile passaram a consumir os endpoints da API REST centralizada no backend, mantendo os dados e as regras no servidor. No web, o token fica em cookie `httpOnly` e as chamadas são intermediadas pelo Next.js; no mobile, o `accessToken` é persistido em `SharedPreferences` e enviado no cabeçalho `Authorization: Bearer`. Os contratos existentes foram usados para autenticação, perfil, baralhos, cartões, estudo, estatísticas e administração de usuários.
+Os clientes web e mobile passaram a consumir os endpoints da API REST centralizada no backend, mantendo os dados e as regras no servidor. No web, o token fica em cookie `httpOnly` e as chamadas são intermediadas pelo Next.js; no mobile, o `accessToken` é persistido em `SharedPreferences` e enviado no cabeçalho `Authorization: Bearer`. Os contratos existentes foram usados para autenticação, perfil, baralhos, cartões, estudo e estatísticas.
 
 **Inconsistências encontradas entre os clientes, e como foram resolvidas:**
 
-- A primeira versão da área administrativa mobile não enviava o token no cabeçalho esperado pela API e recebia `Unauthorized`. O repositório mobile passou a enviar `Authorization: Bearer <accessToken>`, permitindo que o login administrativo e a listagem de usuários fossem confirmados.
 - O cliente web guarda a sessão em cookie `httpOnly`, enquanto o mobile persiste o token em `SharedPreferences`. Essa diferença foi mantida por ser compatível com as plataformas, desde que os dois apresentem um token válido às rotas protegidas.
 - O mobile não possui renovação ou refresh do token nem tratamento dedicado de expiração. Essa limitação não foi resolvida na implementação atual e continua pendente de validação.
 
@@ -415,12 +400,12 @@ A regra de negócio fica no backend: o cliente envia apenas a nota (errei, difí
 | Nível adotado | Persistida |
 | Como o app obtém e armazena o token | `POST /auth/login` lê `accessToken`; `SessionStore` persiste em `SharedPreferences` (`memora.accessToken`) |
 | Restauração e logout | Sessão lida ao iniciar; logout remove o token e redireciona ao login |
-| Limitações | Sem refresh ou detecção/logout automático em expiração. O login administrativo e o carregamento da lista foram confirmados pelo usuário no app conectado; os demais fluxos ainda não foram validados de ponta a ponta |
+| Limitações | Sem refresh ou detecção/logout automático em expiração; os fluxos ainda não foram validados de ponta a ponta |
 | Rotas da API afetadas pela escolha | Login e rotas autenticadas de perfil, baralhos, cartões, estudo e estatísticas |
 
 ### 4.4 O que os dois clientes compartilham e o que não
 
-Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `httpOnly` e encaminha chamadas por rotas do Next.js; o mobile persiste o token em `SharedPreferences` e envia o token no cabeçalho Authorization com esquema Bearer. O usuário confirmou o login como administrador e o carregamento da lista mobile; não há registro de validação real dos demais fluxos nem testes cruzados entre clientes. A equivalência dos clientes e o compartilhamento real de dados continuam sem validação integrada.
+Web e mobile são clientes da mesma API REST. O web guarda o token em cookie `httpOnly` e encaminha chamadas por rotas do Next.js; o mobile persiste o token em `SharedPreferences` e envia o token no cabeçalho Authorization com esquema Bearer. Não há registro de validação real de todos os fluxos nem testes cruzados entre clientes. A equivalência dos clientes e o compartilhamento real de dados continuam sem validação integrada.
 
 ---
 
@@ -484,7 +469,7 @@ O anexo de prompts seria criado desde o início da Etapa 0, com os ambientes de 
 | 1.0 | 30/08/2026 | Criação do documento | Breno |
 | 1.1 | 01/11/2026 | Diário das etapas 0 a 3, arquitetura, ambiente e uso de IA até a data | Breno |
 | 1.2 | 09/11/2026 | Estado do mobile, ambiente observado, testes e pendências da integração | Matheus |
-| 1.3 | 15/11/2026 | Uso de IA, administração, alterações web e documentação alinhados ao estado atual; integração mobile permanece pendente | Breno |
+| 1.3 | 15/11/2026 | Uso de IA, administração web, alterações documentais e integração mobile alinhados ao estado atual | Breno |
 | 1.4 | 15/11/2026 | Documentação da administração de usuários no web e backend e registro da cronologia dos trabalhos de 15/11 | Breno |
 | 1.5 | 22/11/2026 | Ambiente reproduzível, testes/cobertura do backend e documentação do lembrete mobile; autoria do recurso mobile a confirmar | Não registrado |
 | 1.6 | 24/11/2026 | Versões das ferramentas do ambiente de Matheus verificadas | Matheus |

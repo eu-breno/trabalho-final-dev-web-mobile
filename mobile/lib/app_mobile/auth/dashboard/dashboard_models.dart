@@ -5,15 +5,11 @@ class DashboardData {
     required this.decks,
     this.fullName,
     this.email,
-    this.userId,
-    this.userRole,
   });
 
   final String firstName;
   final String? fullName;
   final String? email;
-  final String? userId;
-  final String? userRole;
   final DashboardStats stats;
   final List<DashboardDeck> decks;
 
@@ -34,10 +30,6 @@ class DashboardData {
       firstName: fullName.trim().split(RegExp(r'\s+')).first,
       fullName: fullName.trim(),
       email: profile['email'] is String ? profile['email'] as String : null,
-      userId: profile['id'] is String ? profile['id'] as String : null,
-      userRole: profile['perfil'] is String
-          ? profile['perfil'] as String
-          : null,
       stats: DashboardStats.fromJson(stats),
       decks: decks.map(DashboardDeck.fromJson).toList(),
     );

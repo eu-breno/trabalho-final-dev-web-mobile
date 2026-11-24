@@ -14,10 +14,10 @@ import 'package:mobile/app_mobile/auth/baralhos/baralhos_page.dart';
 import 'package:mobile/app_mobile/auth/dashboard_page.dart';
 import 'package:mobile/app_mobile/auth/dashboard/dashboard_drawer.dart';
 import 'package:mobile/app_mobile/auth/estudo/estudo_page.dart';
-import 'package:mobile/app_mobile/auth/usuarios/usuarios_page.dart';
 import 'package:mobile/app_mobile/app_login/login_form.dart';
 import 'package:mobile/app_mobile/notifications/study_reminder.dart';
 import 'package:mobile/main.dart';
+
 import 'support/fake_daily_reminder_notifications.dart';
 
 void main() {
@@ -299,142 +299,6 @@ void main() {
     api.close();
   });
 
-  testWidgets('admin lista, consulta e exclui usuários', (tester) async {
-    var listRequests = 0;
-    var userDeleted = false;
-    final client = MockClient((request) async {
-      expect(request.headers['authorization'], 'Bearer token-admin');
-      if (request.method == 'GET' &&
-          request.url.path == '/usuarios' &&
-          request.url.queryParameters['page'] == '1') {
-        expect(request.url.queryParameters['limit'], anyOf('10', '20'));
-        listRequests++;
-        return http.Response(
-          userDeleted ? '{"dados":[],"total":0,"page":1,"limit":20}' : '{"dados":[{"id":"usuario-2","nome":"Conta de teste","email":"teste@example.com","perfil":"estudante","createdAt":"2026-10-31T12:00:00.000Z"}],"total":1,"page":1,"limit":20}',
-          200,
-        );
-      }
-      if (request.method == 'GET' &&
-          request.url.path == '/usuarios/usuario-2') {
-        return http.Response(
-          '{"id":"usuario-2","nome":"Conta de teste","email":"teste@example.com","perfil":"estudante","createdAt":"2026-10-31T12:00:00.000Z","totalBaralhos":1,"totalCartoes":4,"cartoesPendentes":2}',
-          200,
-        );
-      }
-      if (request.method == 'GET' &&
-          request.url.path == '/usuarios/usuario-2/estatisticas') {
-        return http.Response(
-          '{"totalBaralhos":1,"totalCartoes":4,"cartoesEstudados":3,"taxaAcertoPorcentagem":67,"sequenciaDiasAtual":2,"periodoFiltro":"semana","atividadeSemanal":[]}',
-          200,
-        );
-      }
-      if (request.method == 'GET' &&
-          request.url.path == '/usuarios/usuario-2/estatisticas/atividade') {
-        return http.Response(
-          '[{"data":"2026-10-31","total":2,"acertos":1,"erros":1}]',
-          200,
-        );
-      }
-      if (request.method == 'GET' &&
-          request.url.path == '/usuarios/usuario-2/baralhos') {
-        return http.Response(
-          '[{"id":"baralho-1","nome":"Biologia","totalCartoes":4,"cartoesRevisados":2,"retencaoPorcentagem":67}]',
-          200,
-        );
-      }
-      if (request.method == 'DELETE' &&
-          request.url.path == '/usuarios/usuario-2') {
-        expect(request.body, '{"senha":"senha-admin"}');
-        userDeleted = true;
-        return http.Response('', 204);
-      }
-      fail('Endpoint inesperado: ${request.method} ${request.url}');
-    });
-    addTearDown(client.close);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: UsuariosPage(
-          accessToken: 'token-admin',
-          userRole: 'administrador',
-          currentUserId: 'admin-1',
-          client: client,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Usuários'), findsNWidgets(2));
-    expect(find.text('Conta de teste'), findsOneWidget);
-    expect(find.text('Nome · E-mail'), findsOneWidget);
-    expect(find.text('Tipo'), findsOneWidget);
-    expect(find.text('Ações'), findsOneWidget);
-    expect(listRequests, 1);
-    await tester.tap(find.byType(DropdownButton<int>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('10').last);
-    await tester.pumpAndSettle();
-    expect(listRequests, 2);
-
-    await tester.tap(find.text('Conta de teste'));
-    await tester.pumpAndSettle();
-    expect(find.text('Detalhes do usuário'), findsOneWidget);
-    expect(find.text('Cartas pendentes'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Atividade de revisão'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Atividade de revisão'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Biologia'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Biologia'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Voltar para usuários'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Ações de Conta de teste'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Excluir usuário'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'senha-admin');
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Confirmar exclusão'));
-    await tester.pumpAndSettle();
-
-    expect(userDeleted, isTrue);
-    expect(find.text('Nenhum usuário encontrado.'), findsOneWidget);
-  });
-
-  testWidgets('erro de autorização não aparece como lista vazia', (
-    tester,
-  ) async {
-    final client = MockClient((request) async {
-      expect(request.headers['authorization'], 'Bearer token-admin');
-      return http.Response('{"statusCode":401,"message":"Unauthorized"}', 401);
-    });
-    addTearDown(client.close);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: UsuariosPage(
-          accessToken: 'token-admin',
-          userRole: 'administrador',
-          currentUserId: 'admin-1',
-          client: client,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Unauthorized'), findsOneWidget);
-    expect(find.text('Nenhum usuário encontrado.'), findsNothing);
-  });
-
   testWidgets('dashboard mostra dados recebidos da API', (tester) async {
     var totalCards = 15;
     var biologyCards = 10;
@@ -445,7 +309,7 @@ void main() {
       switch (request.url.path) {
         case '/auth/perfil':
           return http.Response(
-            '{"id":"1","nome":"Ana Souza","email":"ana@example.com","perfil":"estudante"}',
+            '{"id":"1","nome":"Ana Souza","email":"ana@example.com","perfil":"administrador"}',
             200,
           );
         case '/baralhos':

@@ -121,17 +121,17 @@ Finalizar a modelagem inicial do banco de dados e definir o contrato básico da 
 
 ### Etapa 4 — App mobile · Checkpoint 3
 
-**Período:** de 26/10/2026 a 22/11/2026 (Checkpoint 3 entregue em 26/11/2026; com atualizações e finalização em 22/11/2026); 
+**Período:** de 26/10/2026 a 22/11/2026 (Checkpoint 3 entregue em 19/11/2026; com atualizações e finalização em 19/11/2026);
 
 | Integrante | O que fez | Componentes tocados | Commits / PRs de referência |
 |---|---|---|---|
-| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. Em 15/11, atualizou a área administrativa mobile. | Mobile | `113cd46` (26/10) e `bf88e7e` (15/11, autor `MATh3us46`, branch `back_admin`) |
+| Matheus | Inicializou o projeto Flutter e a tela de login; implementou também login/cadastro com sessão persistida, dashboard, baralhos e cartões, estudo, estatísticas e configurações. | Mobile | `113cd46` (26/10) |
 
-**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente; a atualização administrativa mobile foi commitada em `bf88e7e`.
+**Como a revisão de código aconteceu nesta etapa:** sem revisão formal. O app foi testado localmente.
 
-**Dificuldades de coordenação:** a primeira tentativa de abrir a lista de usuários no mobile retornou `Unauthorized`, pois a requisição não enviava o token no esquema esperado pela API. O cabeçalho Bearer foi corrigido e o usuário confirmou que conseguiu acessar a lista. As demais operações administrativas ainda não foram validadas com o backend real.
+**Dificuldades de coordenação:** a validação ponta a ponta dos fluxos do app mobile com o backend real permaneceu pendente.
 
-**Ajustes combinados para a próxima etapa:** validar as operações administrativas e os fluxos principais do mobile contra o backend real, testar o compartilhamento de dados entre web e mobile e usar Pull Requests com revisão do outro integrante.
+**Ajustes combinados para a próxima etapa:** validar os fluxos principais do mobile contra o backend real, testar o compartilhamento de dados entre web e mobile e usar Pull Requests com revisão do outro integrante.
 
 ---
 
@@ -173,7 +173,7 @@ Nova contagem em 22/11/2026, obtida com `git log` nas três identidades de Breno
 
 | Data | Ocorrência | Encaminhamento | Professor comunicado? |
 |---|---|---|---|
-| 12/09/2026 | Os PRs #1 e #2 foram integrados sem revisão do outro integrante, e os merges seguintes foram feitos direto, descumprindo o combinado de revisão por PR. | Voltar a usar PR com revisão cruzada, começando pelo PR da branch `back_admin`. | Não |
+| 12/09/2026 | Os PRs #1 e #2 foram integrados sem revisão do outro integrante, e os merges seguintes foram feitos direto, descumprindo o combinado de revisão por PR. | Voltar a usar PR com revisão cruzada nos próximos trabalhos. | Não |
 | 26/10/2026 | Redistribuição de papéis: Matheus, que era responsável pelo cliente web, iniciou o app mobile, e Breno passou a conduzir o cliente web e a maior parte do backend, conforme a disponibilidade de cada um. | Papéis atualizados na seção 2. Matheus segue no app mobile e Breno no cliente web e no backend. | Não |
 
 ---

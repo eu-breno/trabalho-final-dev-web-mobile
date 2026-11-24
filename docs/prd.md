@@ -250,8 +250,6 @@ Restrições do banco: `USUARIO.email` único; `BARALHO` único em (`usuarioId`,
 | Resumo de progresso (RF-040) | ✅ | ✅ | Há telas de estatísticas nos dois clientes; a validação ponta a ponta mobile continua pendente |
 | Administração de usuários (RF-050 a RF-052) | ✅ | — | Lista paginada, detalhe com estatísticas e exclusão protegida por senha, restritos ao administrador |
 
-**O que ficou de fora do mobile:** administração de usuários. O aplicativo inclui cadastro, baralhos/cartões, estudo, estatísticas e configurações; não há comprovação de integração ponta a ponta com o backend real.
-
 **O que ficou de fora do web:** recursos colaborativos e compartilhados permanecem fora do escopo atual.
 
 **Recorte mobile mínimo (1 a 3 casos de uso, com leitura e escrita na API):**
@@ -347,7 +345,7 @@ flowchart TD
 | 2 | Etapa 2 | Backend: núcleo | RF-010 a RF-013, RF-020 a RF-023, RF-030, RF-031 | Breno e Matheus | Baralhos, cartões, fila de estudo e revisões implementados |
 | 3 | Etapa 2 / 3 | Backend: acesso + início do web | RF-001 a RF-003, RF-040, RF-050; web: login e baralhos | Matheus (auth); Breno (stats/web) | JWT, guards, estatísticas e integração inicial do backend |
 | 4 | Etapa 3 | Web | RF-011, RF-021 a RF-023, RF-030 a RF-033, RF-040 | Breno | Telas de cartões, estudo e progresso implementadas |
-| 5 | Etapa 4 | Mobile | RF-001 a RF-040, exceto administração | Matheus | Telas e testes automatizados presentes; integração ponta a ponta com backend real pendente |
+| 5 | Etapa 4 | Mobile | RF-001 a RF-040 | Matheus | Telas e testes automatizados presentes; integração ponta a ponta com backend real pendente |
 | 6 | Etapa 5 | Integração e fechamento | RF-001 a RF-052 | Breno e Matheus | Fechamento integrado continua pendente; o status mobile ainda requer validação com backend real |
 
 > Os três checkpoints caem ao final das etapas 2, 3 e 4 — um por componente. Distribua as sprints de forma que cada etapa chegue ao seu checkpoint com o componente correspondente funcionando.
@@ -393,4 +391,4 @@ Sobreposição declarada: as sprints 2 e 3 (backend) se sobrepõem ao início do
 |---|---|---|
 | 1.0 | 21/09/2026 | Versão inicial |
 | 1.1 | 02/11/2026 | Versões, endpoints, plano de sprints, algoritmo e status de implementação alinhados ao código |
-| 1.2 | 15/11/2026 | Requisitos administrativos e sessão mobile alinhados à implementação atual; critérios de integração mantidos como pendentes |
+| 1.2 | 15/11/2026 | Requisitos administrativos e critérios de integração alinhados à implementação atual |

@@ -8,7 +8,6 @@ import '../../api_config.dart';
 import '../dashboard/dashboard_drawer.dart';
 import '../estudo/estudo_page.dart';
 import '../estatisticas/estatisticas_page.dart';
-import '../usuarios/usuarios_page.dart';
 import 'baralhos_repository.dart';
 
 class BaralhosPage extends StatefulWidget {
@@ -18,16 +17,12 @@ class BaralhosPage extends StatefulWidget {
     this.client,
     this.userName,
     this.userEmail,
-    this.userRole,
-    this.currentUserId,
   });
 
   final String accessToken;
   final http.Client? client;
   final String? userName;
   final String? userEmail;
-  final String? userRole;
-  final String? currentUserId;
 
   @override
   State<BaralhosPage> createState() => _BaralhosPageState();
@@ -126,8 +121,6 @@ class _BaralhosPageState extends State<BaralhosPage> {
           client: widget.client,
           userName: widget.userName,
           userEmail: widget.userEmail,
-          userRole: widget.userRole,
-          currentUserId: widget.currentUserId,
         ),
       ),
     );
@@ -213,22 +206,6 @@ class _BaralhosPageState extends State<BaralhosPage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _openUsers() {
-    Navigator.pop(context);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => UsuariosPage(
-          accessToken: widget.accessToken,
-          userRole: widget.userRole,
-          currentUserId: widget.currentUserId,
-          client: widget.client,
-          userName: widget.userName,
-          userEmail: widget.userEmail,
-        ),
-      ),
-    );
-  }
-
   void _openStatistics() {
     Navigator.pop(context);
     Navigator.of(context).push(
@@ -238,8 +215,6 @@ class _BaralhosPageState extends State<BaralhosPage> {
           client: widget.client,
           userName: widget.userName,
           userEmail: widget.userEmail,
-          userRole: widget.userRole,
-          currentUserId: widget.currentUserId,
         ),
       ),
     );
@@ -254,7 +229,6 @@ class _BaralhosPageState extends State<BaralhosPage> {
         client: widget.client,
         userName: widget.userName,
         userEmail: widget.userEmail,
-        userRole: widget.userRole,
         selectedSection: 'Baralhos',
         onTapStudy: () {
           Navigator.pop(context);
@@ -269,7 +243,6 @@ class _BaralhosPageState extends State<BaralhosPage> {
         },
         onTapHome: () =>
             Navigator.of(context).popUntil((route) => route.isFirst),
-        onTapUsers: widget.userRole == 'administrador' ? _openUsers : null,
         onTapStatistics: _openStatistics,
       ),
       appBar: AppBar(
@@ -392,8 +365,6 @@ class DeckDetailPage extends StatefulWidget {
     this.client,
     this.userName,
     this.userEmail,
-    this.userRole,
-    this.currentUserId,
   });
 
   final String accessToken;
@@ -401,8 +372,6 @@ class DeckDetailPage extends StatefulWidget {
   final http.Client? client;
   final String? userName;
   final String? userEmail;
-  final String? userRole;
-  final String? currentUserId;
 
   @override
   State<DeckDetailPage> createState() => _DeckDetailPageState();
@@ -660,29 +629,10 @@ class _DeckDetailPageState extends State<DeckDetailPage> {
                 client: widget.client,
                 userName: widget.userName,
                 userEmail: widget.userEmail,
-                userRole: widget.userRole,
-                currentUserId: widget.currentUserId,
               ),
             ),
           );
         },
-        onTapUsers: widget.userRole == 'administrador'
-            ? () {
-                Navigator.pop(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => UsuariosPage(
-                      accessToken: widget.accessToken,
-                      userRole: widget.userRole,
-                      currentUserId: widget.currentUserId,
-                      client: widget.client,
-                      userName: widget.userName,
-                      userEmail: widget.userEmail,
-                    ),
-                  ),
-                );
-              }
-            : null,
       ),
       appBar: AppBar(
         backgroundColor: const Color(0xFF09090B),
